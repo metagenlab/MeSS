@@ -1,0 +1,3 @@
+
+genome_profiles: ["example_profile_1.tsv", "example_profile_2.tsv"]
+NCBI_key: ""
