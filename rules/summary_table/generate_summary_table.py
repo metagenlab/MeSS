@@ -64,7 +64,7 @@ def generate_even_prop(species_names, pv, pb, ph):
             read_prop[i] = ph / nh
         if 'virus' in species_names[i]:
             read_prop[i] = pv / nv
-    even_reads = {'name': species_names, '%Reads': read_prop}
+    even_reads = {'name': species_names, 'percent_reads': read_prop}
     return even_reads
 
 def genome_list_to_csv(input_list, read_percentage):
@@ -103,7 +103,7 @@ def genome_list_to_csv(input_list, read_percentage):
         taxid_list.append(genome_of_choice['taxid'])
         path_list.append(genome_of_choice['path'])
 
-    data = {'AssemblyAccession': acc_list, '%Reads': prop_list, 'Name': name_list, 'TaxID': taxid_list,
+    data = {'AssemblyAccession': acc_list, 'PercentReads': prop_list, 'Name': name_list, 'TaxID': taxid_list,
             'AssemblyStatus': status_list, 'ReferenceStatus': ref_list, 'RefseqPath': path_list}
     df = pd.DataFrame(data)
     return df
@@ -123,7 +123,7 @@ hrp=snakemake.params['proportion_reads']['human']
 brp=snakemake.params['proportion_reads']['bacteria']
 
 
-even_prop_list=generate_even_prop(query,vrp,brp,hrp)['%Reads']
+even_prop_list=generate_even_prop(query,vrp,brp,hrp)['percent_reads']
 
 table=genome_list_to_csv(query,even_prop_list)
 

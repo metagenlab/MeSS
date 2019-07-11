@@ -1,7 +1,7 @@
 checkpoint generate_table_summary:
     conda:
      '../../envs/summary_table.yml'
-    input: config["samples"]
+    input: config["input_table"]
 
     output: 'table/out_table_summary.tsv'
 

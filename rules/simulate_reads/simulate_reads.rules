@@ -1,26 +1,73 @@
-rule sample_sequences:
-    conda: '../../envs/simulate_reads.yml'
-
-    input: 'assembly_fna/{sample}.fna.gz'
-
-    output: 'sampled_fna/{sample}.fna.gz'
-
-
-
-
+import pandas as pd
 def list_samples(wildcards):
     checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
     table=pd.read_csv(checkpoint_output,delimiter='\t')
+    print(table)
     acc=list(table['AssemblyAccession'])
-    return expand('assembly_fna/{sample}.fna.gz',sample=acc)
+    print(acc)
+    expd=expand('simulated_reads/{sample}_reads.fq',sample=acc)
+    print(expd)
+    return expd
 
-rule sim_sequences:
-    conda: '../../envs/simulate_reads.yml'
+def calculate_reads(wildcards):
+    total=config['total_amount_reads']
+    checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
+    table=pd.read_csv(checkpoint_output,delimiter='\t',index_col=1)
+    #print(table)
+    #print(wildcards)
+    prop=table.loc[wildcards]['PercentReads']
+    read_nb=int(prop*total)
+    #print(read_nb)
+    return read_nb
 
-    input: list_samples
+rule download_assemblies:
+    conda:
+     '../../envs/download.yml'
 
-    output: 'simulated_reads/combined.fna.gz'
+    input: 'table/out_table_summary.tsv'
+
+    output: 'assembly_fna/{sample}.fna.gz'
 
     params: NCBI_email = config['NCBI_email']
 
     script: 'dl.py'
+
+rule decompress_assemblies:
+    conda: '../../envs/simulate_reads.yml'
+
+    input: 'assembly_fna/{sample}.fna.gz'
+
+    output: temp('assembly_fna/{sample}.fna')
+
+    shell: 'zcat {wildcards.sample}.fna.gz > {wildcards.sample}.fna'
+
+rule generate_reads:
+    conda: '../../envs/simulate_reads.yml'
+
+    input: 'assembly_fna/{sample}.fna'
+
+    output: temp('simulated_reads/{sample}_reads.fq')
+
+    params: seq_system=config['illumina_sequencing_system'],
+            read_length=config['read_length'],
+            read_num=calculate_reads
+
+    shell: 'art_illumina -ss {params.seq_system} -na -i {wildcards.sample}.fna -l {params.read_length} -c {params.read_num} -o {wildcards.sample}_reads.fq'
+
+
+rule combine_shuffle_fasta:
+    conda: '../../envs/simulate_reads.yml'
+
+    input: list_samples
+
+    output: 'simulated_reads/shuffled/simulated.fq'
+
+    shell:
+        '''
+        cat {input} >> dirname {output}/combined_reads.fq
+        seqkit shuffle -2 combined_reads.fa > shuffled_simulated_reads.fq
+        '''
+
+
+
+
