@@ -1,0 +1,12 @@
+checkpoint generate_table_summary:
+    conda:
+     '../../envs/summary_table.yml'
+    input: config["samples"]
+
+    output: 'table/out_table_summary.tsv'
+
+    params:
+        NCBI_key = config['NCBI_key'],NCBI_email = config['NCBI_email'],
+        proportion_reads = config['proportion_reads']
+
+    script: 'generate_summary_table.py'

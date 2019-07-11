@@ -1,0 +1,26 @@
+rule sample_sequences:
+    conda: '../../envs/simulate_reads.yml'
+
+    input: 'assembly_fna/{sample}.fna.gz'
+
+    output: 'sampled_fna/{sample}.fna.gz'
+
+
+
+
+def list_samples(wildcards):
+    checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
+    table=pd.read_csv(checkpoint_output,delimiter='\t')
+    acc=list(table['AssemblyAccession'])
+    return expand('assembly_fna/{sample}.fna.gz',sample=acc)
+
+rule sim_sequences:
+    conda: '../../envs/simulate_reads.yml'
+
+    input: list_samples
+
+    output: 'simulated_reads/combined.fna.gz'
+
+    params: NCBI_email = config['NCBI_email']
+
+    script: 'dl.py'

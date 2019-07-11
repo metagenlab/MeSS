@@ -1,0 +1,12 @@
+
+rule download_assemblies:
+    conda:
+     '../../envs/download.yml'
+
+    input: 'table/out_table_summary.tsv'
+
+    output: 'assembly_fna/{sample}.fna.gz'
+
+    params: NCBI_email = config['NCBI_email']
+
+    script: 'dl.py'

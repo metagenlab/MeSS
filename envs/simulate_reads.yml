@@ -1,0 +1,6 @@
+channels:
+ - bioconda
+
+dependencies:
+ - seqkit = 0.10.1
+ - art = 2016.06.05

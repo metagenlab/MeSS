@@ -1,3 +1,10 @@
 
-genome_profiles: ["example_profile_1.tsv"]
-NCBI_key: ""
+#genome_profiles: ["example_profile_1.tsv"]
+
+NCBI_key: '7308cc05fae74fc2be841860d3ab0e5abe09'
+
+NCBI_email: 'farid.chaabane@unil.ch'
+
+samples: '/home/master_students/2019_Farid/SRS_test/input_table.tsv'
+
+proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.09}
