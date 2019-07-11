@@ -39,7 +39,7 @@ rule decompress_assemblies:
 
     output: temp('assembly_fna/{sample}.fna')
 
-    shell: 'zcat {wildcards.sample}.fna.gz > {wildcards.sample}.fna'
+    shell: 'zcat {input[0]} > {output[0]}'
 
 rule generate_reads:
     conda: '../../envs/simulate_reads.yml'
@@ -52,7 +52,7 @@ rule generate_reads:
             read_length=config['read_length'],
             read_num=calculate_reads
 
-    shell: 'art_illumina -ss {params.seq_system} -na -i {wildcards.sample}.fna -l {params.read_length} -c {params.read_num} -o {wildcards.sample}_reads.fq'
+    shell: 'art_illumina -ss {params.seq_system} -na -i {input[0]} -l {params.read_length} -c {params.read_num} -o simulated_reads/{wildcards.sample}_reads'
 
 
 rule combine_shuffle_fasta:
