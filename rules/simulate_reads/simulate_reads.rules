@@ -1,73 +1,94 @@
 import pandas as pd
+
 def list_samples(wildcards):
     checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
+    print(checkpoint_output)
     table=pd.read_csv(checkpoint_output,delimiter='\t')
     print(table)
     acc=list(table['AssemblyAccession'])
     print(acc)
-    expd=expand('simulated_reads/{sample}_reads.fq',sample=acc)
+    expd=expand('simulated_reads/{sample}.fq',sample=acc)
     print(expd)
     return expd
 
 def calculate_reads(wildcards):
+    print('bonjour')
     total=config['total_amount_reads']
+    print(total)
     checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
+    print(checkpoint_output)
     table=pd.read_csv(checkpoint_output,delimiter='\t',index_col=1)
-    #print(table)
-    #print(wildcards)
+    print(table)
+    print(wildcards)
     prop=table.loc[wildcards]['PercentReads']
     read_nb=int(prop*total)
-    #print(read_nb)
+    print(read_nb)
     return read_nb
 
+
 rule download_assemblies:
-    conda:
-     '../../envs/download.yml'
+    conda: '../../envs/download.yml'
 
     input: 'table/out_table_summary.tsv'
 
-    output: 'assembly_fna/{sample}.fna.gz'
+    output: 'assembly_gz/{sample}.fna.gz'
 
     params: NCBI_email = config['NCBI_email']
 
     script: 'dl.py'
 
+
 rule decompress_assemblies:
     conda: '../../envs/simulate_reads.yml'
 
-    input: 'assembly_fna/{sample}.fna.gz'
+    input: 'assembly_gz/{sample}.fna.gz'
 
     output: temp('assembly_fna/{sample}.fna')
 
     shell: 'zcat {input[0]} > {output[0]}'
 
+
+rule concat_scaffolds:
+    input: 'assembly_fna/{sample}.fna'
+
+    output: temp('concat/{sample}.fna')
+
+    shell: "sed '1!{{/^>/d;}}' {input[0]} > {output[0]}"
+
+
 rule generate_reads:
     conda: '../../envs/simulate_reads.yml'
 
-    input: 'assembly_fna/{sample}.fna'
+    input: 'concat/{sample}.fna'
 
-    output: temp('simulated_reads/{sample}_reads.fq')
+    output: temp('simulated_reads/{sample,[A-Za-z0-9_\.]+}.fq')
 
     params: seq_system=config['illumina_sequencing_system'],
             read_length=config['read_length'],
             read_num=calculate_reads
 
-    shell: 'art_illumina -ss {params.seq_system} -na -i {input[0]} -l {params.read_length} -c {params.read_num} -o simulated_reads/{wildcards.sample}_reads'
+    shell: 'art_illumina -ss {params.seq_system} -na -i {input[0]} -l {params.read_length} -c {params.read_num} -o simulated_reads/{wildcards.sample}'
 
 
-rule combine_shuffle_fasta:
-    conda: '../../envs/simulate_reads.yml'
-
+rule combine_fasta:
+    #conda: '../../envs/simulate_reads.yml'
     input: list_samples
 
-    output: 'simulated_reads/shuffled/simulated.fq'
+    output: 'combined_shuffled/combined_reads.fq'
 
     shell:
         '''
-        cat {input} >> dirname {output}/combined_reads.fq
-        seqkit shuffle -2 combined_reads.fa > shuffled_simulated_reads.fq
+        cat {input} >> {output}
         '''
+rule shuffle_fasta:
+    input: 'combined_shuffled/combined_reads.fq'
+
+    output: 'combined_shuffled/shuffled_samples.fq'
+
+    shell:
+         """awk '{{OFS="'"\\t"'"; getline seq; getline sep; getline qual; print $0,seq,sep,qual}}' {input} | shuf | awk '{{OFS="'"\\n"'"; print $1,$2,$3,$4}}' > {output}"""
 
 
 
 
+#  {input} | shuf | awk '{{OFS="'"\n"'"; print \$1,\$2,\$3,\$4}}' > {output}

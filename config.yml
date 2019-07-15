@@ -11,7 +11,7 @@ proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.09}
 
 illumina_sequencing_system: 'HSXt'#HiSeqX TruSeq (read length:150bp)
 
-total_amount_reads: 10000000 #10 million reads in total
+total_amount_reads: 10000000 #10 mil reads in total
 
 read_length: 150
 

@@ -3,5 +3,5 @@ include : 'rules/summary_table/summary_table.rules'
 include : 'rules/simulate_reads/simulate_reads.rules'
 
 rule all :
-    input: 'simulated_reads/shuffled/simulated.fq'
+    input: 'combined_shuffled/shuffled_samples.fq'
 
