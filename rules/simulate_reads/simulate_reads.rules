@@ -7,7 +7,7 @@ def list_samples(wildcards):
     print(table)
     acc=list(table['AssemblyAccession'])
     print(acc)
-    expd=expand('simulated_reads/{sample}.fq',sample=acc)
+    expd=expand('simulated_{{format}}_reads/{sample}_R{{dir}}.fq',sample=acc)
     print(expd)
     return expd
 
@@ -20,7 +20,7 @@ def calculate_reads(wildcards):
     table=pd.read_csv(checkpoint_output,delimiter='\t',index_col=1)
     print(table)
     print(wildcards)
-    prop=table.loc[wildcards]['PercentReads']
+    prop=table.loc[wildcards.sample]['PercentReads']
     read_nb=int(prop*total)
     print(read_nb)
     return read_nb
@@ -56,39 +56,64 @@ rule concat_scaffolds:
     shell: "sed '1!{{/^>/d;}}' {input[0]} > {output[0]}"
 
 
-rule generate_reads:
+rule generate_reads_single:
     conda: '../../envs/simulate_reads.yml'
 
     input: 'concat/{sample}.fna'
 
-    output: temp('simulated_reads/{sample,[A-Za-z0-9_\.]+}.fq')
+    output: temp('simulated_single_reads/{sample,[A-Za-z0-9_\.]+}_R{dir}.fq')
 
     params: seq_system=config['illumina_sequencing_system'],
             read_length=config['read_length'],
             read_num=calculate_reads
 
-    shell: 'art_illumina -ss {params.seq_system} -na -i {input[0]} -l {params.read_length} -c {params.read_num} -o simulated_reads/{wildcards.sample}'
+    shell: 'art_illumina -ss {params.seq_system} -na -i {input} \
+    -l {params.read_length} -c {params.read_num} -o simulated_single_reads/{wildcards.sample}_R'
 
 
-rule combine_fasta:
+rule generate_reads_paired:
+    conda: '../../envs/simulate_reads.yml'
+
+    input: 'concat/{sample}.fna'
+
+    output: temp('simulated_paired_reads/{sample,[A-Za-z0-9_\.]+}_R1.fq'),
+            temp('simulated_paired_reads/{sample,[A-Za-z0-9_\.]+}_R2.fq')
+
+    params: seq_system=config['illumina_sequencing_system'],
+            read_length=config['read_length'],
+            read_num=calculate_reads,
+            mean_frag_len=config['mean_fragment_length'],
+            sd=config['sd_fragment_length']
+
+    shell: 'art_illumina -ss {params.seq_system} -na -i {input} -p -m {params.mean_frag_len} -s {params.sd} \
+    -l {params.read_length} -c {params.read_num} -o simulated_paired_reads/{wildcards.sample}_R'
+
+
+rule combine_fastq:
     #conda: '../../envs/simulate_reads.yml'
     input: list_samples
 
-    output: 'combined_shuffled/combined_reads.fq'
+    output: temp('combined_{format}_shuffled/combined_reads_R{dir}.fq')
 
     shell:
         '''
         cat {input} >> {output}
         '''
-rule shuffle_fasta:
-    input: 'combined_shuffled/combined_reads.fq'
+rule shuffle_fastq:
+    input: 'combined_{format}_shuffled/combined_reads_R{dir}.fq'
 
-    output: 'combined_shuffled/shuffled_samples.fq'
+    output: 'combined_{format}_shuffled/shuffled_samples_R{dir}.fq'
 
-    shell:
-         """awk '{{OFS="'"\\t"'"; getline seq; getline sep; getline qual; print $0,seq,sep,qual}}' {input} | shuf | awk '{{OFS="'"\\n"'"; print $1,$2,$3,$4}}' > {output}"""
+    params: seed=config['shuffling_seed']
 
+    shell:"shuffle.sh {input} {output} {params.seed}"
 
+rule compress_fastq:
+    input: '{anyfq}.fq'
+
+    output: '{anyfq}.fq.gz'
+
+    shell: "gzip {input} > {output}"
 
 
 #  {input} | shuf | awk '{{OFS="'"\n"'"; print \$1,\$2,\$3,\$4}}' > {output}
