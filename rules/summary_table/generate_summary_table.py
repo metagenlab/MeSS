@@ -53,15 +53,23 @@ def genome_list_to_csv(input_list):
     path_list = []
     for i in input_list:
         print('\n searching for', i, '...')
-        taxid = Entrez.read(Entrez.esearch(db='taxonomy', term=i))['IdList'][0]
+
+        try:
+            int(i)
+            print('Query is a taxID')
+            taxid = i
+        except ValueError:
+            print('Query is not a taxID\nSearching for TaxID')
+            taxid = Entrez.read(Entrez.esearch(db='taxonomy', term=i))['IdList'][0]
+            print('TaxID:%s found'%taxid)
+        taxid_summary=Entrez.read(Entrez.efetch(db='taxonomy', id=taxid))
+        lineage = taxid_summary[0]['Lineage'].split('; ')
         search_term = 'txid%s[Organism:exp] AND ("complete genome"[filter]) AND ("latest refseq"[filter]) AND ("representative genome"[filter] OR "reference genome"[filter])'
         genome_of_choice = ref_or_not(taxid, search_term)
-
-        if taxid == '9606':  # For the human id the previous search term does not work because the assembly status == chromosome
+        if taxid == '9606' or lineage[1]=='Eukaryota' :  # For human and eukaryotes the previous search term does not work because the assembly status == chromosome
             search_term = 'txid%s[Organism:exp] AND ("latest refseq"[filter])'
             print(search_term)
             genome_of_choice = ref_or_not(taxid, search_term)
-
         if genome_of_choice == None:
             search_term = 'txid%s[Organism:exp] AND ("complete genome"[filter])'  # restrict the search term to complete genomes
             print(search_term)
@@ -113,7 +121,7 @@ def generate_even_prop(taxid_list, pv, pb, ph, pe):
 
         if lineage[1] == 'Eukaryota' and not lineage[len(lineage) - 1] == 'Homo':
             lineages_list.append(lineage[1])
-            ne += 1 - nh
+            ne += 1
             if ne == 0:
                 euka_prop = 0
             else:

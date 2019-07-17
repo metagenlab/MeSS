@@ -9,7 +9,7 @@ input_table: '/home/master_students/2019_Farid/SRS_test/input_table.tsv'
 
 pipeline_path: '/home/master_students/2019_Farid/SRS'
 
-proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.09,'non_human_eukaryotes':0}
+proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.08,'non_human_eukaryotes':0.01}
 
 illumina_sequencing_system: 'HSXt'#HiSeqX TruSeq (read length:150bp)
 
