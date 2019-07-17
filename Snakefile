@@ -7,6 +7,6 @@ if config['read_status']=='single':
 if config['read_status']=='paired':
     sample_suffix=['1','2']
     rule all :
-        input: expand('combined_{format}_shuffled/shuffled_samples_R{dir}.fq.gz',format=config['read_status'],dir=sample_suffix)
+        input: expand('combined_{format}_shuffled/shuffled_samples_R{dir}.fq',format=config['read_status'],dir=sample_suffix)
 
 

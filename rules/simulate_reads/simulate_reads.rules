@@ -12,7 +12,7 @@ def list_samples(wildcards):
     return expd
 
 def calculate_reads(wildcards):
-    print('bonjour')
+    print('Total amount of reads')
     total=config['total_amount_reads']
     print(total)
     checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
@@ -90,7 +90,6 @@ rule generate_reads_paired:
 
 
 rule combine_fastq:
-    #conda: '../../envs/simulate_reads.yml'
     input: list_samples
 
     output: temp('combined_{format}_shuffled/combined_reads_R{dir}.fq')
@@ -99,21 +98,21 @@ rule combine_fastq:
         '''
         cat {input} >> {output}
         '''
+
 rule shuffle_fastq:
     input: 'combined_{format}_shuffled/combined_reads_R{dir}.fq'
 
     output: 'combined_{format}_shuffled/shuffled_samples_R{dir}.fq'
 
-    params: seed=config['shuffling_seed']
+    params: seed=config['shuffling_seed'],pipe_path=config['pipeline_path']
 
-    shell:"shuffle.sh {input} {output} {params.seed}"
+    shell:"{params.pipe_path}/rules/simulate_reads/shuffle.sh {input} {output} {params.seed}"
 
-rule compress_fastq:
-    input: '{anyfq}.fq'
+#rule compress_fastq:
+ #   input: '{anyfq}.fq'
 
-    output: '{anyfq}.fq.gz'
+  #  output: '{anyfq}.fq.gz'
 
-    shell: "gzip {input} > {output}"
+   # shell: "gzip {input} > {output}"
 
 
-#  {input} | shuf | awk '{{OFS="'"\n"'"; print \$1,\$2,\$3,\$4}}' > {output}
