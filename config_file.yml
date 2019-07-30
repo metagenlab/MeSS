@@ -54,3 +54,4 @@ Rank_to_filter_by: 'No'
 #If you want to filter by species, set this parameter to 'species'. The filtering function will list all unique species
 #and rank their assemblies according to assembly status and Refseq category.
 
+assembly_finder_Snakefile: '/home/master_students/2019_Farid/assembly_finder/Snakefile'

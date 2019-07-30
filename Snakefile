@@ -1,6 +1,6 @@
 
 include : 'rules/simulate_reads/simulate_reads.rules'
-include: '../assembly_finder/Snakefile'
+include: config['assembly_finder_Snakefile']
 
 if config['read_status']=='single':
     sample_suffix=['1']
