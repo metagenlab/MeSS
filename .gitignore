@@ -1,1 +1,2 @@
-.idea/libraries .idea/misc.xml .idea/modules.xml .idea/SRS.iml .idea/vcs.xml .idea/workspace.xml
+.idea/
+.snakemake/

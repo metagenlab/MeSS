@@ -1,0 +1,56 @@
+
+#Paramters to be inputted by the user
+
+
+
+pipeline_path: '/home/master_students/2019_Farid/SRS'
+
+proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.08,'non_human_eukaryotes':0.01}
+
+illumina_sequencing_system: 'HSXt'#HiSeqX TruSeq (read length:150bp)
+
+total_amount_reads: 10000000 #10 mil reads in total
+
+read_length: 150
+
+mean_fragment_length: 200
+
+sd_fragment_length: 10
+
+read_status: 'paired'
+
+shuffling_seed: 42
+
+
+
+###########assembly finder config
+
+input_table_path: 'input_table.tsv'
+
+NCBI_key: 'd50e3b721745c1b0fa064bf00ff9a003fc08'
+
+NCBI_email: 'farid.chaabane@unil.ch'
+
+##Parameters for search_assemblies function
+#This set of parameters is to search all possible assemblies
+complete_assemblies: False
+
+reference_assemblies: False
+
+representative_assemblies: False
+
+exclude_from_metagenomes: True
+
+Genbank_assemblies: True
+
+Refseq_assemblies: True
+
+
+##Parameters for the filtering function
+
+Rank_to_filter_by: 'No'
+#None: Assemblies are ranked by their assembly status (complete or not)
+#and Refseq category (reference, representative ...)
+#If you want to filter by species, set this parameter to 'species'. The filtering function will list all unique species
+#and rank their assemblies according to assembly status and Refseq category.
+

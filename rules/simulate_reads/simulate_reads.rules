@@ -1,49 +1,20 @@
-import pandas as pd
+checkpoint generate_table_summary:
+    conda: '../../envs/simulate_reads.yml'
 
-def list_samples(wildcards):
-    checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
-    print(checkpoint_output)
-    table=pd.read_csv(checkpoint_output,delimiter='\t')
-    print(table)
-    acc=list(table['AssemblyAccession'])
-    print(acc)
-    expd=expand('simulated_{{format}}_reads/{sample}_R{{dir}}.fq',sample=acc)
-    print(expd)
-    return expd
+    input: 'table_combined.tsv'
 
-def calculate_reads(wildcards):
-    print('Total amount of reads')
-    total=config['total_amount_reads']
-    print(total)
-    checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
-    print(checkpoint_output)
-    table=pd.read_csv(checkpoint_output,delimiter='\t',index_col=1)
-    print(table)
-    print(wildcards)
-    prop=table.loc[wildcards.sample]['PercentReads']
-    read_nb=int(prop*total)
-    print(read_nb)
-    return read_nb
+    output: 'metagenome_summary.tsv'
 
+    params: proportion_reads = config['proportion_reads']
 
-rule download_assemblies:
-    conda: '../../envs/download.yml'
-
-    input: 'table/out_table_summary.tsv'
-
-    output: 'assembly_gz/{sample}.fna.gz'
-
-    params: NCBI_email = config['NCBI_email']
-
-    script: 'dl.py'
-
+    script: 'calculate_reads.py'
 
 rule decompress_assemblies:
     conda: '../../envs/simulate_reads.yml'
 
     input: 'assembly_gz/{sample}.fna.gz'
 
-    output: temp('assembly_fna/{sample}.fna')
+    output: 'assembly_fna/{sample}.fna'
 
     shell: 'zcat {input[0]} > {output[0]}'
 
@@ -55,6 +26,20 @@ rule concat_scaffolds:
 
     shell: "sed '1!{{/^>/d;}}' {input[0]} > {output[0]}"
 
+import pandas as pd
+def calculate_reads(wildcards):
+    print('Total amount of reads')
+    total=config['total_amount_reads']
+    print(total)
+    checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
+    print(checkpoint_output)
+    table=pd.read_csv(checkpoint_output,delimiter='\t',index_col=0)
+    print(table)
+    print(wildcards)
+    prop=table.loc[wildcards.sample]['PercentReads']
+    read_nb=int(prop*total)
+    print(read_nb)
+    return read_nb
 
 rule generate_reads_single:
     conda: '../../envs/simulate_reads.yml'
@@ -87,6 +72,16 @@ rule generate_reads_paired:
 
     shell: 'art_illumina -ss {params.seq_system} -na -i {input} -p -m {params.mean_frag_len} -s {params.sd} \
     -l {params.read_length} -c {params.read_num} -o simulated_paired_reads/{wildcards.sample}_R'
+
+def list_samples(wildcards):
+    checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
+    table=pd.read_csv(checkpoint_output,delimiter='\t')
+    #print(table)
+    acc=list(table['AssemblyNames'])
+    #print(acc)
+    expd=expand('simulated_{{format}}_reads/{sample}_R{{dir}}.fq',sample=acc)
+    #print(expd)
+    return expd
 
 
 rule combine_fastq:
