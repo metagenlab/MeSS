@@ -1,5 +1,5 @@
 checkpoint generate_table_summary:
-    conda: '../../envs/simulate_reads.yml'
+    conda: '../envs/simulate_reads.yml'
 
     input: 'table_combined.tsv'
 
@@ -7,10 +7,14 @@ checkpoint generate_table_summary:
 
     params: proportion_reads = config['proportion_reads']
 
+    threads: 1
+
     script: 'calculate_reads.py'
 
+
+
 rule decompress_assemblies:
-    conda: '../../envs/simulate_reads.yml'
+    conda: '../envs/simulate_reads.yml'
 
     input: 'assembly_gz/{sample}.fna.gz'
 
@@ -37,7 +41,7 @@ def calculate_reads(wildcards):
     return read_nb
 
 rule generate_reads_single:
-    conda: '../../envs/simulate_reads.yml'
+    conda: '../envs/simulate_reads.yml'
 
     input: 'concat/{sample}.fna'
 
@@ -52,7 +56,7 @@ rule generate_reads_single:
 
 
 rule generate_reads_paired:
-    conda: '../../envs/simulate_reads.yml'
+    conda: '../envs/simulate_reads.yml'
 
     input: 'concat/{sample}.fna'
 
@@ -93,7 +97,7 @@ rule shuffle_fastq:
 
     params: seed=config['shuffling_seed'],pipe_path=config['pipeline_path']
 
-    shell:"{params.pipe_path}/rules/simulate_reads/shuffle.sh {input} {output} {params.seed}"
+    shell:"{params.pipe_path}/rules/shuffle.sh {input} {output} {params.seed}"
 
 #rule compress_fastq:
  #   input: '{anyfq}.fq'

@@ -1,5 +1,5 @@
 
-include : 'rules/simulate_reads/simulate_reads.rules'
+include : 'rules/simulate_reads.rules'
 include: config['assembly_finder_Snakefile']
 
 if config['read_status']=='single':
