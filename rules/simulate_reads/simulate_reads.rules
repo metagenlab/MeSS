@@ -14,7 +14,7 @@ rule decompress_assemblies:
 
     input: 'assembly_gz/{sample}.fna.gz'
 
-    output: 'assembly_fna/{sample}.fna'
+    output: temp('assembly_fna/{sample}.fna')
 
     shell: 'zcat {input[0]} > {output[0]}'
 
@@ -28,17 +28,12 @@ rule concat_scaffolds:
 
 import pandas as pd
 def calculate_reads(wildcards):
-    print('Total amount of reads')
     total=config['total_amount_reads']
-    print(total)
     checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
-    print(checkpoint_output)
     table=pd.read_csv(checkpoint_output,delimiter='\t',index_col=0)
-    print(table)
-    print(wildcards)
     prop=table.loc[wildcards.sample]['PercentReads']
     read_nb=int(prop*total)
-    print(read_nb)
+    print('Simulating {0} reads'.format(read_nb))
     return read_nb
 
 rule generate_reads_single:
@@ -76,11 +71,8 @@ rule generate_reads_paired:
 def list_samples(wildcards):
     checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
     table=pd.read_csv(checkpoint_output,delimiter='\t')
-    #print(table)
     acc=list(table['AssemblyNames'])
-    #print(acc)
     expd=expand('simulated_{{format}}_reads/{sample}_R{{dir}}.fq',sample=acc)
-    #print(expd)
     return expd
 
 
