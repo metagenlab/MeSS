@@ -7,8 +7,6 @@ checkpoint generate_table_summary:
 
     params: proportion_reads = config['proportion_reads']
 
-    threads: 1
-
     script: 'calculate_reads.py'
 
 
@@ -37,7 +35,7 @@ def calculate_reads(wildcards):
     table=pd.read_csv(checkpoint_output,delimiter='\t',index_col=0)
     prop=table.loc[wildcards.sample]['PercentReads']
     read_nb=int(prop*total)
-    print('Simulating {0} reads'.format(read_nb))
+    print('Simulating {} reads'.format(read_nb))
     return read_nb
 
 rule generate_reads_single:
@@ -45,14 +43,16 @@ rule generate_reads_single:
 
     input: 'concat/{sample}.fna'
 
-    output: temp('simulated_single_reads/{sample,[A-Za-z0-9_\.]+}_R{dir}.fq')
+    output: temp('simulated_reads_single_{rep}/{sample,[A-Za-z0-9_\.]+}_R1.fq')
 
     params: seq_system=config['illumina_sequencing_system'],
             read_length=config['read_length'],
             read_num=calculate_reads
 
+    resources: nb_simulation=1
+
     shell: 'art_illumina -ss {params.seq_system} -na -i {input} \
-    -l {params.read_length} -c {params.read_num} -o simulated_single_reads/{wildcards.sample}_R'
+    -l {params.read_length} -c {params.read_num} -o simulated_reads_single_{wildcards.rep}/{wildcards.sample}_R'
 
 
 rule generate_reads_paired:
@@ -60,8 +60,8 @@ rule generate_reads_paired:
 
     input: 'concat/{sample}.fna'
 
-    output: temp('simulated_paired_reads/{sample,[A-Za-z0-9_\.]+}_R1.fq'),
-            temp('simulated_paired_reads/{sample,[A-Za-z0-9_\.]+}_R2.fq')
+    output: temp('simulated_reads_paired_{rep}/{sample,[A-Za-z0-9_\.]+}_R1.fq'),
+            temp('simulated_reads_paired_{rep}/{sample,[A-Za-z0-9_\.]+}_R2.fq')
 
     params: seq_system=config['illumina_sequencing_system'],
             read_length=config['read_length'],
@@ -69,35 +69,39 @@ rule generate_reads_paired:
             mean_frag_len=config['mean_fragment_length'],
             sd=config['sd_fragment_length']
 
+    resources: nb_simulation=1
+
     shell: 'art_illumina -ss {params.seq_system} -na -i {input} -p -m {params.mean_frag_len} -s {params.sd} \
-    -l {params.read_length} -c {params.read_num} -o simulated_paired_reads/{wildcards.sample}_R'
+    -l {params.read_length} -c {params.read_num} -o simulated_reads_paired_{wildcards.rep}/{wildcards.sample}_R'
 
 def list_samples(wildcards):
     checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
     table=pd.read_csv(checkpoint_output,delimiter='\t')
     acc=list(table['AssemblyNames'])
-    expd=expand('simulated_{{format}}_reads/{sample}_R{{dir}}.fq',sample=acc)
+    expd=expand('simulated_reads_{format}_{{rep}}/{sample}_R{{rd}}.fq',sample=acc,format=config["read_status"])
     return expd
 
 
 rule combine_fastq:
     input: list_samples
 
-    output: temp('combined_{format}_shuffled/combined_reads_R{dir}.fq')
+    output: temp('combined_{rep}/combined_reads_R{rd}.fq')
 
     shell:
         '''
         cat {input} >> {output}
         '''
 
+pipeline_path=workflow.basedir+'/'
+
 rule shuffle_fastq:
-    input: 'combined_{format}_shuffled/combined_reads_R{dir}.fq'
+    input: 'combined_{rep}/combined_reads_R{rd}.fq'
 
-    output: 'combined_{format}_shuffled/shuffled_samples_R{dir}.fq'
+    output: 'simreads/{community}/simrep_{rep}/R{rd}.fq'
 
-    params: seed=config['shuffling_seed'],pipe_path=config['pipeline_path']
+    params: seed=config['shuffling_seed'],script_path=pipeline_path+'rules/shuffle.sh'
 
-    shell:"{params.pipe_path}/rules/shuffle.sh {input} {output} {params.seed}"
+    shell:"{params.script_path} {input} {output} {params.seed}"
 
 #rule compress_fastq:
  #   input: '{anyfq}.fq'

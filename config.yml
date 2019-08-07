@@ -1,9 +1,9 @@
 
 #Paramters to be inputted by the user
 
+replicates: 1
 
-
-pipeline_path: '/home/master_students/2019_Farid/SRS'
+community_name: 'CF_metagenome'
 
 proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.08,'non_human_eukaryotes':0.01}
 
@@ -48,7 +48,7 @@ Refseq_assemblies: True
 
 ##Parameters for the filtering function
 
-Rank_to_filter_by: 'No'
+Rank_to_filter_by: 'None'
 #None: Assemblies are ranked by their assembly status (complete or not)
 #and Refseq category (reference, representative ...)
 #If you want to filter by species, set this parameter to 'species'. The filtering function will list all unique species
