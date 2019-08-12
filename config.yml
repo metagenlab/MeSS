@@ -19,7 +19,6 @@ sd_fragment_length: 10
 
 read_status: 'paired'
 
-shuffling_seed: 42
 
 
 
