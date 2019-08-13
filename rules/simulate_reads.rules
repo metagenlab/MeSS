@@ -1,18 +1,36 @@
-checkpoint generate_table_summary:
-    conda: '../envs/simulate_reads.yml'
+import pandas as pd
+import numpy as np
+tb=pd.read_csv('table_combined.tsv',sep='\t')
+#Check if the user already inputted read percentages for each assembly
+if 'PercentReads' in list(tb.columns):
+    if len(list(tb['PercentReads']))==len(tb):#Check if the user filled the list or not
+        Percent_reads_list=True
+    else:
+        Percent_reads_list=False
+    checkpoint get_reads:
+        conda: '../envs/simulate_reads.yml'
 
-    input: 'table_combined.tsv'
+        input: 'table_combined.tsv'
 
-    output: 'metagenome_summary.tsv'
+        output: 'metagenome_summary.tsv'
 
-    params: proportion_reads = config['proportion_reads']
+        shell: "cp {input} {output} "
 
-    script: 'calculate_reads.py'
+else:
+    Percent_reads_list=False
+    checkpoint get_reads:
+        conda: '../envs/simulate_reads.yml'
+
+        input: 'table_combined.tsv'
+
+        output: 'metagenome_summary.tsv'
+
+        params: proportion_reads = config['proportion_reads']
+
+        script: 'calculate_reads.py'
 
 
 rule decompress_assemblies:
-    conda: '../envs/simulate_reads.yml'
-
     input: 'assembly_gz/{sample}.fna.gz'
 
     output: temp('simreads/{sample}.fna')
@@ -23,15 +41,14 @@ rule decompress_assemblies:
 rule concat_scaffolds:
     input: 'simreads/{sample}.fna'
 
-    output: temp('simreads/{sample,[A-Za-z0-9_\.]}.fna')
+    output: temp('simreads/{sample}.fa') #.fa because ouptput files must have unique names (otherwise we have to create a new dir, or use shadow rules)
 
     shell: "sed '1!{{/^>/d;}}' {input[0]} > {output[0]}"
 
-import pandas as pd
-import numpy as np
+
 def calculate_reads(wildcards):
     total=config['total_amount_reads']
-    checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
+    checkpoint_output = checkpoints.get_reads.get(**wildcards).output[0]
     table=pd.read_csv(checkpoint_output,delimiter='\t',index_col=0)
     prop=table.loc[wildcards.sample]['PercentReads']
     read_nb=int(prop*total)
@@ -42,10 +59,12 @@ def calculate_reads(wildcards):
     print('Simulating {} reads'.format(read_nb_sample))
     return read_nb_sample
 
+
+
 rule generate_reads_single:
     conda: '../envs/simulate_reads.yml'
 
-    input: 'simreads/{sample}.fna'
+    input: 'simreads/{sample}.fa'
 
     output: temp('simreads/single_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R1.fq')
 
@@ -62,7 +81,7 @@ rule generate_reads_single:
 rule generate_reads_paired:
     conda: '../envs/simulate_reads.yml'
 
-    input: 'simreads/{sample}.fna'
+    input: 'simreads/{sample}.fa'
 
     output: temp('simreads/paired_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R1.fq'),
             temp('simreads/paired_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R2.fq')
@@ -79,7 +98,7 @@ rule generate_reads_paired:
     -l {params.read_length} -c {params.read_num} -o simreads/paired_simrep{wildcards.rep}_{wildcards.sample}_R'
 
 def list_samples(wildcards):
-    checkpoint_output = checkpoints.generate_table_summary.get(**wildcards).output[0]
+    checkpoint_output = checkpoints.get_reads.get(**wildcards).output[0]
     table=pd.read_csv(checkpoint_output,delimiter='\t')
     acc=list(table['AssemblyNames'])
     expd=expand('simreads/{format}_simrep{{rep}}_{sample}_R{{rd}}.fq',sample=acc,format=config["read_status"])
@@ -104,7 +123,6 @@ def shuffling_seed_replicate(wildcards):
     np.random.seed(0)#set seed so that seeds in seed_dic do not change
     seed_list=np.random.randint(low=1,high=1000,size=len(rep_list))
     seed_dic=dict(zip(rep_list,seed_list))
-    print(seed_dic)
     return seed_dic[int(wildcards.rep)]
 
 rule shuffle_fastq:
