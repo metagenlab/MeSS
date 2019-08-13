@@ -7,15 +7,15 @@ get_seeded_random()
   }
 ##This function creates a file with random data and use it as an external random generator for shuf
 ##See https://www.gnu.org/software/coreutils/manual/html_node/Random-sources.html#Random-sources
-seed_nb=$(( ( RANDOM % 1000 )  + 1 ))
+
 ####Parameters
 input=$1
 output=$2
-echo $1 $2 $seed_seed_nb
+echo $1 $2 $3
 
 
 ####Main
 awk '{OFS="\t"; getline seq; getline sep; getline qual; print $0,seq,sep,qual}' $input | \
-    shuf --random-source=<(get_seeded_random $seed_nb) | \
+    shuf --random-source=<(get_seeded_random $3) | \
         awk '{OFS="\n"; print $1,$2,$3,$4}' > $output
 #####
