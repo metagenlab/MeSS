@@ -7,7 +7,7 @@ if 'PercentReads' in list(tb.columns):
         Percent_reads_list=True
     else:
         Percent_reads_list=False
-    checkpoint get_reads:
+    checkpoint get_read_proportions:
         conda: '../envs/simulate_reads.yml'
 
         input: 'table_combined.tsv'
@@ -18,7 +18,7 @@ if 'PercentReads' in list(tb.columns):
 
 else:
     Percent_reads_list=False
-    checkpoint get_reads:
+    checkpoint get_read_proportions:
         conda: '../envs/simulate_reads.yml'
 
         input: 'table_combined.tsv'
@@ -27,7 +27,7 @@ else:
 
         params: proportion_reads = config['proportion_reads']
 
-        script: 'calculate_reads.py'
+        script: 'add_read_percent.py'
 
 
 rule decompress_assemblies:
@@ -46,59 +46,81 @@ rule concat_scaffolds:
     shell: "sed '1!{{/^>/d;}}' {input[0]} > {output[0]}"
 
 
-def calculate_reads(wildcards):
-    total=config['total_amount_reads']
-    checkpoint_output = checkpoints.get_reads.get(**wildcards).output[0]
-    table=pd.read_csv(checkpoint_output,delimiter='\t',index_col=0)
-    prop=table.loc[wildcards.sample]['PercentReads']
-    read_nb=int(prop*total)
-    mean=read_nb
-    sd=2.0
-    read_nb_sample=round(np.random.normal(mean,sd))
-    #This adds variability for the number of simulated reads between replicates
-    print('Simulating {} reads'.format(read_nb_sample))
-    return read_nb_sample
+
+checkpoint create_krona_table:
+    input: 'metagenome_summary.tsv'
+
+    output: temp('krona/simrep_{rep}.tsv')
+
+    script: 'krona_table.py'
 
 
+
+rule remove_krona_table_index:
+    input: 'krona/simrep_{rep}.tsv'
+
+    output: 'krona/simrep_{rep}.txt'
+
+    script: 'remove_index.py'
+
+
+rule create_krona_chart:
+    conda: '../envs/simulate_reads.yml'
+
+    input: 'krona/simrep_{rep}.txt'
+
+    output: 'krona/simrep_{rep}.html'
+
+    shell: 'ktImportText -o {output} {input}'
+
+
+def parse_krona_table(wildcards):
+    rule_output = checkpoints.create_krona_table.get(**wildcards).output[0]
+    print(rule_output)
+    table=pd.read_csv(rule_output,delimiter='\t',index_col=0)
+    nb_reads=table.loc[wildcards.sample]['SimReads']
+    print(f"{nb_reads} for {wildcards.sample}")
+    return nb_reads
 
 rule generate_reads_single:
     conda: '../envs/simulate_reads.yml'
 
-    input: 'simreads/{sample}.fa'
+    input: fa='simreads/{sample}.fa',check='krona/simrep_{rep}.tsv'
 
     output: temp('simreads/single_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R1.fq')
 
     params: seq_system=config['illumina_sequencing_system'],
             read_length=config['read_length'],
-            read_num=calculate_reads
+            read_num=parse_krona_table
+
 
     resources: nb_simulation=1
 
-    shell: 'art_illumina -ss {params.seq_system} -na -i {input} \
+    shell: 'art_illumina -ss {params.seq_system} -na -i {input.fa} \
     -l {params.read_length} -c {params.read_num} -o simreads/single_simrep{wildcards.rep}_{wildcards.sample}_R1'
 
 
 rule generate_reads_paired:
     conda: '../envs/simulate_reads.yml'
 
-    input: 'simreads/{sample}.fa'
+    input: fa='simreads/{sample}.fa',check='krona/simrep_{rep}.tsv'
 
     output: temp('simreads/paired_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R1.fq'),
             temp('simreads/paired_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R2.fq')
 
     params: seq_system=config['illumina_sequencing_system'],
             read_length=config['read_length'],
-            read_num=calculate_reads,
             mean_frag_len=config['mean_fragment_length'],
-            sd=config['sd_fragment_length']
+            sd=config['sd_fragment_length'],
+            read_num=parse_krona_table
 
     resources: nb_simulation=1
 
-    shell: 'art_illumina -ss {params.seq_system} -na -i {input} -p -m {params.mean_frag_len} -s {params.sd} \
+    shell: 'art_illumina -ss {params.seq_system} -na -i {input.fa} -p -m {params.mean_frag_len} -s {params.sd} \
     -l {params.read_length} -c {params.read_num} -o simreads/paired_simrep{wildcards.rep}_{wildcards.sample}_R'
 
 def list_samples(wildcards):
-    checkpoint_output = checkpoints.get_reads.get(**wildcards).output[0]
+    checkpoint_output = checkpoints.get_read_proportions.get(**wildcards).output[0]
     table=pd.read_csv(checkpoint_output,delimiter='\t')
     acc=list(table['AssemblyNames'])
     expd=expand('simreads/{format}_simrep{{rep}}_{sample}_R{{rd}}.fq',sample=acc,format=config["read_status"])

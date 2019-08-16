@@ -16,5 +16,7 @@ def rep_expand(nb_rep):
     return output_files
 
 rule all_sim :
-    input: rep_expand(nb_rep)
+    input: rep_expand(nb_rep),
+           expand('krona/simrep_{rep}.html',rep=list(range(1,nb_rep+1)))
+
 
