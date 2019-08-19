@@ -48,6 +48,9 @@ rule concat_scaffolds:
 
 
 checkpoint create_krona_table:
+    '''
+    Rule for generating a table per sample with read counts for each genome 
+    '''
     input: 'metagenome_summary.tsv'
 
     output: temp('krona/simrep_{rep}.tsv')
