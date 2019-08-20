@@ -11,7 +11,7 @@ get_seeded_random()
 ####Parameters
 input=$1
 output=$2
-echo $1 $2 $3
+
 
 
 ####Main
