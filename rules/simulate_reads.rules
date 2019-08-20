@@ -2,11 +2,13 @@ import pandas as pd
 import numpy as np
 tb=pd.read_csv('table_combined.tsv',sep='\t')
 #Check if the user already inputted read percentages for each assembly
-if 'PercentReads' in list(tb.columns):
-    if len(list(tb['PercentReads']))==len(tb):#Check if the user filled the list or not
-        Percent_reads_list=True
-    else:
-        Percent_reads_list=False
+if 'PercentReads' in list(tb.columns) and len(list(tb['PercentReads']))==len(tb):
+    #Check if the user filled the list or not
+    Percent_reads_list=True
+else:
+    Percent_reads_list=False
+
+if Percent_reads_list:
     checkpoint get_read_proportions:
         conda: '../envs/simulate_reads.yml'
 
@@ -17,7 +19,6 @@ if 'PercentReads' in list(tb.columns):
         shell: "cp {input} {output} "
 
 else:
-    Percent_reads_list=False
     checkpoint get_read_proportions:
         conda: '../envs/simulate_reads.yml'
 
