@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+import logging
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',datefmt='%d %b %Y %H:%M:%S',
+                    filename=snakemake.log[0], level=logging.DEBUG)
 def calculate_reads(table,total):
     reads_to_sim=[]
     for i in range(len(table)):
@@ -11,7 +14,7 @@ def calculate_reads(table,total):
         read_nb_sample = round(np.random.normal(mean, sd))
         # This adds variability for the number of simulated reads between replicates
         reads_to_sim.append(read_nb_sample)
-        print(f"{read_nb_sample} reads for {acc} , replicate {snakemake.wildcards.rep}")
+        logging.info(f"{read_nb_sample} reads for {acc} , replicate {snakemake.wildcards.rep}")
     return reads_to_sim
 """
 Main
