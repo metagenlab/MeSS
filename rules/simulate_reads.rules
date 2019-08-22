@@ -39,12 +39,12 @@ rule decompress_assemblies:
     shell: 'zcat {input[0]} > {output[0]}'
 
 
-rule concat_scaffolds:
+rule merge_contigs:
     input: 'simreads/{sample}.fna'
 
     output: temp('simreads/{sample}.fa') #.fa because ouptput files must have unique names (otherwise we have to create a new dir, or use shadow rules)
 
-    shell: "sed '1!{{/^>/d;}}' {input[0]} > {output[0]}"
+    script: "merge_contigs.py"
 
 
 
