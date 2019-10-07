@@ -3,6 +3,7 @@ import numpy as np
 import logging
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',datefmt='%d %b %Y %H:%M:%S',
                     filename=snakemake.log[0], level=logging.DEBUG)
+
 def calculate_reads(table,total):
     reads_to_sim=[]
     for i in range(len(table)):
@@ -10,7 +11,7 @@ def calculate_reads(table,total):
         prop=table.loc[i]['PercentReads']
         read_nb=int(prop*total)
         mean = read_nb
-        sd = 2.0
+        sd = snakemake.config["sd_read_num"]
         read_nb_sample = round(np.random.normal(mean, sd))
         # This adds variability for the number of simulated reads between replicates
         reads_to_sim.append(read_nb_sample)

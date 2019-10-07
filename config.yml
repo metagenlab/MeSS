@@ -19,6 +19,9 @@ sd_fragment_length: 10
 
 read_status: 'paired'
 
+sd_read_num: 0 #Standard deviation for varying the number of reads per replicate, if 0 keep the same number of reads for each replicate
+
+
 
 
 
