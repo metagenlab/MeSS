@@ -12,10 +12,10 @@ get_seeded_random()
 input=$1
 output=$2
 
-
+echo "Shuffling seed for $input : $3"
 
 ####Main
-awk '{OFS="\t"; getline seq; getline sep; getline qual; print $0,seq,sep,qual}' $input | \
-    shuf --random-source=<(get_seeded_random $3) | \
-        awk '{OFS="\n"; print $1,$2,$3,$4}' > $output
+awk '{OFS="\t"; getline seq; getline sep; getline qual; print $0,seq,sep,qual}' "$input" | \
+    shuf --random-source=<(get_seeded_random "$3") | \
+        awk '{OFS="\n"; print $1,$2,$3,$4}' > "$output"
 #####
