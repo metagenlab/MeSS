@@ -1,32 +1,45 @@
 import pandas as pd
 import numpy as np
-tb=pd.read_csv('table_combined.tsv',sep='\t')
-#Check if the user already inputted read percentages for each assembly
+
+
+tb=pd.read_csv('input_table.tsv',sep='\t')
 if 'PercentReads' in list(tb.columns) and len(list(tb['PercentReads']))==len(tb):
-    #Check if the user filled the list or not
+#Check if the user filled the list or not
     Percent_reads_list=True
 else:
     Percent_reads_list=False
+ 
+#Check if the user already inputted read percentages for each assembly
+
+def parse_summary_tb(wildcards):
+    checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
+    tb=pd.read_csv(checkpoint_output,delimiter='\t')
+    filenames=tb['AssemblyNames']
+    expd=expand('assembly_gz/{sample}.fna.gz',sample=filenames)
+    return expd
 
 if Percent_reads_list:
-    checkpoint get_read_proportions:
-        conda: '../envs/simulate_reads.yml'
+    rule get_read_proportions:
+        conda: '../envs/simulate_reads.yml' 
 
-        input: 'table_combined.tsv'
+        input: parse_summary_tb
 
         output: 'metagenome_summary.tsv'
+         
+        params: 'table_combined.tsv'
 
-        shell: "cp {input} {output} "
+        shell: "cp {params} {output} "
 
 else:
-    checkpoint get_read_proportions:
+    rule get_read_proportions:
         conda: '../envs/simulate_reads.yml'
 
-        input: 'table_combined.tsv'
+        input: parse_summary_tb
 
         output: 'metagenome_summary.tsv'
 
-        params: proportion_reads = config['proportion_reads']
+        params: proportion_reads = config['proportion_reads'],
+                table='table_combined.tsv'
 
         script: 'add_read_percent.py'
 
@@ -34,15 +47,17 @@ else:
 rule decompress_assemblies:
     input: 'assembly_gz/{sample}.fna.gz'
 
-    output: temp('simreads/{sample}.fna')
+    output: temp('simreads/{community}/{sample}.fna')
 
     shell: 'zcat {input[0]} > {output[0]}'
 
 
 rule merge_contigs:
-    input: 'simreads/{sample}.fna'
+    conda: '../envs/simulate_reads.yml'
 
-    output: temp('simreads/{sample}.fa') #.fa because ouptput files must have unique names (otherwise we have to create a new dir, or use shadow rules)
+    input: 'simreads/{community}/{sample}.fna'
+
+    output: temp('simreads/{community}/{sample}.fa') #.fa because ouptput files must have unique names (otherwise we have to create a new dir, or use shadow rules)
 
     script: "merge_contigs.py"
 
@@ -54,94 +69,108 @@ checkpoint create_krona_table:
     '''
     input: 'metagenome_summary.tsv'
 
-    output: temp('krona/simrep_{rep}.tsv')
+    output: 'krona/{community}/simrep_{rep}.txt',
+            'krona/{community}/simrep_{rep}.tsv'
 
-    log: "logs/create_krona_table/simrep_{rep}.tsv"
+    log: "logs/create_krona_table/{community}/simrep_{rep}.txt"
 
     script: 'krona_table.py'
 
 
 
-rule remove_krona_table_index:
-    input: 'krona/simrep_{rep}.tsv'
-
-    output: 'krona/simrep_{rep}.txt'
-
-    script: 'remove_index.py'
-
-
 rule create_krona_chart:
     conda: '../envs/simulate_reads.yml'
 
-    input: 'krona/simrep_{rep}.txt'
+    input: 'krona/{community}/simrep_{rep}.txt'
 
-    output: 'krona/simrep_{rep}.html'
+    output: 'krona/{community}/simrep_{rep}.html'
 
     shell: 'ktImportText -o {output} {input}'
 
 
 
 def parse_krona_table(wildcards):
-    rule_output = checkpoints.create_krona_table.get(**wildcards).output[0]
+    rule_output = checkpoints.create_krona_table.get(**wildcards).output[1]
     table=pd.read_csv(rule_output,delimiter='\t',index_col=0)
     nb_reads=table.loc[wildcards.sample]['SimReads']
     return nb_reads
 
-rule generate_reads_single:
-    conda: '../envs/simulate_reads.yml'
 
-    input: fa='simreads/{sample}.fa',
-            check='krona/simrep_{rep}.tsv'
+if config['read_status']=='paired':
+    rule generate_reads:
+        conda: '../envs/simulate_reads.yml'
 
-    output: temp('simreads/single_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R1.fq')
+        input: fa='simreads/{community}/{sample}.fa',
+                tab='krona/{community}/simrep_{rep}.tsv'
 
-    params: seq_system=config['illumina_sequencing_system'],
-            read_length=config['read_length'],
-            read_num=parse_krona_table
+        output: temp('simreads/{community}/paired_simrep{rep,[0-9]+}_{sample}_R1.fq'),
+                temp('simreads/{community}/paired_simrep{rep,[0-9]+}_{sample}_R2.fq')
+
+#temp('simreads/paired_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R1.fq'),
+#temp('simreads/paired_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R2.fq')
+        params: seq_system=config['illumina_sequencing_system'],
+                read_length=config['read_length'],
+                mean_frag_len=config['mean_fragment_length'],
+                sd=config['sd_fragment_length'],
+                read_num=lambda wildcards:parse_krona_table(wildcards),
+                random_seed=lambda wildcards: seed_dic[int(wildcards.rep)]
+
+        resources: nb_simulation=1
+
+        log: "logs/read_generation/{community}/replicate_{rep}/{sample}.log"
+
+        shell: 'art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} -p -m {params.mean_frag_len} -s {params.sd} \
+        -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/paired_simrep{wildcards.rep}_{wildcards.sample}_R &> {log}'
+
+else:
+    rule generate_reads:
+        conda: '../envs/simulate_reads.yml'
+
+        input: fa='simreads/{community}/{sample}.fa',
+                tab='krona/{community}/simrep_{rep}.tsv'
+
+        output: temp('simreads/{community}/single_simrep{rep}_{sample}_R1.fq')
+
+#temp('simreads/single_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R1.fq')
+        params: seq_system=config['illumina_sequencing_system'],
+                read_length=config['read_length'],
+                read_num=lambda wildcards:parse_krona_table(wildcards),
+                random_seed=lambda wildcards: seed_dic[int(wildcards.rep)]
+
+        resources: nb_simulation=1
+
+        log: "logs/read_generation/{community}/replicate_{rep}/{sample}.log"
+
+        shell: 'art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} \
+        -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/single_simrep{wildcards.rep}_{wildcards.sample}_R1 &> {log}'
 
 
-    resources: nb_simulation=1
+#def get_generate_reads_output(wildcards):
+#    checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
+#    tb=pd.read_csv(checkpoint_output,delimiter='\t')
+#    filenames=tb['AssemblyNames']
+#    nb_rep=config["replicates"]
+#    if config['read_status']=='paired':
+#        return expand('simreads/paired_simrep{rep}_{sample}_R{rd}.fq',rp=['1','2'],sample=filenames,rep=list(range(1,nb_rep+1)))
+#    else:
+#        return expand('simreads/single_simrep{rep}_{sample}_R1.fq',sample=filenames,rep=list(range(1,nb_rep+1)))
 
-    log: "logs/read_generation/replicate_{rep}/art_illumina.log"
+def combine_fastq_input(wildcards):
+    checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
+    tb=pd.read_csv(checkpoint_output,delimiter='\t')
+    filenames=tb['AssemblyNames']
 
-    shell: 'art_illumina -ss {params.seq_system} -na -i {input.fa} \
-    -l {params.read_length} -c {params.read_num} -o simreads/single_simrep{wildcards.rep}_{wildcards.sample}_R1 &>> {log}'
-
-
-rule generate_reads_paired:
-    conda: '../envs/simulate_reads.yml'
-
-    input: fa='simreads/{sample}.fa',
-            check='krona/simrep_{rep}.tsv'
-
-    output: temp('simreads/paired_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R1.fq'),
-            temp('simreads/paired_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R2.fq')
-
-    params: seq_system=config['illumina_sequencing_system'],
-            read_length=config['read_length'],
-            mean_frag_len=config['mean_fragment_length'],
-            sd=config['sd_fragment_length'],
-            read_num=parse_krona_table
-
-    resources: nb_simulation=1
-
-    log: "logs/read_generation/replicate_{rep}/art_illumina.log"
-
-    shell: 'art_illumina -ss {params.seq_system} -na -i {input.fa} -p -m {params.mean_frag_len} -s {params.sd} \
-    -l {params.read_length} -c {params.read_num} -o simreads/paired_simrep{wildcards.rep}_{wildcards.sample}_R &>> {log}'
-
-def list_samples(wildcards):
-    checkpoint_output = checkpoints.get_read_proportions.get(**wildcards).output[0]
-    table=pd.read_csv(checkpoint_output,delimiter='\t')
-    acc=list(table['AssemblyNames'])
-    expd=expand('simreads/{format}_simrep{{rep}}_{sample}_R{{rd}}.fq',sample=acc,format=config["read_status"])
-    return expd
-
+    if config['read_status']=='paired':
+        return expand(f'simreads/{wildcards.community}/paired_simrep{wildcards.rep}_{{sample}}_R{wildcards.rd}.fq',sample=filenames)
+    else:
+        return expand(f'simreads/{wildcards.community}/single_simrep{wildcards.rep}_{{sample}}_R1.fq',sample=filenames)
 
 rule combine_fastq:
-    input: list_samples
+    input: combine_fastq_input
 
-    output: temp('simreads/{rep}_combined_reads_R{rd}.fq')
+    output: temp('simreads/{community}/{rep}_combined_reads_R{rd}.fq')
+
+    resources: parallel_cat=1
 
     shell:
         '''
@@ -157,22 +186,22 @@ rep_list=list(range(1,nb_rep+1))
 seed_list=np.random.randint(low=1,high=1000000,size=len(rep_list))
 seed_dic=dict(zip(rep_list,seed_list))
 
-import logging
-logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',datefmt='%d %b %Y %H:%M:%S',filename='logs/shuffling_seed.log', level=logging.DEBUG)
-logging.info('Corresponding seed for each replicate\n',seed_dic)
+
 
 
 rule shuffle_fastq:
-    input: 'simreads/{rep}_combined_reads_R{rd}.fq'
+    input: 'simreads/{community}/{rep}_combined_reads_R{rd}.fq'
 
     output: 'simreads/{community}/simrep_{rep}/R{rd}.fq'
 
     params: seed=lambda wildcards: seed_dic[int(wildcards.rep)],
             script_path=pipeline_path+'rules/shuffle.sh'
 
+    log: "logs/shuffling/{community}/{rep}/{rd}_shuffling_seed.log"
+
     shell:
         """
-        {params.script_path} {input} {output} {params.seed}
+        {params.script_path} {input} {output} {params.seed} &> {log}
         """
 
 rule compress_fastq:
