@@ -1,9 +1,9 @@
 channels:
  - bioconda
  - conda-forge
-
 dependencies:
  - art = 2016.06.05
  - pandas = 0.24.2
  - python = 3.7.3
  - krona = 2.7.1
+ - biopython = 1.72
