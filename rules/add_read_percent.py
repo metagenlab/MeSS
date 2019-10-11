@@ -40,6 +40,6 @@ brp = snakemake.params['proportion_reads']['bacteria']
 erp = snakemake.params['proportion_reads']['non_human_eukaryotes']
 
 
-tb_w_reads=get_even_reads(snakemake.input[0],pv=vrp,pb=brp,ph=hrp,pe=erp)
+tb_w_reads=get_even_reads(snakemake.params['table'],pv=vrp,pb=brp,ph=hrp,pe=erp)
 
 tb_w_reads.to_csv(snakemake.output[0], sep='\t', header=True)
