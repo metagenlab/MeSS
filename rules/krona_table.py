@@ -27,4 +27,5 @@ nb_reads_list=calculate_reads(table,total)
 tax_df=table.loc[:,['superkingdom','phylum','order','family','genus','species']]
 tax_df.index=table['AssemblyNames']
 tax_df.insert(loc=0,column='SimReads',value=nb_reads_list)
-tax_df.to_csv(snakemake.output[0],sep='\t',index=True)
+tax_df.to_csv(snakemake.output[1],sep='\t',index=True)
+tax_df.to_csv(snakemake.output[0],sep='\t',index=False)
