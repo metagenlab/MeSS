@@ -15,8 +15,8 @@ def rep_expand(nb_rep):
                         community=config["community_name"],rd=read_direction)
     return output_files
 
+
+
 rule all_sim :
     input: rep_expand(nb_rep),
-           expand('krona/simrep_{rep}.html',rep=list(range(1,nb_rep+1)))
-
-
+           expand('krona/{community}/simrep_{rep}.html',rep=list(range(1,nb_rep+1)),community=config["community_name"])
