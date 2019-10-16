@@ -69,8 +69,8 @@ checkpoint create_krona_table:
     '''
     input: 'metagenome_summary.tsv'
 
-    output: 'krona/{community}/simrep_{rep}.txt',
-            'krona/{community}/simrep_{rep}.tsv'
+    output: no_index='krona/{community}/simrep_{rep}.txt',
+            index='krona/{community}/simrep_{rep}.tsv'
 
     log: "logs/create_krona_table/{community}/simrep_{rep}.txt"
 
