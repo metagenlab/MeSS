@@ -24,8 +24,11 @@ checkpoint_output = snakemake.input[0]
 table=pd.read_csv(checkpoint_output,delimiter='\t')
 total=snakemake.config['total_amount_reads']
 nb_reads_list=calculate_reads(table,total)
-tax_df=table.loc[:,['superkingdom','phylum','order','family','genus','species']]
-tax_df.index=table['AssemblyNames']
-tax_df.insert(loc=0,column='SimReads',value=nb_reads_list)
-tax_df.to_csv(snakemake.output[1],sep='\t',index=True)
-tax_df.to_csv(snakemake.output[0],sep='\t',index=False)
+tax_df_index=table.loc[:,['Taxid','superkingdom','phylum','order','family','genus','species']]
+tax_df_no_index=table.loc[:,['superkingdom','phylum','order','family','genus','species']]
+tax_df_index.index=table['AssemblyNames']
+tax_df_index.insert(loc=0,column='SimReads',value=nb_reads_list)
+tax_df_no_index.insert(loc=0,column='SimReads',value=nb_reads_list)
+tax_df_index.to_csv(snakemake.output["no_index"],sep='\t',index=False)
+tax_df_index.to_csv(snakemake.output["index"],sep='\t',index=True)
+
