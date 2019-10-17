@@ -29,6 +29,6 @@ tax_df_no_index=table.loc[:,['superkingdom','phylum','order','family','genus','s
 tax_df_index.index=table['AssemblyNames']
 tax_df_index.insert(loc=0,column='SimReads',value=nb_reads_list)
 tax_df_no_index.insert(loc=0,column='SimReads',value=nb_reads_list)
-tax_df_index.to_csv(snakemake.output["no_index"],sep='\t',index=False)
+tax_df_no_index.to_csv(snakemake.output["no_index"],sep='\t',index=False)
 tax_df_index.to_csv(snakemake.output["index"],sep='\t',index=True)
 
