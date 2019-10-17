@@ -192,7 +192,7 @@ seed_dic=dict(zip(rep_list,seed_list))
 rule shuffle_fastq:
     input: 'simreads/{community}/{rep}_combined_reads_R{rd}.fq'
 
-    output: 'simreads/{community}/simrep_{rep}/R{rd}.fq'
+    output: 'simreads/{community}/simrep_{rep}/{community}-{rep}_R{rd}.fq'
 
     params: seed=lambda wildcards: seed_dic[int(wildcards.rep)],
             script_path=pipeline_path+'rules/shuffle.sh'
@@ -205,10 +205,15 @@ rule shuffle_fastq:
         """
 
 rule compress_fastq:
-    input: 'simreads/{community}/simrep_{rep}/R{rd}.fq'
+    input: 'simreads/{community}/simrep_{rep}/{community}-{rep}_R{rd}.fq'
 
-    output: 'simreads/{community}/simrep_{rep}/R{rd}.fq.gz'
+    output: 'simreads/{community}/simrep_{rep}/{community}-{rep}_R{rd}.fq.gz'
 
-    shell: "gzip {input}"
+    threads: 12
+
+    shell:
+        """
+        pigz -p {threads} {input}
+        """
 
 
