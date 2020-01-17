@@ -39,7 +39,19 @@ hrp = snakemake.params['proportion_reads']['human']
 brp = snakemake.params['proportion_reads']['bacteria']
 erp = snakemake.params['proportion_reads']['non_human_eukaryotes']
 
+tb = pd.read_csv(snakemake.input.table, sep='\t')
+# Check if the user already inputted read percentages for each assembly
+if 'PercentReads' in list(tb.columns) and len(list(tb['PercentReads'])) == len(tb):
+    # Check if the user filled the list or not
+    Percent_reads_list = True
+    assembly_table=pd.read_csv(snakemake.params['table'],sep='\t')
+    tb_w_reads = pd.merge(assembly_table,tb,how='outer',on='UserInputNames')
+    tb_w_reads['PercentReads'] = tb_w_reads['PercentReads'] / tb_w_reads['nb_genomes']#If multiple assemblies per entry, divide read percent by the number of genomes
+    tb_w_reads.drop('nb_genomes', axis=1, inplace=True)
+    tb_w_reads.set_index('AssemblyNames',inplace=True)
 
-tb_w_reads=get_even_reads(snakemake.params['table'],pv=vrp,pb=brp,ph=hrp,pe=erp)
+else:#If no read percent is specified
+    Percent_reads_list = False
+    tb_w_reads=get_even_reads(snakemake.params['table'],pv=vrp,pb=brp,ph=hrp,pe=erp)
 
 tb_w_reads.to_csv(snakemake.output[0], sep='\t', header=True)
