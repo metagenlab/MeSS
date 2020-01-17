@@ -1,4 +1,3 @@
-
 include : "rules/simulate_reads.rules"
 
 include: config['assembly_finder_Snakefile']
@@ -11,7 +10,7 @@ if config['read_status']=='paired':
     read_direction=['1','2']
 
 def rep_expand(nb_rep):
-    output_files=expand('simreads/{community}/simrep_{rep}/{community}-{rep}_R{rd}.fq.gz',rep=list(range(1,nb_rep+1)),\
+    output_files=expand('simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq.gz',rep=list(range(1,nb_rep+1)),\
                         community=config["community_name"],rd=read_direction)
     return output_files
 
@@ -19,4 +18,4 @@ def rep_expand(nb_rep):
 
 rule all_sim :
     input: rep_expand(nb_rep),
-           expand('krona/{community}/simrep_{rep}.html',rep=list(range(1,nb_rep+1)),community=config["community_name"])
+           expand('krona/{community}/simrep-{rep}.html',rep=list(range(1,nb_rep+1)),community=config["community_name"])

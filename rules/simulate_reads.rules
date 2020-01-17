@@ -2,46 +2,26 @@ import pandas as pd
 import numpy as np
 
 
-tb=pd.read_csv('input_table.tsv',sep='\t')
-if 'PercentReads' in list(tb.columns) and len(list(tb['PercentReads']))==len(tb):
-#Check if the user filled the list or not
-    Percent_reads_list=True
-else:
-    Percent_reads_list=False
- 
-#Check if the user already inputted read percentages for each assembly
-
 def parse_summary_tb(wildcards):
     checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
-    tb=pd.read_csv(checkpoint_output,delimiter='\t')
+    tb=pd.read_csv(checkpoint_output,sep='\t')
     filenames=tb['AssemblyNames']
     expd=expand('assembly_gz/{sample}.fna.gz',sample=filenames)
     return expd
 
-if Percent_reads_list:
-    rule get_read_proportions:
-        conda: '../envs/simulate_reads.yml' 
 
-        input: parse_summary_tb
+rule get_read_proportions:
+    conda: '../envs/simulate_reads.yml'
 
-        output: 'metagenome_summary.tsv'
-         
-        params: 'table_combined.tsv'
+    input: assemblies=parse_summary_tb,
+            table='input_table.tsv'
 
-        shell: "cp {params} {output} "
+    output: 'metagenome_summary.tsv'
 
-else:
-    rule get_read_proportions:
-        conda: '../envs/simulate_reads.yml'
+    params: proportion_reads = config['proportion_reads'],
+            table='table_combined.tsv'
 
-        input: parse_summary_tb
-
-        output: 'metagenome_summary.tsv'
-
-        params: proportion_reads = config['proportion_reads'],
-                table='table_combined.tsv'
-
-        script: 'add_read_percent.py'
+    script: 'add_read_percent.py'
 
 
 rule decompress_assemblies:
@@ -63,16 +43,16 @@ rule merge_contigs:
 
 
 
-checkpoint create_krona_table:
+checkpoint create_read_counts_table:
     '''
     Rule for generating a table per sample with read counts for each genome 
     '''
     input: 'metagenome_summary.tsv'
 
-    output: no_index='krona/{community}/simrep_{rep}.txt',
-            index='krona/{community}/simrep_{rep}.tsv'
+    output: no_index='tables/{community}/simrep-{rep}.txt',
+            index='tables/{community}/simrep-{rep}.tsv'
 
-    log: "logs/create_krona_table/{community}/simrep_{rep}.txt"
+    log: "logs/read_counts_table/{community}/simrep-{rep}.txt"
 
     script: 'krona_table.py'
 
@@ -81,16 +61,16 @@ checkpoint create_krona_table:
 rule create_krona_chart:
     conda: '../envs/simulate_reads.yml'
 
-    input: 'krona/{community}/simrep_{rep}.txt'
+    input: 'tables/{community}/simrep-{rep}.txt'
 
-    output: 'krona/{community}/simrep_{rep}.html'
+    output: 'krona/{community}/simrep-{rep}.html'
 
     shell: 'ktImportText -o {output} {input}'
 
 
 
 def parse_krona_table(wildcards):
-    rule_output = checkpoints.create_krona_table.get(**wildcards).output[1]
+    rule_output = checkpoints.create_read_counts_table.get(**wildcards).output[1]
     table=pd.read_csv(rule_output,delimiter='\t',index_col=0)
     nb_reads=table.loc[wildcards.sample]['SimReads']
     return nb_reads
@@ -101,13 +81,11 @@ if config['read_status']=='paired':
         conda: '../envs/simulate_reads.yml'
 
         input: fa='simreads/{community}/{sample}.fa',
-                tab='krona/{community}/simrep_{rep}.tsv'
+                tab='tables/{community}/simrep-{rep}.tsv'
 
-        output: temp('simreads/{community}/paired_simrep{rep,[0-9]+}_{sample}_R1.fq'),
-                temp('simreads/{community}/paired_simrep{rep,[0-9]+}_{sample}_R2.fq')
+        output: temp('simreads/{community}/paired-simrep{rep,[0-9]+}-{sample}_R1.fq'),
+                temp('simreads/{community}/paired-simrep{rep,[0-9]+}-{sample}_R2.fq')
 
-#temp('simreads/paired_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R1.fq'),
-#temp('simreads/paired_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R2.fq')
         params: seq_system=config['illumina_sequencing_system'],
                 read_length=config['read_length'],
                 mean_frag_len=config['mean_fragment_length'],
@@ -117,21 +95,20 @@ if config['read_status']=='paired':
 
         resources: nb_simulation=1
 
-        log: "logs/read_generation/{community}/replicate_{rep}/{sample}.log"
+        log: "logs/read_generation/{community}/replicate-{rep}/{sample}.log"
 
         shell: 'art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} -p -m {params.mean_frag_len} -s {params.sd} \
-        -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/paired_simrep{wildcards.rep}_{wildcards.sample}_R &> {log}'
+        -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/paired-simrep{wildcards.rep}-{wildcards.sample}_R &> {log}'
 
 else:
     rule generate_reads:
         conda: '../envs/simulate_reads.yml'
 
         input: fa='simreads/{community}/{sample}.fa',
-                tab='krona/{community}/simrep_{rep}.tsv'
+                tab='tables/{community}/simrep-{rep}.tsv'
 
-        output: temp('simreads/{community}/single_simrep{rep}_{sample}_R1.fq')
+        output: temp('simreads/{community}/single-simrep{rep}-{sample}_R1.fq')
 
-#temp('simreads/single_simrep{rep,[A-Za-z0-9_\.]}_{sample,[A-Za-z0-9_\.]+}_R1.fq')
         params: seq_system=config['illumina_sequencing_system'],
                 read_length=config['read_length'],
                 read_num=lambda wildcards:parse_krona_table(wildcards),
@@ -139,21 +116,11 @@ else:
 
         resources: nb_simulation=1
 
-        log: "logs/read_generation/{community}/replicate_{rep}/{sample}.log"
+        log: "logs/read_generation/{community}/replicate-{rep}/{sample}.log"
 
         shell: 'art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} \
-        -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/single_simrep{wildcards.rep}_{wildcards.sample}_R1 &> {log}'
+        -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/single-simrep{wildcards.rep}-{wildcards.sample}_R1 &> {log}'
 
-
-#def get_generate_reads_output(wildcards):
-#    checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
-#    tb=pd.read_csv(checkpoint_output,delimiter='\t')
-#    filenames=tb['AssemblyNames']
-#    nb_rep=config["replicates"]
-#    if config['read_status']=='paired':
-#        return expand('simreads/paired_simrep{rep}_{sample}_R{rd}.fq',rp=['1','2'],sample=filenames,rep=list(range(1,nb_rep+1)))
-#    else:
-#        return expand('simreads/single_simrep{rep}_{sample}_R1.fq',sample=filenames,rep=list(range(1,nb_rep+1)))
 
 def combine_fastq_input(wildcards):
     checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
@@ -161,14 +128,14 @@ def combine_fastq_input(wildcards):
     filenames=tb['AssemblyNames']
 
     if config['read_status']=='paired':
-        return expand(f'simreads/{wildcards.community}/paired_simrep{wildcards.rep}_{{sample}}_R{wildcards.rd}.fq',sample=filenames)
+        return expand(f'simreads/{wildcards.community}/paired-simrep{wildcards.rep}-{{sample}}_R{wildcards.rd}.fq',sample=filenames)
     else:
-        return expand(f'simreads/{wildcards.community}/single_simrep{wildcards.rep}_{{sample}}_R1.fq',sample=filenames)
+        return expand(f'simreads/{wildcards.community}/single-simrep{wildcards.rep}-{{sample}}_R1.fq',sample=filenames)
 
 rule combine_fastq:
     input: combine_fastq_input
 
-    output: temp('simreads/{community}/{rep}_combined_reads_R{rd}.fq')
+    output: temp('simreads/{community}/{rep}-combined-reads_R{rd}.fq')
 
     resources: parallel_cat=1
 
@@ -182,22 +149,19 @@ pipeline_path=workflow.basedir+'/'
 
 nb_rep=config["replicates"]
 rep_list=list(range(1,nb_rep+1))
-#np.random.seed(0)#set seed so that seeds in seed_dic do not change
 seed_list=np.random.randint(low=1,high=1000000,size=len(rep_list))
 seed_dic=dict(zip(rep_list,seed_list))
 
 
-
-
 rule shuffle_fastq:
-    input: 'simreads/{community}/{rep}_combined_reads_R{rd}.fq'
+    input: 'simreads/{community}/{rep}-combined-reads_R{rd}.fq'
 
-    output: 'simreads/{community}/simrep_{rep}/{community}-{rep}_R{rd}.fq'
+    output: 'simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq'
 
     params: seed=lambda wildcards: seed_dic[int(wildcards.rep)],
             script_path=pipeline_path+'rules/shuffle.sh'
 
-    log: "logs/shuffling/{community}/{rep}/{rd}_shuffling_seed.log"
+    log: "logs/shuffling/{community}/{rep}/{rd}-shuffling-seed.log"
 
     shell:
         """
@@ -205,9 +169,9 @@ rule shuffle_fastq:
         """
 
 rule compress_fastq:
-    input: 'simreads/{community}/simrep_{rep}/{community}-{rep}_R{rd}.fq'
+    input: 'simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq'
 
-    output: 'simreads/{community}/simrep_{rep}/{community}-{rep}_R{rd}.fq.gz'
+    output: 'simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq.gz'
 
     threads: 12
 
