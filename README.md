@@ -3,7 +3,7 @@
 # Metagenomic Sequence Simulator
 MeSS is a snakemake workflow used for simulating metagenomic mock communities.
 
-##Installation
+## Installation
 #### Conda
 Download and install miniconda 3 (Linux 64-bit)
 ```bash
