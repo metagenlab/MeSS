@@ -1,6 +1,5 @@
 
-#Paramters to be inputted by the user
-
+#MeSS parameters
 replicates: 1
 
 community_name: 'CF_metagenome'
@@ -22,19 +21,16 @@ read_status: 'paired'
 sd_read_num: 0 #Standard deviation for varying the number of reads per replicate, if 0 keep the same number of reads for each replicate
 
 
+#Assembly finder config
 
+input_table_path: path/to/input_table
 
+NCBI_key: your_ncbi_api_key
 
-###########assembly finder config
-
-input_table_path: 'input_table.tsv'
-
-NCBI_key: 'd50e3b721745c1b0fa064bf00ff9a003fc08'
-
-NCBI_email: 'farid.chaabane@unil.ch'
+NCBI_email: your_ncbi_email
 
 ##Parameters for search_assemblies function
-#This set of parameters is to search all possible assemblies
+#This set of parameters is to search all possible assemblies excluding ones from metagenomes
 complete_assemblies: False
 
 reference_assemblies: False
@@ -47,13 +43,11 @@ Genbank_assemblies: True
 
 Refseq_assemblies: True
 
-
 ##Parameters for the filtering function
-
 Rank_to_filter_by: 'None'
 #None: Assemblies are ranked by their assembly status (complete or not)
 #and Refseq category (reference, representative ...)
 #If you want to filter by species, set this parameter to 'species'. The filtering function will list all unique species
 #and rank their assemblies according to assembly status and Refseq category.
 
-assembly_finder_Snakefile: '/home/master_students/2019_Farid/assembly_finder/Snakefile'
+assembly_finder_Snakefile: path/to/assembly_finder/Snakefile
