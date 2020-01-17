@@ -11,7 +11,7 @@ except ValueError:#More than one record, we merge contigs
     for record in handle:
         headers.append(record.description)
         seq.append(record.seq)
-    nlist='N'*1000#Seperate contigs with a string of 200 N
+    nlist='N'*1000#Seperate contigs with a string of 1000 N
     merged_contigs=[seq[i]+nlist for i in range(len(seq))]
     merged_contigs[0]='>'+headers[0]+'\n'+merged_contigs[0]#add the first header before the first contig
     with open(snakemake.output[0],'w') as f:
