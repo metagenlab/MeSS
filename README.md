@@ -3,7 +3,7 @@
 # Metagenomic Sequence Simulator
 MeSS is a snakemake workflow used for simulating metagenomic mock communities.
 
-## Installation
+## Dependencies
 #### Conda
 Download and install miniconda 3 (Linux 64-bit)
 ```bash
@@ -11,17 +11,18 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
 ```
 #### Snakemake
-Create a conda environment and install the latest version of snakemake
+Install mamba and use it to create the snakemake environment as the conda solver is slow and [does not select the latest version](https://github.com/conda/conda/issues/9905)
 ```bash
-conda create -c bioconda -c conda-forge -n snakemake snakemake
+conda install -c conda-forge mamba
+mamba create -c conda-forge -c bioconda -n snakemake snakemake
+conda activate snakemake
 ``` 
-#### Assembly finder 
+
+
+#### Clone repository
+MeSS contains assembly finder as a submodule, paste the command below to clone both repos:
 ```bash
-git clone https://github.com/metagenlab/assembly_finder.git
-```
-#### MeSS
-```bash
-git clone https://github.com/metagenlab/MeSS.git
+git clone --recursive https://github.com/metagenlab/MeSS.git
 ```
 
 ## Required files
@@ -64,7 +65,6 @@ Genbank_assemblies: True
 Refseq_assemblies: True
 ##Filtering function parameter
 Rank_to_filter_by: 'None'
-assembly_finder_Snakefile: path/to/assembly_finder/Snakefile
 ```
 #### MeSS parameters
 MeSS offers the possibility to generate multiple mock communities using the same set of assembly files in the same directory.
