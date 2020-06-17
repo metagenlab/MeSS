@@ -1,9 +1,9 @@
 
-
 # Metagenomic Sequence Simulator
 MeSS is a snakemake workflow used for simulating metagenomic mock communities.
-
 ## Dependencies
+[![Snakemake](https://img.shields.io/badge/snakemake-≥5.8.0-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
+##Installation
 #### Conda
 Download and install miniconda 3 (Linux 64-bit)
 ```bash
@@ -11,7 +11,7 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
 ```
 #### Snakemake
-Install mamba and use it to create the snakemake environment as the conda solver is slow and [does not select the latest version](https://github.com/conda/conda/issues/9905)
+Install mamba and use it to create the snakemake environment as the conda solver is slow and [struggles to select the latest version](https://github.com/conda/conda/issues/9905)
 ```bash
 conda install -c conda-forge mamba
 mamba create -c conda-forge -c bioconda -n snakemake snakemake
@@ -73,7 +73,7 @@ Also, a set of replicates can be generated per one community by changing the rep
 The user can also control the read percentage attributed to each superkingdom by changing percentage values in the proportion_reads dictionary.
 #### art_illumina parameters
 
-MeSS uses [art_illumina](https://academic.oup.com/bioinformatics/article/28/4/593/213322) to generate reads, and the user can change parameters like read_length and fragment length under the art_illumina params section as shown above. 
+MeSS uses [art_illumina](https://academic.oup.com/bioinformatics/article/28/4/593/213322) to generate reads, and the user can change parameters like read length and fragment length under the art_illumina params section as shown above. 
 #### Assembly_finder parameters
 MeSS uses [Assembly_finder](https://github.com/metagenlab/assembly_finder) to download genomes, and requires the user to have an NCBI account. For more details on Assembly_finder parameters check its documentation.
 
@@ -87,6 +87,40 @@ snakemake --snakefile path/to/MeSS/Snakefile --configfile config.yml --use-conda
 
 **parallel_cat** controlls the number of genomes to be concatenated in parallel. For big genomes and computers with low memory, lowering this parameter lowers memory usage.
 
-
-
+##MeSS outputs
+###Directory structure
+After running MeSS, your working directory should look like this:
+```bash
+├── assembly_gz
+│   ├── assembly-accession-1.fna.gz
+│   └── assembly-accession-2.fna.gz
+├── krona
+│   ├── sample-1-metagenome
+│   │   └── replicate-1-krona-plot.html 
+│   └── sample-2-metagenome
+│       └── replicate-1-krona-plot.html
+├── logs
+│   ├── downloads
+│   ├── filtered
+│   ├── not-filtered  
+│   ├── read_counts_table
+│   ├── read_generation
+│   └── shuffling
+├── simreads
+│   ├── sample-1-metagenome
+│   │    └── replicate-1
+│   │        └── simulated-reads.fastq
+│   ├── sample-2-metagenome
+│   │    └── replicate-1
+│   │        └── simulated-reads.fastq
+├── tables
+│   ├── filtered
+│   ├── not-filtered  
+│   └── table-for-krona
+├── config.yaml
+├── input_table.tsv
+└── metagenome-summary.tsv
+```
+The simulated reads fastqs are compressed and located in the 'simreads' directory, and their composition is summarized in 
+'metagenome-summary.tsv'. 
 
