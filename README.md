@@ -87,8 +87,8 @@ snakemake --snakefile path/to/MeSS/Snakefile --configfile config.yml --use-conda
 
 **parallel_cat** controlls the number of genomes to be concatenated in parallel. For big genomes and computers with low memory, lowering this parameter lowers memory usage.
 
-##MeSS outputs
-###Directory structure
+## MeSS outputs
+### Directory structure
 After running MeSS, your working directory should look like this:
 ```bash
 ├── assembly_gz
