@@ -3,7 +3,7 @@
 MeSS is a snakemake workflow used for simulating metagenomic mock communities.
 ## Dependencies
 [![Snakemake](https://img.shields.io/badge/snakemake-≥5.8.0-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
-##Installation
+## Installation
 #### Conda
 Download and install miniconda 3 (Linux 64-bit)
 ```bash
