@@ -9,7 +9,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M",
     format="[%(asctime)s %(levelname)s] %(message)s",
 )
-__version__ = "0.2_alpha"
+__version__ = "0.1.0"
 def get_snakefile(file="Snakefile"):
     sf = os.path.join(os.path.dirname(os.path.abspath(__file__)), file)
     if not os.path.exists(sf):
