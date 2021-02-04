@@ -23,9 +23,7 @@ setup(name='MeSS',
       ]},
       data_files=[(".", ["README.md"])],
       include_package_data=True,
-      install_requires=[
-      ],
-      # install via conda: click, pandas, pyyaml, snakemake
+      install_requires=[click, snakemake],
       entry_points={
             'console_scripts': [
                   'mess = mess.mess:cli'
