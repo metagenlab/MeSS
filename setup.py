@@ -19,7 +19,7 @@ setup(name='MeSS',
       description="MeSS is a snakemake workflow used for simulating metagenomic mock communities",
       packages=['mess'],
       package_data={'': [
-            "MeSS/*",
+            "mess/*",
       ]},
       data_files=[(".", ["README.md"])],
       include_package_data=True,
