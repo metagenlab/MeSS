@@ -1,5 +1,5 @@
-include : "scripts/simulate_reads.rules"
-include : "assembly_finder/Snakefile"
+include : "simulate_reads.rules"
+include : "../assembly_finder/Snakefile"
 
 nb_rep=config["replicates"]
 
