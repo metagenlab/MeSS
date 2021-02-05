@@ -1,23 +1,26 @@
 from setuptools import setup
-from os.path import dirname, join
-import io
-def get_version(relpath):
-  """Read version info from a file without importing it"""
-  for line in io.open(join(dirname(__file__), relpath), encoding="cp437"):
-    if "__version__" in line:
-      if '"' in line:
-        # __version__ = "0.9"
-        return line.split('"')[1]
-      elif "'" in line:
-        return line.split("'")[1]
+from mess import __version__
 
 setup(name='MeSS',
-      version=get_version("mess/__init__.py"),
+      version=__version__,
       url='https://github.com/metagenlab/MeSS',
       license='BSD-3',
       author='Farid Chaabane',
       description="MeSS is a snakemake workflow used for simulating metagenomic mock communities",
       packages=['mess'],
+      scripts=['mess/scripts/add_read_percent.py',
+               'mess/scripts/krona_table.py',
+               'mess/scripts/merge_contigs.py',
+               'mess/scripts/remove_index.py',
+               'mess/scripts/shuffle.sh',
+               'mess/scripts/simulate_reads.rules',
+               'mess/scripts/Snakefile',
+               'mess/assembly_finder/Snakefile',
+               'mess/assembly_finder/rules/assembly_table.py',
+               'mess/assembly_finder/rules/combine_tables.py',
+               'mess/assembly_finder/rules/dl.py',
+               'mess/assembly_finder/rules/filter_table.py',
+               'mess/assembly_finder/rules/find_assemblies.rules'],
       package_data={'': [
             "mess/*",
       ]},
