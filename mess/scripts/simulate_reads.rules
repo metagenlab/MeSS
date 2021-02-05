@@ -159,7 +159,7 @@ rule shuffle_fastq:
     output: 'simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq'
 
     params: seed=lambda wildcards: seed_dic[int(wildcards.rep)],
-            script_path=pipeline_path+'rules/shuffle.sh'
+            script_path=pipeline_path+'scripts/shuffle.sh'
 
     log: "logs/shuffling/{community}/{rep}/{rd}-shuffling-seed.log"
 
