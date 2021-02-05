@@ -1,3 +1,6 @@
 [submodule "assembly_finder"]
 	path = assembly_finder
 	url = https://github.com/metagenlab/assembly_finder.git
+[submodule "mess/assembly_finder"]
+	path = mess/assembly_finder
+	url = https://github.com/metagenlab/assembly_finder
