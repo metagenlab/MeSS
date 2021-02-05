@@ -1,0 +1,8 @@
+name: mess
+channels:
+ - bioconda
+ - conda-forge
+dependencies:
+ - python
+ - snakemake
+ - click
