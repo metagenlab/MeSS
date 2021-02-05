@@ -26,7 +26,7 @@ setup(name='MeSS',
       ]},
       data_files=[(".", ["README.md"])],
       include_package_data=True,
-      install_requires=['click', 'snakemake-minimal'],
+      install_requires=['click=7', 'snakemake-minimal=5.32'],
       entry_points={
             'console_scripts': [
                   'mess = mess.mess:cli'
