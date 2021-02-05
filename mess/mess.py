@@ -3,17 +3,18 @@ import os
 import sys
 import click
 import subprocess
-
+from mess import __version__
 logging.basicConfig(
     level=logging.INFO,
     datefmt="%Y-%m-%d %H:%M",
     format="[%(asctime)s %(levelname)s] %(message)s",
 )
-__version__ = "0.1.0"
-def get_snakefile(file="Snakefile"):
-    sf = os.path.join(os.path.dirname(os.path.abspath(__file__)), file)
+
+def get_snakefile():
+    thisdir = os.path.abspath(os.path.dirname(__file__))
+    sf = os.path.join(thisdir,'scripts','Snakefile')
     if not os.path.exists(sf):
-        sys.exit("Unable to locate the Snakemake workflow file; tried %s" % sf)
+        sys.exit(f"Unable to locate the Snakemake workflow file at {sf}")
     return sf
 
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
@@ -83,8 +84,10 @@ def run_workflow(working_dir,config_file,dryrun_status,ncbi_requests,nb_sim,nb_c
         logging.critical(f"config-file not found: {config_file}\n"
                          "make sure your config.yml is in your working directory")
         sys.exit(1)
-    if dryrun_status==True:
+    if dryrun_status:
         dryrun='-n'
+    else:
+        dryrun=''
 
     cmd = (
         f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix ${{CONDA_DEFAULT_ENV}} "
