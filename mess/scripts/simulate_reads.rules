@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+import os
 
 def parse_summary_tb(wildcards):
     checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
@@ -77,7 +77,7 @@ def parse_krona_table(wildcards):
 
 
 if config['read_status']=='paired':
-    rule generate_reads:
+    rule generate_paired_reads:
         conda: '../envs/simulate_reads.yml'
 
         input: fa='simreads/{community}/{sample}.fa',
@@ -101,7 +101,7 @@ if config['read_status']=='paired':
         -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/paired-simrep{wildcards.rep}-{wildcards.sample}_R &> {log}'
 
 else:
-    rule generate_reads:
+    rule generate_single_reads:
         conda: '../envs/simulate_reads.yml'
 
         input: fa='simreads/{community}/{sample}.fa',
@@ -144,13 +144,14 @@ rule combine_fastq:
         cat {input} >> {output}
         '''
 
-pipeline_path=workflow.basedir+'/'
 
 
+pipeline_path=workflow.basedir
 nb_rep=config["replicates"]
 rep_list=list(range(1,nb_rep+1))
 seed_list=np.random.randint(low=1,high=1000000,size=len(rep_list))
 seed_dic=dict(zip(rep_list,seed_list))
+
 
 
 rule shuffle_fastq:
@@ -159,7 +160,7 @@ rule shuffle_fastq:
     output: 'simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq'
 
     params: seed=lambda wildcards: seed_dic[int(wildcards.rep)],
-            script_path=pipeline_path+'scripts/shuffle.sh'
+            script_path=os.path.join(pipeline_path,'shuffle.sh')
 
     log: "logs/shuffling/{community}/{rep}/{rd}-shuffling-seed.log"
 
@@ -169,6 +170,8 @@ rule shuffle_fastq:
         """
 
 rule compress_fastq:
+    conda: '../envs/simulate_reads.yml'
+
     input: 'simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq'
 
     output: 'simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq.gz'
