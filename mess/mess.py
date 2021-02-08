@@ -1,3 +1,5 @@
+#Parts of this wrapper are inspired by atlas, an easy-to-use metagenomic pipeline based on snakemake.
+#Go check it out on https://github.com/metagenome-atlas/atlas
 import logging
 import os
 import sys
@@ -27,7 +29,7 @@ def cli(obj):
 @cli.command(
     "run",
     context_settings=dict(ignore_unknown_options=True),
-    short_help="run MeSS simulator"
+    short_help="run all MeSS pipeline steps"
 )
 @click.option("-w",
     "--working-dir",
@@ -46,7 +48,7 @@ def cli(obj):
     is_flag=True,
     default=False,
     show_default=True,
-    help="Snakemake dryrun",
+    help="Snakemake dryrun to see the scheduling plan",
 )
 @click.option("-r",
     "--ncbi_requests",
@@ -90,8 +92,8 @@ def run_workflow(working_dir,config_file,dryrun_status,ncbi_requests,nb_sim,nb_c
         dryrun=''
 
     cmd = (
-        f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix ${{CONDA_DEFAULT_ENV}} "
-        f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} all_sim {dryrun} {' '.join(snakemake_args)}")
+        f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix {os.environ['CONDA_PREFIX']} "
+        f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} illumina_sim {dryrun} {' '.join(snakemake_args)}")
 
     logging.info("Executing: %s" % cmd)
     try:

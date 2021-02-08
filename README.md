@@ -80,7 +80,7 @@ MeSS uses [Assembly_finder](https://github.com/metagenlab/assembly_finder) to do
 ##Running MeSS
 Here is an example command to run MeSS on the previously described config and input table.
 ```bash
-snakemake --snakefile path/to/MeSS/Snakefile --configfile config.yml --use-conda --conda-prefix path/to/conda/envs/ --resources ncbi_requests=3 nb_simulation=2 parallel_cat=2 --cores 10 all_sim 
+snakemake --snakefile path/to/MeSS/Snakefile --configfile config.yml --use-conda --conda-prefix path/to/conda/envs/ --resources ncbi_requests=3 nb_simulation=2 parallel_cat=2 --cores 10 illumina_sim
 ```
 
 **nb_simulation** controlls the number of parallel art_illumina jobs. This parameter is important for memory usage, as art_illumina loads genomes into memory. Thus, for big genomes it is recommended to lower this parameter.

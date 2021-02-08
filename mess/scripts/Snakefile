@@ -15,6 +15,6 @@ def rep_expand(nb_rep):
 
 
 
-rule all_sim :
+rule illumina_sim :
     input: rep_expand(nb_rep),
            expand('krona/{community}/simrep-{rep}.html',rep=list(range(1,nb_rep+1)),community=config["community_name"])
