@@ -31,17 +31,11 @@ def cli(obj):
     context_settings=dict(ignore_unknown_options=True),
     short_help="run all MeSS pipeline steps"
 )
-@click.option("-w",
-    "--working-dir",
-    type=click.Path(dir_okay=True,writable=True,resolve_path=True),
-    help="location to MeSS.",
-    default="."
-)
 @click.option("-c",
     "--config-file",
     type=click.Path(exists=True,resolve_path=True),
-    help="path to MeSS configfile",)
-
+    help="path to MeSS configfile",
+)
 @click.option(
     "-n",
     "--dryrun_status",
@@ -53,19 +47,19 @@ def cli(obj):
 @click.option("-r",
     "--ncbi_requests",
     type=int,
-    help="number of ncbi requests, check README.md for more details",
+    help="number of ncbi requests, check https://github.com/metagenlab/mess for more details",
     default=3,
 )
 @click.option("-s",
     "--nb_sim",
     type=int,
-    help="number of genomes to simulate in parallel, check README.md for more details",
+    help="number of genomes to simulate in parallel, check https://github.com/metagenlab/mess for more details",
     default=2,
 )
 @click.option("-k",
     "--nb_cat",
     type=int,
-    help="number of genomes to concatenate in parallel, check README.md for more details",
+    help="number of genomes to concatenate in parallel, check https://github.com/metagenlab/mess for more details",
     default=2,
 )
 @click.option("-c",
@@ -75,12 +69,12 @@ def cli(obj):
     default=5,
 )
 @click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
-def run_workflow(working_dir,config_file,dryrun_status,ncbi_requests,nb_sim,nb_cat,cores,snakemake_args):
+def run_workflow(config_file,dryrun_status,ncbi_requests,nb_sim,nb_cat,cores,snakemake_args):
     """
     Runs MeSS pipeline with all steps
     """
     if config_file is None:
-        config_file = os.path.join(working_dir, 'config.yml')
+        config_file = os.path.join('.', 'config.yml')
 
     if not os.path.exists(config_file):
         logging.critical(f"config-file not found: {config_file}\n"
