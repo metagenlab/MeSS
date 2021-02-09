@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup,find_packages
 from mess import __version__
 
 setup(name='MeSS',
@@ -6,8 +6,9 @@ setup(name='MeSS',
       url='https://github.com/metagenlab/MeSS',
       license='GPL-3',
       author='Farid Chaabane',
+      author_email='faridchaabn@gmail.com',
       description="MeSS is a snakemake workflow used for simulating metagenomic mock communities",
-      packages=['mess'],
+      packages=find_packages(),
       scripts=['mess/scripts/add_read_percent.py',
                'mess/scripts/krona_table.py',
                'mess/scripts/merge_contigs.py',
