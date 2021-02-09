@@ -73,8 +73,8 @@ def run_workflow(config_file,dryrun_status,ncbi_requests,nb_sim,nb_cat,cores,sna
     """
     Runs MeSS pipeline with all steps
     """
-    if config_file is None:
-        config_file = os.path.join('.', 'config.yml')
+    if config_file is None:#if config-file path is not set, assume that config-file is present where the command is ran
+        config_file = 'config.yml'
 
     if not os.path.exists(config_file):
         logging.critical(f"config-file not found: {config_file}\n"
