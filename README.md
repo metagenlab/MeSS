@@ -77,7 +77,8 @@ MeSS uses [art_illumina](https://academic.oup.com/bioinformatics/article/28/4/59
 #### Assembly_finder parameters
 MeSS uses [Assembly_finder](https://github.com/metagenlab/assembly_finder) to download genomes, and requires the user to have an NCBI account. For more details on Assembly_finder parameters check its documentation.
 
-##Running MeSS
+## Running MeSS
+
 Here is an example command to run MeSS on the previously described config and input table.
 ```bash
 snakemake --snakefile path/to/MeSS/Snakefile --configfile config.yml --use-conda --conda-prefix path/to/conda/envs/ --resources ncbi_requests=3 nb_simulation=2 parallel_cat=2 --cores 10 illumina_sim
