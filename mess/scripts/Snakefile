@@ -8,12 +8,7 @@ if config['read_status']=='single':
 if config['read_status']=='paired':
     read_direction=['1','2']
 
-def rep_expand(nb_rep,name,rd):
-    output_files=expand('simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq.gz',rep=list(range(1,nb_rep+1)),\
-                        community=name,rd=rd)
-    return output_files
-
-
 rule illumina_sim :
-    input: rep_expand(replicates,community_name,read_direction),
-           expand('krona/{community}/simrep-{rep}.html',rep=list(range(1,replicates+1)),community=community_name)
+    input: expand('krona/{community}/simrep-{rep}.html',rep=list(range(1,replicates+1)),community=community_name),
+           expand('simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq.gz', rep = list(range(1,replicates + 1)),
+               community = community_name, rd = read_direction)
