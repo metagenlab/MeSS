@@ -1,9 +1,11 @@
 
 #MeSS parameters
-replicates: 1
+replicates: 1 #You con set the number of times to simulate the same metagenome
 
 community_name: 'CF_metagenome'
 
+use_coverage: False #set this to true if the user wants to use coverage values instead of read percent
+                    #If True, proportion_reads and total_amount reads are not required
 proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.08,'non_human_eukaryotes':0.01}
 
 illumina_sequencing_system: 'HSXt'#HiSeqX TruSeq (read length:150bp)
@@ -16,7 +18,7 @@ mean_fragment_length: 200
 
 sd_fragment_length: 10
 
-read_status: 'paired'
+read_status: 'paired' #set to 'single' for single read simulation
 
 sd_read_num: 0 #Standard deviation for varying the number of reads per replicate, if 0 keep the same number of reads for each replicate
 

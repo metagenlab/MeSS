@@ -54,4 +54,4 @@ else:#If no read percent is specified
     Percent_reads_list = False
     tb_w_reads=get_even_reads(snakemake.params['table'],pv=vrp,pb=brp,ph=hrp,pe=erp)
 
-tb_w_reads.to_csv(snakemake.output[0], sep='\t', header=True)
+tb_w_reads.to_csv(snakemake.output[0], sep='\t', header=True,index=False)

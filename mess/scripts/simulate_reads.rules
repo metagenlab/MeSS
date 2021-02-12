@@ -6,28 +6,46 @@ def parse_summary_tb(wildcards):
     checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
     tb=pd.read_csv(checkpoint_output,sep='\t')
     filenames=tb['AssemblyNames']
-    expd=expand('assembly_gz/{sample}.fna.gz',sample=filenames)
+    expd=expand('assembly_gz/{assemblyname}.fna.gz',assemblyname=filenames)
     return expd
 
+if config['use_coverage']:#If the user specified coverage values instead of read percent, then merge user input with assembly summary table
+                         #If the user specifies multiple assemblies per taxid, the same coverage value will be duplicated to all assemblies
+                         #Coverage values will then be converted to reads using this formula: (coverage*genome length)/(read length*pairing)
+    rule populate_table_coverage:
+        input: assemblies=parse_summary_tb,
+               table='input_table.tsv'
 
-rule get_read_proportions:
-    conda: '../envs/simulate_reads.yml'
+        output: 'metagenome_summary.tsv'
 
-    input: assemblies=parse_summary_tb,
-            table='input_table.tsv'
+        params: table='table_combined.tsv'
 
-    output: 'metagenome_summary.tsv'
+        run:
+            input_tb=pd.read_csv(input.table,sep='\t')
+            assembly_tb=pd.read_csv(params.table,sep='\t')
+            mergedtb=pd.merge(assembly_tb,input_tb,how='outer',on='UserInputNames')
+            mergedtb.to_csv(output[0],sep='\t',header=True)
 
-    params: proportion_reads = config['proportion_reads'],
-            table='table_combined.tsv'
 
-    script: 'add_read_percent.py'
+else:#If the user specified read percentages
+    rule populate_table_read_percent:
+        conda: '../envs/simulate_reads.yml'
+
+        input: assemblies=parse_summary_tb,
+                table='input_table.tsv'
+
+        output: 'metagenome_summary.tsv'
+
+        params: proportion_reads = config['proportion_reads'],
+                table='table_combined.tsv'
+
+        script: 'populate_table_percent.py'
 
 
 rule decompress_assemblies:
-    input: 'assembly_gz/{sample}.fna.gz'
+    input: 'assembly_gz/{assemblyname}.fna.gz'
 
-    output: temp('simreads/{community}/{sample}.fna')
+    output: temp('simreads/{community}/{assemblyname}.fna')
 
     shell: 'zcat {input[0]} > {output[0]}'
 
@@ -35,9 +53,9 @@ rule decompress_assemblies:
 rule merge_contigs:
     conda: '../envs/simulate_reads.yml'
 
-    input: 'simreads/{community}/{sample}.fna'
+    input: 'simreads/{community}/{assemblyname}.fna'
 
-    output: temp('simreads/{community}/{sample}.fa') #.fa because ouptput files must have unique names (otherwise we have to create a new dir, or use shadow rules)
+    output: temp('simreads/{community}/{assemblyname}.fa') #.fa because ouptput files must have unique names (otherwise we have to create a new dir, or use shadow rules)
 
     script: "merge_contigs.py"
 
@@ -49,12 +67,12 @@ checkpoint create_read_counts_table:
     '''
     input: 'metagenome_summary.tsv'
 
-    output: no_index='tables/{community}/simrep-{rep}.txt',
-            index='tables/{community}/simrep-{rep}.tsv'
+    output: krona_output='tables/{community}/simrep-{rep}.txt',
+            rc_table='tables/{community}/simrep-{rep}.tsv'
 
     log: "logs/read_counts_table/{community}/simrep-{rep}.txt"
 
-    script: 'krona_table.py'
+    script: 'read_counts_table.py'
 
 
 
@@ -65,14 +83,16 @@ rule create_krona_chart:
 
     output: 'krona/{community}/simrep-{rep}.html'
 
-    shell: 'ktImportText -o {output} {input}'
+    log: 'logs/krona/{community}/simrep-{rep}.log'
+
+    shell: 'ktImportText -o {output} {input} &> {log}'
 
 
 
-def parse_krona_table(wildcards):
-    rule_output = checkpoints.create_read_counts_table.get(**wildcards).output[1]
-    table=pd.read_csv(rule_output,delimiter='\t',index_col=0)
-    nb_reads=table.loc[wildcards.sample]['SimReads']
+def get_read_num(wildcards):
+    rule_output = checkpoints.create_read_counts_table.get(**wildcards).output["rc_table"]
+    table=pd.read_csv(rule_output,delimiter='\t',index_col='AssemblyNames')
+    nb_reads=table.loc[wildcards.assemblyname]['SimReads']
     return nb_reads
 
 
@@ -80,57 +100,80 @@ if config['read_status']=='paired':
     rule generate_paired_reads:
         conda: '../envs/simulate_reads.yml'
 
-        input: fa='simreads/{community}/{sample}.fa',
+        input: fa='simreads/{community}/{assemblyname}.fa',
                 tab='tables/{community}/simrep-{rep}.tsv'
 
-        output: temp('simreads/{community}/paired-simrep{rep,[0-9]+}-{sample}_R1.fq'),
-                temp('simreads/{community}/paired-simrep{rep,[0-9]+}-{sample}_R2.fq')
+        output: temp('simreads/{community}/paired-simrep{rep,[0-9]+}-{assemblyname}_R1.fq'),
+                temp('simreads/{community}/paired-simrep{rep,[0-9]+}-{assemblyname}_R2.fq')
 
         params: seq_system=config['illumina_sequencing_system'],
                 read_length=config['read_length'],
                 mean_frag_len=config['mean_fragment_length'],
                 sd=config['sd_fragment_length'],
-                read_num=lambda wildcards:parse_krona_table(wildcards),
+                read_num=lambda wildcards:get_read_num(wildcards),
                 random_seed=lambda wildcards: seed_dic[int(wildcards.rep)]
 
         resources: nb_simulation=1
 
-        log: "logs/read_generation/{community}/replicate-{rep}/{sample}.log"
+        log: "logs/read_generation/{community}/replicate-{rep}/{assemblyname}.log"
 
         shell: 'art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} -p -m {params.mean_frag_len} -s {params.sd} \
-        -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/paired-simrep{wildcards.rep}-{wildcards.sample}_R &> {log}'
+        -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/paired-simrep{wildcards.rep}-{wildcards.assemblyname}_R &> {log}'
+
+    # rule count_simulated_reads_from_paired_fq:
+    #     input: r1='simreads/{community}/paired-simrep{rep,[0-9]+}-{assemblyname}_R1.fq',
+    #            r2='simreads/{community}/paired-simrep{rep,[0-9]+}-{assemblyname}_R2.fq'
+    #
+    #     output: r1='simreads/{community}/paired-simrep{rep,[0-9]+}-{assemblyname}_R1.txt',
+    #             r2='simreads/{community}/paired-simrep{rep,[0-9]+}-{assemblyname}_R2.txt'
+    #
+    #     shell:
+    #         '''
+    #         awk "{{s++}END{{print s/4}}" {input.r1} > {output.r1}
+    #         awk "{{s++}END{{print s/4}}" {input.r2} > {output.r2}
+    #         '''
 
 else:
     rule generate_single_reads:
         conda: '../envs/simulate_reads.yml'
 
-        input: fa='simreads/{community}/{sample}.fa',
+        input: fa='simreads/{community}/{assemblyname}.fa',
                 tab='tables/{community}/simrep-{rep}.tsv'
 
-        output: temp('simreads/{community}/single-simrep{rep}-{sample}_R1.fq')
+        output: temp('simreads/{community}/single-simrep{rep}-{assemblyname}_R1.fq')
 
         params: seq_system=config['illumina_sequencing_system'],
                 read_length=config['read_length'],
-                read_num=lambda wildcards:parse_krona_table(wildcards),
+                read_num=lambda wildcards:get_read_num(wildcards),
                 random_seed=lambda wildcards: seed_dic[int(wildcards.rep)]
 
         resources: nb_simulation=1
 
-        log: "logs/read_generation/{community}/replicate-{rep}/{sample}.log"
+        log: "logs/read_generation/{community}/replicate-{rep}/{assemblyname}.log"
 
         shell: 'art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} \
-        -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/single-simrep{wildcards.rep}-{wildcards.sample}_R1 &> {log}'
+        -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/single-simrep{wildcards.rep}-{wildcards.assemblyname}_R1 &> {log}'
+
+    # rule count_simulated_reads_from_single_fq:
+    #     input: 'simreads/{community}/single-simrep{rep}-{assemblyname}_R1.fq'
+    #
+    #     output: 'simreads/{community}/single-simrep{rep}-{assemblyname}_R1.txt'
+    #
+    #     shell:
+    #         '''
+    #         awk "{{s++}END{{print s/4}}" {input} > {output}
+    #         '''
+
 
 
 def combine_fastq_input(wildcards):
     checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
     tb=pd.read_csv(checkpoint_output,delimiter='\t')
     filenames=tb['AssemblyNames']
-
     if config['read_status']=='paired':
-        return expand(f'simreads/{wildcards.community}/paired-simrep{wildcards.rep}-{{sample}}_R{wildcards.rd}.fq',sample=filenames)
+        return expand(f'simreads/{wildcards.community}/paired-simrep{wildcards.rep}-{{assemblyname}}_R{wildcards.rd}.fq',assemblyname=filenames)
     else:
-        return expand(f'simreads/{wildcards.community}/single-simrep{wildcards.rep}-{{sample}}_R1.fq',sample=filenames)
+        return expand(f'simreads/{wildcards.community}/single-simrep{wildcards.rep}-{{assemblyname}}_R1.fq',assemblyname=filenames)
 
 rule combine_fastq:
     input: combine_fastq_input
@@ -144,6 +187,15 @@ rule combine_fastq:
         cat {input} >> {output}
         '''
 
+# def combine_fastq_text_input(wildcards):
+#     checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
+#     tb=pd.read_csv(checkpoint_output,delimiter='\t')
+#     filenames=tb['AssemblyNames']
+#     if config['read_status']=='paired':
+#         return expand(f'simreads/{wildcards.community}/paired-simrep{wildcards.rep}-{{assemblyname}}_R{wildcards.rd}.txt',assemblyname=filenames)
+#     else:
+#         return expand(f'simreads/{wildcards.community}/single-simrep{wildcards.rep}-{{assemblyname}}_R1.txt',assemblyname=filenames)
+
 
 
 pipeline_path=workflow.basedir
@@ -151,8 +203,6 @@ nb_rep=config["replicates"]
 rep_list=list(range(1,nb_rep+1))
 seed_list=np.random.randint(low=1,high=1000000,size=len(rep_list))
 seed_dic=dict(zip(rep_list,seed_list))
-
-
 
 rule shuffle_fastq:
     input: 'simreads/{community}/{rep}-combined-reads_R{rd}.fq'
@@ -168,6 +218,7 @@ rule shuffle_fastq:
         """
         {params.script_path} {input} {output} {params.seed} &> {log}
         """
+
 
 rule compress_fastq:
     conda: '../envs/simulate_reads.yml'
