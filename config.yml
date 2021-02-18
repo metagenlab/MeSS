@@ -1,29 +1,38 @@
-
 #MeSS parameters
 replicates: 1 #You con set the number of times to simulate the same metagenome
 
 community_name: 'CF_metagenome'
 
+#Input values (coverage or read percent)
 use_coverage: False #set this to true if the user wants to use coverage values instead of read percent
                     #If True, proportion_reads and total_amount reads are not required
+                    #use_coverage is mandatory to simulate nanopore or PacBio reads
 proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.08,'non_human_eukaryotes':0.01}
-
+#Sequencing technology
+seq_tech: illumina #[illumina,longreads]
+##Illumina (art params)
 illumina_sequencing_system: 'HSXt'#HiSeqX TruSeq (read length:150bp)
-
-total_amount_reads: 10000000 #10 mil reads in total
-
+total_amount_reads: 10000000 #10 mil reads in total, do not set while using use_coverage: True
 read_length: 150
-
 mean_fragment_length: 200
-
 sd_fragment_length: 10
-
-read_status: 'paired' #set to 'single' for single read simulation
+read_status: paired #set to single for single read simulation
+##Long reads (pbsim2 params)
+chemistry: R94 #Select R94, R95, R103 pore versions for Nanopore.
+                #Select P4C2, P5C3, P6C4 chemistry for PacBio
+minimum_read_length: 100
+maximum_read_length: 1000000
+mean_read_length: 9000
+sd_read_length: 7000
+mean_read_accuracy: 85
+difference_ratio: "23:31:46" #Rate of substitution:insertion:deletion.
+                          #For PacBio the default values is 6:50:54
+                          #For Nanopore 23:31:46
 
 sd_read_num: 0 #Standard deviation for varying the number of reads per replicate, if 0 keep the same number of reads for each replicate
+set_seed: 1 #Set this parameter to a fixed number so data from random number generators is reproducible
 
-
-#Assembly finder config
+#Assembly finder parameters
 
 input_table_path: path/to/input_table
 
