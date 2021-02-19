@@ -3,9 +3,18 @@ import numpy as np
 import logging
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',datefmt='%d %b %Y %H:%M:%S',
                     filename=snakemake.log[0], level=logging.DEBUG)
-sdfl=snakemake.config["sd_fragment_length"]
+sdr=snakemake.config["sd_read_num"]
 reps=snakemake.wildcards.rep
-
+read_status = snakemake.config["read_status"]
+if read_status == 'single':
+    pair = 1
+else:
+    pair = 2
+if snakemake.config["seq_tech"]=='illumina':
+    rl=snakemake.config["illumina_read_len"]
+    total = snakemake.config['illumina_total_reads']
+if snakemake.config["seq_tech"]=='longreads':
+    rl=snakemake.config["longreads_mean_len"]
 def calculate_reads_from_percent(table,total,sd,rep):
     reads_to_sim={}
     for acc in table.index:
@@ -20,7 +29,7 @@ def calculate_reads_from_percent(table,total,sd,rep):
 def calculate_reads_from_coverage(table,sd,read_len,pairing,rep):
     reads_to_sim={}
     for acc in table.index:
-        coverage=int(table.loc[acc]['coverage'])
+        coverage=int(table.loc[acc]['Coverage'])
         genome_length=int(table.loc[acc]['Assembly_length'])
         read_nb=(coverage*genome_length)/(read_len*pairing)
         read_nb_sample = round(np.random.normal(read_nb, sd))
@@ -33,17 +42,10 @@ def calculate_reads_from_coverage(table,sd,read_len,pairing,rep):
 Main
 """
 table=pd.read_csv(snakemake.input[0],delimiter='\t',index_col='AssemblyNames')
-if snakemake.config["use_coverage"]:
-    rl=snakemake.config["read_length"]
-    read_status = snakemake.config["read_status"]
-    if read_status == 'single':
-        pair = 1
-    else:
-        pair = 2
-    nb_reads_dic=calculate_reads_from_coverage(table,sdfl,rl,pair,reps)
+if snakemake.params.value=='Coverage':
+    nb_reads_dic=calculate_reads_from_coverage(table,sdr,rl,pair,reps)
 else:
-    total=snakemake.config['total_amount_reads']
-    nb_reads_dic=calculate_reads_from_percent(table,total)
+    nb_reads_dic=calculate_reads_from_percent(table,total,sdr,reps)
 table['SimReads']=pd.Series(nb_reads_dic)
 table=table.reset_index()
 tax_df=table[['AssemblyNames','AssemblyID','AssemblyStatus','Assembly_length','Taxid','superkingdom','phylum','order','family','genus','species','SimReads']]
