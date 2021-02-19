@@ -1,7 +1,6 @@
 import pandas as pd
 import os
 import random
-
 def parse_summary_tb(wildcards):
     checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
     tb=pd.read_csv(checkpoint_output,sep='\t')
@@ -9,7 +8,18 @@ def parse_summary_tb(wildcards):
     expd=expand('assembly_gz/{assemblyname}.fna.gz',assemblyname=filenames)
     return expd
 
-if config['use_coverage']:#If the user specified coverage values instead of read percent, then merge user input with assembly summary table
+def get_input_value(path):
+    tb=pd.read_csv(path,sep='\t')
+    colnames=list(tb.columns)
+    valuesnames=['Coverage','PercentReads','PercentOrganism']
+    for value in valuesnames:
+        if value in colnames:
+            break
+    if not tb[value].empty:
+        print(f'{value} column is empty')
+    return value
+input_val=get_input_value(config['input_table_path'])
+if input_val=='Coverage':#If the user specified coverage values instead of read percent, then merge user input with assembly summary table
                          #If the user specifies multiple assemblies per taxid, the same coverage value will be duplicated to all assemblies
                          #Coverage values will then be converted to reads using this formula: (coverage*genome length)/(read length*pairing)
     rule populate_table_coverage:
@@ -27,10 +37,8 @@ if config['use_coverage']:#If the user specified coverage values instead of read
             mergedtb.to_csv(output[0],sep='\t',header=True)
 
 
-else:#If the user specified read percentages
+if input_val=='PercentReads':#If the user specified read percentages
     rule populate_table_read_percent:
-        conda: '../envs/pandas-numpy.yml'
-
         input: assemblies=parse_summary_tb,
                 table='input_table.tsv'
 
@@ -51,7 +59,7 @@ rule decompress_assemblies:
 
 
 rule merge_contigs:
-    conda: '../envs/biopython.yml'
+    conda: "../envs/biopython.yml"
 
     input: 'simreads/{community}/{assemblyname}.fna'
 
@@ -65,12 +73,12 @@ checkpoint create_read_counts_table:
     '''
     Rule for generating a table per sample with read counts for each genome 
     '''
-    conda: "../envs/pandas-numpy.yml"
-
     input: 'metagenome_summary.tsv'
 
     output: krona_output='tables/{community}/simrep-{rep}.txt',
             rc_table='tables/{community}/simrep-{rep}.tsv'
+
+    params: value=input_val
 
     log: "logs/read_counts_table/{community}/simrep-{rep}.txt"
 
@@ -79,7 +87,7 @@ checkpoint create_read_counts_table:
 
 
 rule create_krona_chart:
-    conda: '../envs/krona.yml'
+    conda: "../envs/krona.yml"
 
     input: 'tables/{community}/simrep-{rep}.txt'
 
@@ -100,7 +108,7 @@ def get_read_num(wildcards):
 
 if config['read_status']=='paired' and config['seq_tech']=='illumina':
     rule generate_illumina_paired_reads:
-        conda: '../envs/art.yml'
+        conda: "../envs/art.yml"
 
         input: fa='simreads/{community}/{assemblyname}.fa',
                 tab='tables/{community}/simrep-{rep}.tsv'
@@ -109,9 +117,9 @@ if config['read_status']=='paired' and config['seq_tech']=='illumina':
                 temp('simreads/{community}/paired-simrep{rep,[0-9]+}-{assemblyname}_R2.fq')
 
         params: seq_system=config['illumina_sequencing_system'],
-                read_length=config['read_length'],
-                mean_frag_len=config['mean_fragment_length'],
-                sd=config['sd_fragment_length'],
+                read_length=config['illumina_read_len'],
+                mean_frag_len=config['illumina_mean_frag_len'],
+                sd=config['illumina_sd_frag_len'],
                 read_num=lambda wildcards:get_read_num(wildcards),
                 random_seed=lambda wildcards: seed_dic[int(wildcards.rep)]
 
@@ -137,7 +145,7 @@ if config['read_status']=='paired' and config['seq_tech']=='illumina':
 
 if config['read_status']=='single' and config['seq_tech']=='illumina':
     rule generate_illumina_single_reads:
-        conda: '../envs/art.yml'
+        container: "../envs/art.yml"
 
         input: fa='simreads/{community}/{assemblyname}.fa',
                 tab='tables/{community}/simrep-{rep}.tsv'
@@ -145,7 +153,7 @@ if config['read_status']=='single' and config['seq_tech']=='illumina':
         output: temp('simreads/{community}/single-simrep{rep}-{assemblyname}_R1.fq')
 
         params: seq_system=config['illumina_sequencing_system'],
-                read_length=config['read_length'],
+                read_length=config['illumina_read_len'],
                 read_num=lambda wildcards:get_read_num(wildcards),
                 random_seed=lambda wildcards: seed_dic[int(wildcards.rep)]
 
@@ -168,7 +176,7 @@ if config['read_status']=='single' and config['seq_tech']=='illumina':
 
 def get_coverage(wildcards):
     tb=pd.read_csv(rules.populate_table_coverage.output[0],sep='\t',index_col='AssemblyNames')
-    cov=tb.loc[wildcards.assemblyname]['coverage']
+    cov=tb.loc[wildcards.assemblyname]['Coverage']
     return cov
 
 
@@ -183,11 +191,11 @@ if config['read_status']=='single' and config["seq_tech"]=='longreads':
                 temp('simreads/{community}/simrep-{rep}-{assemblyname}_0001.ref'),
 
         params: chemistry=config["chemistry"],
-                min_read_len=config["minimum_read_length"],
-                max_read_len=config["maximum_read_length"],
-                sd_read_len=config["sd_read_length"],
-                mean_read_len=config["mean_read_length"],
-                accuracy=config["mean_read_accuracy"],
+                min_read_len=config["longreads_min_len"],
+                max_read_len=config["longreads_max_len"],
+                sd_read_len=config["longreads_sd_len"],
+                mean_read_len=config["longreads_mean_len"],
+                accuracy=config["longreads_mean_acc"],
                 diff_ratio=config["difference_ratio"],
                 coverage=lambda wildcards:get_coverage(wildcards),
                 seed=lambda wildcards: seed_dic[int(wildcards.rep)]
@@ -262,7 +270,7 @@ rule shuffle_fastq:
 
 
 rule compress_fastq:
-    conda: '../envs/pigz.yml'
+    conda: "../envs/pigz.yml"
 
     input: 'simreads/{community}/simrep-{rep}/{community}-{rep}_R{rd}.fq'
 
