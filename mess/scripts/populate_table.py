@@ -1,5 +1,5 @@
 import pandas as pd
-def get_even_reads(table, pv, pb, ph, pe):
+def get_even_reads(tb, pv, pb, ph, pe):
     '''
     function that calculates the number of viral human and bacterial genomes from the output of assembly_finder
     and assigns even proportions for each genome
@@ -11,7 +11,6 @@ def get_even_reads(table, pv, pb, ph, pe):
     table=output of assembly_finder
     '''
     even_prop = []
-    tb = pd.read_csv(table, delimiter='\t', index_col=0)
     nb = list(tb['superkingdom']).count('Bacteria')
     nv = list(tb['superkingdom']).count('Viruses')
     nh = list(tb['species']).count('Homo sapiens')
@@ -39,17 +38,17 @@ hrp = snakemake.params['proportion_reads']['human']
 brp = snakemake.params['proportion_reads']['bacteria']
 erp = snakemake.params['proportion_reads']['non_human_eukaryotes']
 
-tb = pd.read_csv(snakemake.input.table, sep='\t')
-# Check if the user already inputted read percentages for each assembly
-if 'PercentReads' in list(tb.columns) and len(list(tb['PercentReads'])) == len(tb):
-    # Check if the user filled the list or not
-    assembly_table=pd.read_csv(snakemake.params['table'],sep='\t')
-    tb_w_reads = pd.merge(assembly_table,tb,how='outer',on='UserInputNames')
-    tb_w_reads['PercentReads'] = tb_w_reads['PercentReads'] / tb_w_reads['nb_genomes']#If multiple assemblies per entry, divide read percent by the number of genomes
-    tb_w_reads.drop('nb_genomes', axis=1, inplace=True)
-    tb_w_reads.set_index('AssemblyNames',inplace=True)
+tb = pd.read_csv(snakemake.input.input_tb, sep='\t')
+assembly_tb=pd.read_csv(snakemake.input.assemblies_tb,sep='\t')
+mergedtb = pd.merge(assembly_tb,tb,how='outer',on='UserInputNames')
+# If the user already inputted read percentages for each assembly
+if snakemake.params.val=='PercentReads':
+    mergedtb['PercentReads'] = mergedtb['PercentReads'] / mergedtb['nb_genomes']#If multiple assemblies per entry, divide read percent by the number of genomes
+if snakemake.params.val=='RelativeProp':
+    mergedtb['RelativeProp'] = mergedtb['RelativeProp'] / mergedtb['nb_genomes']
+else:#If no read value is specified, generate even read percentages
+    tb_w_reads=get_even_reads(assembly_tb,pv=vrp,pb=brp,ph=hrp,pe=erp)
+mergedtb.drop('nb_genomes', axis=1, inplace=True)
+mergedtb.set_index('AssemblyNames',inplace=True)
+mergedtb.to_csv(snakemake.output[0], sep='\t', header=True)
 
-else:#If no read percent is specified
-    tb_w_reads=get_even_reads(snakemake.params['table'],pv=vrp,pb=brp,ph=hrp,pe=erp)
-
-tb_w_reads.to_csv(snakemake.output[0], sep='\t', header=True,index=False)
