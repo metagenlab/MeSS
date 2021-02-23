@@ -5,7 +5,8 @@ proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.08,'non_human_eukaryote
 #Sequencing run params
 seq_tech: illumina #[illumina,longreads]
 read_status: paired #set to single for single read simulation or longread simulation
-total_reads: 10000000 #10 mil reads in total, to use if read percent or relative percent are used
+total_reads: 10000000 #10 mil reads in total.
+                      #If the user inputs coverage values in input_table.tsv, then this value will not be used
 ##Illumina (art params)
 illumina_sequencing_system: HSXt #HiSeqX TruSeq (read length:150bp)
 illumina_read_len: 150
