@@ -31,10 +31,15 @@ def cli(obj):
     context_settings=dict(ignore_unknown_options=True),
     short_help="run all MeSS pipeline steps"
 )
-@click.option("-c",
+@click.option("-f",
     "--config-file",
     type=click.Path(exists=True,resolve_path=True),
     help="path to MeSS configfile",
+)
+@click.option("-p",
+    "--conda-prefix",
+    type=click.Path(exists=True,resolve_path=True),
+    help="path to conda environment",
 )
 @click.option(
     "-n",
@@ -44,19 +49,19 @@ def cli(obj):
     show_default=True,
     help="Snakemake dryrun to see the scheduling plan",
 )
-@click.option("-r",
+@click.option("-nr",
     "--ncbi_requests",
     type=int,
     help="number of ncbi requests, check https://github.com/metagenlab/mess for more details",
     default=3,
 )
-@click.option("-s",
+@click.option("-ns",
     "--nb_sim",
     type=int,
     help="number of genomes to simulate in parallel, check https://github.com/metagenlab/mess for more details",
     default=2,
 )
-@click.option("-k",
+@click.option("-nc",
     "--nb_cat",
     type=int,
     help="number of genomes to concatenate in parallel, check https://github.com/metagenlab/mess for more details",
@@ -68,8 +73,13 @@ def cli(obj):
     help="number of cores to allow for the workflow",
     default=5,
 )
+@click.option("-st",
+    "--seq-tech",
+    help="sequencing technologie for simulation",
+)
+
 @click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
-def run_workflow(config_file,dryrun_status,ncbi_requests,nb_sim,nb_cat,cores,snakemake_args):
+def run_workflow(conda_prefix,config_file,dryrun_status,ncbi_requests,nb_sim,nb_cat,cores,snakemake_args,seq_tech):
     """
     Runs MeSS pipeline with all steps
     """
@@ -84,11 +94,19 @@ def run_workflow(config_file,dryrun_status,ncbi_requests,nb_sim,nb_cat,cores,sna
         dryrun='-n'
     else:
         dryrun=''
-
-    cmd = (
-        f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix {os.environ['CONDA_PREFIX']} "
-        f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} illumina_sim {dryrun} {' '.join(snakemake_args)}")
-
+    if conda_prefix is None:
+        conda_prefix=os.environ['CONDA_PREFIX']
+    if not os.path.exists(conda_prefix):
+        logging.critical(f"conda env path not found: {config_file}\n")
+        sys.exit(1)
+    if seq_tech=='illumina':
+        cmd = (
+            f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix {conda_prefix} "
+            f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} all_sim {dryrun} {' '.join(snakemake_args)}")
+    if seq_tech == 'longreads':
+        cmd = (
+            f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix {conda_prefix} --use-singularity "
+            f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} all_sim {dryrun} {' '.join(snakemake_args)}")
     logging.info("Executing: %s" % cmd)
     try:
         subprocess.check_call(cmd, shell=True)
