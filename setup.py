@@ -10,7 +10,7 @@ setup(name='MeSS',
       description="MeSS is a snakemake workflow used for simulating metagenomic mock communities",
       packages=find_packages(),
       include_package_data=True,
-      data_files=[(".", ["LICENSE.txt","README.md"])],
+      data_files=[(".", ["LICENSE","README.md"])],
       install_requires=['click', 'snakemake'],
       entry_points={
             'console_scripts': [
