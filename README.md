@@ -1,33 +1,15 @@
-
-# Metagenomic Sequence Simulator
-MeSS is a snakemake workflow used for simulating metagenomic mock communities.
-## Dependencies
-[![Snakemake](https://img.shields.io/badge/snakemake-≥5.8.0-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
+#MeSS [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/version.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/latest_release_date.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/downloads.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/platforms.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/license.svg)](https://anaconda.org/metagenlab/mess)
+The Metagenomic Sequence Simulator (MeSS) is a snakemake workflow used for simulating metagenomic mock communities.
 ## Installation
-#### Conda
-Download and install miniconda 3 (Linux 64-bit)
-```bash
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
-```
-#### Snakemake
-Install mamba and use it to create the snakemake environment as the conda solver is slow and [struggles to select the latest version](https://github.com/conda/conda/issues/9905)
-```bash
+[![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/installer/conda.svg)](https://conda.anaconda.org/metagenlab)    
+```shh
 conda install -c conda-forge mamba
-mamba create -c conda-forge -c bioconda -n snakemake snakemake
-conda activate snakemake
-``` 
-
-
-#### Clone repository
-MeSS contains assembly finder as a submodule, paste the command below to clone both repos:
-```bash
-git clone --recursive https://github.com/metagenlab/MeSS.git
+mamba install -c metagenlab -c conda-forge -c bioconda mess
 ```
-
 ## Required files
 ### Input table example
-MeSS takes the same input as Assembly_finder, with an additional column for the percentage of total simulated read per query.
+MeSS takes the same input as Assembly_finder, with an additional column for either Coverage values, read percentages or
+relative abundances.
 ```
 UserInputNames           nb_genomes     PercentReads     
 1813735                  1              0.3
@@ -39,31 +21,44 @@ In the input table shown above, all queries are bacteria and each query will hav
 ### Config file example
 ```
 #MeSS parameters
-replicates: 1
-community_name: 'sample-metagenome'
-proportion_reads: {'virus':0,'human':0,'bacteria':1,'non_human_eukaryotes':0}
-##art_illumina parameters
-illumina_sequencing_system: 'HSXt'#HiSeqX TruSeq 
-total_amount_reads: 10000 #reads to simulate in total
-read_length: 150
-mean_fragment_length: 200
-sd_fragment_length: 10
-read_status: 'single'
-sd_read_num: 0 #Standard deviation for varying the number of reads per replicate
+community_name: metagenome-1
+proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.08,'non_human_eukaryotes':0.01}
 
-#Assembly_finder parameters
-##E-utilities parameters
-input_table_path: path/to/input_table
-NCBI_key: your_ncbi_api_key
+#Sequencing run params
+seq_tech: longreads #[illumina,longreads]
+read_status: single 
+total_reads: 100000
+
+##Illumina (art params)
+illumina_sequencing_system: HSXt #HiSeqX TruSeq (read length:150bp)
+illumina_read_len: 150
+illumina_mean_frag_len: 200
+illumina_sd_frag_len: 10
+
+##Long reads (pbsim2 params)
+chemistry: R94 
+longreads_min_len: 100
+longreads_max_len: 1000000
+longreads_sd_len: 7000
+longreads_mean_len: 9000
+longreads_mean_acc: 85
+difference_ratio: "23:31:46"
+
+## Replicate params
+replicates: 1 
+sd_read_num: 0 #Standard deviation for varying the number of reads per replicate, if 0 keep the same number of reads for each replicate
+set_seed: 1 #Set this parameter to a fixed number so data from random number generators is reproducible
+
+#Assembly finder parameters
+input_table_path: input_table.tsv
+NCBI_key: your_ncbi_key
 NCBI_email: your_ncbi_email
-##Search filter parameters
 complete_assemblies: False
 reference_assemblies: False
 representative_assemblies: False
 exclude_from_metagenomes: True
 Genbank_assemblies: True
 Refseq_assemblies: True
-##Filtering function parameter
 Rank_to_filter_by: 'None'
 ```
 #### MeSS parameters
