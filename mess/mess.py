@@ -99,14 +99,9 @@ def run_workflow(conda_prefix,config_file,dryrun_status,ncbi_requests,nb_sim,nb_
     if not os.path.exists(conda_prefix):
         logging.critical(f"conda env path not found: {config_file}\n")
         sys.exit(1)
-    if seq_tech=='illumina':
-        cmd = (
-            f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix {conda_prefix} "
-            f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} all_sim {dryrun} {' '.join(snakemake_args)}")
-    if seq_tech == 'longreads':
-        cmd = (
-            f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix {conda_prefix} --use-singularity "
-            f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} all_sim {dryrun} {' '.join(snakemake_args)}")
+    cmd = (
+        f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix {conda_prefix} "
+        f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} all_sim {dryrun} {' '.join(snakemake_args)}")
     logging.info("Executing: %s" % cmd)
     try:
         subprocess.check_call(cmd, shell=True)
