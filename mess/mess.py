@@ -73,13 +73,9 @@ def cli(obj):
     help="number of cores to allow for the workflow",
     default=5,
 )
-@click.option("-st",
-    "--seq-tech",
-    help="sequencing technologie for simulation",
-)
 
 @click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
-def run_workflow(conda_prefix,config_file,dryrun_status,ncbi_requests,nb_sim,nb_cat,cores,snakemake_args,seq_tech):
+def run_workflow(conda_prefix, config_file, dryrun_status, ncbi_requests, nb_sim, nb_cat, cores, snakemake_args):
     """
     Runs MeSS pipeline with all steps
     """
@@ -101,7 +97,8 @@ def run_workflow(conda_prefix,config_file,dryrun_status,ncbi_requests,nb_sim,nb_
         sys.exit(1)
     cmd = (
         f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix {conda_prefix} "
-        f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} all_sim {dryrun} {' '.join(snakemake_args)}")
+        f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} "
+        f"all_sim {dryrun} {' '.join(snakemake_args)}")
     logging.info("Executing: %s" % cmd)
     try:
         subprocess.check_call(cmd, shell=True)
