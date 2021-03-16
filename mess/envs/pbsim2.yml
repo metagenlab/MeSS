@@ -1,3 +1,4 @@
+name: pbsim2
 channels:
   - metagenlab
 dependencies:

@@ -2,4 +2,4 @@ name: biopython
 channels:
   - conda-forge
 dependencies:
-  - biopython=1.78
+  - biopython = 1.78

@@ -2,4 +2,4 @@ name: krona
 channels:
   - bioconda
 dependencies:
-  - krona=2.8
+  - krona = 2.8
