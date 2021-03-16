@@ -1,0 +1,15 @@
+include : "simulate_reads.rules"
+include : "../assembly_finder/Snakefile"
+
+replicates=config["replicates"]
+community_name=config["community_name"]
+if config['read_status']=='single' or config['seq_tech']=='longreads':
+    read_direction=['1']
+if config['read_status']=='paired':
+    read_direction=['1','2']
+
+rule all_sim :
+    input: expand('krona/{community}-simrep-{rep}.html',rep=list(range(1,replicates+1)),community=community_name),
+           expand('simreads/{community}-{rep}_R{rd}.fastq.gz', rep = list(range(1,replicates + 1)),
+               community = community_name, rd = read_direction)
+

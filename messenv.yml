@@ -1,0 +1,16 @@
+name: mess
+channels:
+ - bioconda
+ - conda-forge
+ - metagenlab
+dependencies:
+ - snakemake
+ - click
+ - pigz = 2.5
+ - art = 2016.06.05
+ - pandas = 1.2.2
+ - numpy = 1.20.1
+ - python = 3.7.3
+ - krona = 2.8
+ - biopython = 1.78
+ - pbsim2 = 2.0.1

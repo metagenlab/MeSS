@@ -1,0 +1,5 @@
+name: pbsim2
+channels:
+  - metagenlab
+dependencies:
+  - pbsim2 = 2.0.1

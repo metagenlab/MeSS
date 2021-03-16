@@ -1,0 +1,5 @@
+name: pigz
+channels:
+  - conda-forge
+dependencies:
+  - pigz = 2.5
