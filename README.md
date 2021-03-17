@@ -1,8 +1,15 @@
 # MeSS [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/version.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/latest_release_date.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/downloads.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/platforms.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/license.svg)](https://anaconda.org/metagenlab/mess)
 The Metagenomic Sequence Simulator (MeSS) is a snakemake workflow used for simulating metagenomic mock communities.
 ## Installation
+```bash
+git clone --recursive https://github.com/metagenlab/MeSS.git
+conda install -c conda-forge mamba
+mamba create -c conda-forge -c bioconda -n snakemake snakemake
+```
+### Or
+
 [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/installer/conda.svg)](https://conda.anaconda.org/metagenlab)    
-```shh
+```bash
 conda install -c conda-forge mamba
 mamba install -c metagenlab -c conda-forge -c bioconda mess
 ```
