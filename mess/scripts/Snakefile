@@ -2,29 +2,15 @@ include : "simulate_reads.rules"
 include : "../assembly_finder/Snakefile"
 
 replicates=config["replicates"]
-rep=list(range(1,replicates + 1))
 community_name=config["community_name"]
 if config['read_status']=='single' or config['seq_tech']=='longreads':
     read_direction=['1']
 if config['read_status']=='paired':
     read_direction=['1','2']
 
-def combine_fastq_input(wildcards):
-    with checkpoints.combine_assembly_tables.get(**wildcards).output[0].open() as f:
-        names = pd.read_csv(f,delimiter='\t')['AssemblyNames']
-        if config['seq_tech']=='illumina' and config['read_status']=='paired':
-            return expand(f'simreads/{community_name}-paired-simrep-{{rep}}-{{assemblyname}}_R{read_direction}.fq',
-                assemblyname=names,rep = rep)
-        if config['seq_tech']=='illumina' and config['read_status']=='single':
-            return expand(f'simreads/{{community}}-single-simrep-{{rep}}-{{assemblyname}}_R1.fq',
-                assemblyname=names,rep = rep)
-        if config['seq_tech'] == 'longreads':
-            return expand(f'simreads/{community_name}-simrep-{{rep}}-{{assemblyname}}_0001.fastq',
-                assemblyname=names,rep=rep)
-
 rule all_sim :
-    input: lambda wildcards: combine_fastq_input(wildcards),
-           expand('krona/{community}-simrep-{rep}.html',rep=rep,community=community_name),
-           expand('simreads/{community}-{rep}_R{rd}.fastq.gz', rep = rep,
+    input: expand('summary-{community}-{rep}.tsv',rep=list(range(1,replicates + 1)),community=community_name),
+           expand('krona/{community}-simrep-{rep}.html',rep=list(range(1,replicates + 1)),community=community_name),
+           expand('simreads/{community}-{rep}_R{rd}.fastq.gz', rep = list(range(1,replicates + 1)),
                community = community_name, rd = read_direction)
 

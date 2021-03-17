@@ -1,31 +1,35 @@
 import pandas as pd
 import os
 import random
-def list_downloaded_assemblies(wildcards):
-    with checkpoints.combine_assembly_tables.get(**wildcards).output[0].open() as f:
-        tb=pd.read_csv(f,sep='\t')
-        return expand('assembly_gz/{assemblyname}.fna.gz',assemblyname=tb['AssemblyNames'])
+
+pipeline_path=workflow.basedir
+random.seed(config["set_seed"])
+nb_rep=config["replicates"]
+rep_list=list(range(1,nb_rep+1))
+seed_list=random.sample(range(1,1000000),len(rep_list))
+seed_dic=dict(zip(rep_list,seed_list))
 
 def get_input_value(path):
+    """
+    Function that parses input table and raises exceptions if there are NA in the table
+    """
     tb=pd.read_csv(path,sep='\t')
     acceptedvals=['Coverage','PercentReads','RelativeProp']
     lastcol=tb.columns[len(tb.columns)-1]
     nans=tb[lastcol].isna().sum()
     if nans>0:
-        print(f'{nans} values in {lastcol} are not set, make sure to input values')
+        raise Exception(f'{nans} values in {lastcol} are not set, make sure to input values')
     if lastcol in acceptedvals:
-        print(f'taking {lastcol} as input to simulate reads')
+        print(f'Taking {lastcol} as input to simulate reads')
+        return lastcol
     else:
-        print(f'{lastcol} is not recognized as an input to simulate reads')
-    return lastcol
+        raise Exception(f'{lastcol} is not recognized as an input to simulate reads')
 
 input_val=get_input_value(config['input_table_path'])
 
-
 rule populate_table:#merge assembly table with user input values
-    input: assemblies=list_downloaded_assemblies,
-           input_tb=config['input_table_path'],
-           assemblies_tb='assemblies-summary.tsv'
+    input: input_tb = config['input_table_path'],
+           assemblies_tb = 'assemblies-summary.tsv'
 
     output: temp('merged.tsv')
 
@@ -34,7 +38,7 @@ rule populate_table:#merge assembly table with user input values
 
     script: 'populate_table.py'
 
-checkpoint create_read_counts_table:
+rule create_read_counts_table:
     '''
     Rule for generating a table per sample with read counts for each genome 
     '''
@@ -49,6 +53,7 @@ checkpoint create_read_counts_table:
 
     script: 'read_counts_table.py'
 
+
 rule create_krona_chart:
     conda: "../envs/krona.yml"
 
@@ -60,12 +65,13 @@ rule create_krona_chart:
 
     shell: 'ktImportText -o {output} {input} &> {log}'
 
+
 rule decompress_assemblies:
-    input: 'assembly_gz/{assemblyname}.fna.gz'
+    input: 'assembly_gz/{assemblyname}.fna.gz',
 
     output: temp('assembly_gz/{assemblyname}.fna')
 
-    shell: 'gunzip {input[0]}'
+    shell: 'zcat {input} > {output}'
 
 
 rule merge_contigs:
@@ -73,149 +79,150 @@ rule merge_contigs:
 
     input: 'assembly_gz/{assemblyname}.fna'
 
-    output: temp('simreads/{community}-{assemblyname}.fa') #.fa because ouptput files must have unique names (otherwise we have to create a new dir, or use shadow rules)
+    output: temp('simreads/{community}-{assemblyname}.fa')
 
     script: "merge_contigs.py"
 
 
-
 if config['seq_tech']=='illumina':
 
-    def get_read_num(wildcards):
-        with checkpoints.create_read_counts_table.get(**wildcards).output["rc_table"].open() as f:
-            table = pd.read_csv(f,delimiter='\t',index_col='AssemblyNames')
-            reads = table.loc[wildcards.assemblyname]['SimReads']
+    def get_read_num(wildcards,table):
+        if not os.path.exists(table):
+            return -1
+        with open(table) as f:
+            tb = pd.read_csv(f,delimiter='\t',index_col='AssemblyNames')
+            reads = tb.loc[wildcards.assemblyname]['SimReads']
             return reads
 
     if config['read_status']=='paired':
         rule generate_illumina_paired_reads:
             conda: "../envs/art.yml"
 
-            input: fa='simreads/{community}-{assemblyname}.fa',
+            input:  fa='simreads/{community}-{assemblyname}.fa',
                     tab='summary-{community}-{rep}.tsv'
 
             output: temp('simreads/{community}-paired-simrep-{rep,[0-9]+}-{assemblyname}_R1.fq'),
                     temp('simreads/{community}-paired-simrep-{rep,[0-9]+}-{assemblyname}_R2.fq')
 
-            params: seq_system=config['illumina_sequencing_system'],
-                    read_length=config['illumina_read_len'],
-                    mean_frag_len=config['illumina_mean_frag_len'],
-                    sd=config['illumina_sd_frag_len'],
-                    read_num=lambda wildcards:get_read_num(wildcards),
-                    random_seed=lambda wildcards: seed_dic[int(wildcards.rep)]
+            params: seq_system = config['illumina_sequencing_system'],
+                    read_length = config['illumina_read_len'],
+                    mean_frag_len = config['illumina_mean_frag_len'],
+                    sd = config['illumina_sd_frag_len'],
+                    read_num = lambda wildcards, input: get_read_num(wildcards, input.tab),
+                    random_seed = lambda wildcards: seed_dic[int(wildcards.rep)]
 
             resources: nb_simulation=1
 
             log: "logs/art_illumina/{community}-replicate-{rep}-{assemblyname}.log"
 
-            shell: 'art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} -p -m {params.mean_frag_len} -s {params.sd} \
-            -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/paired-simrep-{wildcards.rep}-{wildcards.assemblyname}_R &> {log}'
+            shell:
+                """
+                art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} -p \
+                -m {params.mean_frag_len} -s {params.sd} -l {params.read_length} -c {params.read_num} \
+                -o simreads/{wildcards.community}-paired-simrep-{wildcards.rep}-{wildcards.assemblyname}_R &> {log}
+                """
 
-        if config['read_status']=='single':
-            rule generate_illumina_single_reads:
-                container: "../envs/art.yml"
+    if config['read_status']=='single':
+        rule generate_illumina_single_reads:
+            conda: "../envs/art.yml"
 
-                input: fa='simreads/{community}-{assemblyname}.fa',
-                        tab='summary-{community}-{rep}.tsv'
+            input: fa='simreads/{community}-{assemblyname}.fa',
+                    tab='summary-{community}-{rep}.tsv'
 
-                output: temp('simreads/{community}-single-simrep-{rep}-{assemblyname}_R1.fq')
+            output: temp('simreads/{community}-single-simrep-{rep}-{assemblyname}_R1.fq')
 
-                params: seq_system=config['illumina_sequencing_system'],
-                        read_length=config['illumina_read_len'],
-                        read_num=lambda wildcards: get_read_num(wildcards),
-                        random_seed=lambda wildcards: seed_dic[int(wildcards.rep)]
+            params: seq_system = config['illumina_sequencing_system'],
+                    read_length = config['illumina_read_len'],
+                    read_num = lambda wildcards, input: get_read_num(wildcards, input.tab),
+                    random_seed = lambda wildcards: seed_dic[int(wildcards.rep)]
 
-                resources: nb_simulation=1
+            resources: nb_simulation=1
 
-                log: "logs/art_illumina/{community}-replicate-{rep}-{assemblyname}.log"
+            log: "logs/art_illumina/{community}-replicate-{rep}-{assemblyname}.log"
 
-                shell: 'art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} \
-                -l {params.read_length} -c {params.read_num} -o simreads/{wildcards.community}/single-simrep-{wildcards.rep}-{wildcards.assemblyname}_R1 &> {log}'
+            shell:
+                """
+                art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} \
+                -l {params.read_length} -c {params.read_num} \
+                -o simreads/{wildcards.community}-single-simrep-{wildcards.rep}-{wildcards.assemblyname}_R1 &> {log}
+                """
 
 if config['seq_tech']=='longreads':
-    def get_coverage(wildcards):
-        with checkpoints.create_read_counts_table.get(**wildcards).output['rc_table'].open() as f:
-            tb=pd.read_csv(f,delimiter='\t',index_col='AssemblyNames')
-            cov=tb.loc[wildcards.assemblyname]['Coverage']
+
+    def get_coverage(wildcards, table):
+        if not os.path.exists(table):
+            return -1
+        with open(table) as f:
+            tb = pd.read_csv(f,delimiter='\t',index_col='AssemblyNames')
+            cov = tb.loc[wildcards.assemblyname]['Coverage']
             return cov
 
     rule generate_long_reads:
         conda: '../envs/pbsim2.yml'
 
         input: fa='simreads/{community}-{assemblyname}.fa',
-                tab='summary-{community}-{rep}.tsv'
+               tab='summary-{community}-{rep}.tsv'
         output: temp('simreads/{community}-simrep-{rep}-{assemblyname}_0001.fastq'),
                 temp('simreads/{community}-simrep-{rep}-{assemblyname}_0001.maf'),
                 temp('simreads/{community}-simrep-{rep}-{assemblyname}_0001.ref'),
 
-        params: chemistry=config["chemistry"],
-                min_read_len=config["longreads_min_len"],
-                max_read_len=config["longreads_max_len"],
-                sd_read_len=config["longreads_sd_len"],
-                mean_read_len=config["longreads_mean_len"],
-                accuracy=config["longreads_mean_acc"],
-                diff_ratio=config["difference_ratio"],
-                coverage=lambda wildcards: get_coverage(wildcards),
-                seed=lambda wildcards: seed_dic[int(wildcards.rep)]
+        params: chemistry = config["chemistry"],
+                min_read_len = config["longreads_min_len"],
+                max_read_len = config["longreads_max_len"],
+                sd_read_len = config["longreads_sd_len"],
+                mean_read_len = config["longreads_mean_len"],
+                accuracy = config["longreads_mean_acc"],
+                diff_ratio = config["difference_ratio"],
+                coverage = lambda wildcards, input: get_coverage(wildcards, input.tab),
+                seed = lambda wildcards: seed_dic[int(wildcards.rep)]
 
         resources: nb_simulation=1
 
         log: "logs/pbsim2/{community}-replicate-{rep}-{assemblyname}.log"
 
-        shell: "pbsim --prefix simreads/{wildcards.community}-simrep-{wildcards.rep}-{wildcards.assemblyname} --id-prefix {wildcards.assemblyname} \
-        --depth {params.coverage} --length-min {params.min_read_len} --length-max {params.max_read_len} \
-        --difference-ratio {params.diff_ratio} --seed {params.seed} --hmm_model ${{CONDA_PREFIX}}/data/{params.chemistry}.model \
-        --length-mean {params.mean_read_len} --length-sd {params.sd_read_len} {input.fa} &> {log}"
-
+        shell:
+            """
+            pbsim --prefix simreads/{wildcards.community}-simrep-{wildcards.rep}-{wildcards.assemblyname} \
+            --id-prefix {wildcards.assemblyname} --depth {params.coverage} --length-min {params.min_read_len} \
+            --length-max {params.max_read_len} --difference-ratio {params.diff_ratio} --seed {params.seed} \
+            --hmm_model ${{CONDA_PREFIX}}/data/{params.chemistry}.model --length-mean {params.mean_read_len} \
+            --length-sd {params.sd_read_len} {input.fa} &> {log}
+            """
 
 def combine_fastq_input(wildcards):
     with checkpoints.combine_assembly_tables.get(**wildcards).output[0].open() as f:
-        names = pd.read_csv(f,delimiter='\t')['AssemblyNames']
+        tb = pd.read_csv(f,sep='\t')
+        assemblynames=list(tb['AssemblyNames'])
         if config['seq_tech']=='illumina' and config['read_status']=='paired':
-            return expand(f'simreads/{community_name}-paired-simrep-{{rep}}-{{assemblyname}}_R{read_direction}.fq',
-                assemblyname=names,rep = rep)
+            return expand('simreads/{community}-paired-simrep-{rep}-{assemblyname}_R{rd}.fq', community = community_name,
+                rep = list(range(1,replicates + 1)), rd=read_direction, assemblyname=assemblynames)
         if config['seq_tech']=='illumina' and config['read_status']=='single':
-            return expand(f'simreads/{{community}}-single-simrep-{{rep}}-{{assemblyname}}_R1.fq',
-                assemblyname=names,rep = rep)
+            return expand('simreads/{community}-single-simrep-{rep}-{assemblyname}_R1.fq', community=community_name,
+                rep = list(range(1,replicates + 1)), assemblyname=assemblynames)
         if config['seq_tech'] == 'longreads':
-            return expand(f'simreads/{community_name}-simrep-{{rep}}-{{assemblyname}}_0001.fastq',
-                assemblyname=names,rep = rep)
+            return expand('simreads/{community}-simrep-{rep}-{assemblyname}_0001.fastq', community=community_name,
+                rep=list(range(1,replicates + 1)), assemblyname=assemblynames)
 
-rule combine_fastq:
-    input: combine_fastq_input
+rule concat_fastqs:
+    input: lambda wildcards: combine_fastq_input(wildcards)
 
-    output: temp('simreads/{community}-{rep}-combined_R{rd}.fq')
+    output: temp('simreads/{community}-{rep}-combined_R{rd}.combined')
 
-    resources: parallel_cat=1
+    resources: parallel_cat = 1
 
     shell:
         '''
         cat {input} >> {output}
         '''
 
-# def combine_fastq_text_input(wildcards):
-#     checkpoint_output = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
-#     tb=pd.read_csv(checkpoint_output,delimiter='\t')
-#     filenames=tb['AssemblyNames']
-#     if config['read_status']=='paired':
-#         return expand(f'simreads/{wildcards.community}/paired-simrep{wildcards.rep}-{{assemblyname}}_R{wildcards.rd}.txt',assemblyname=filenames)
-#     else:
-#         return expand(f'simreads/{wildcards.community}/single-simrep{wildcards.rep}-{{assemblyname}}_R1.txt',assemblyname=filenames)
 
-pipeline_path=workflow.basedir
-random.seed(config["set_seed"])
-nb_rep=config["replicates"]
-rep_list=list(range(1,nb_rep+1))
-seed_list=random.sample(range(1,1000000),len(rep_list))
-seed_dic=dict(zip(rep_list,seed_list))
-
-rule shuffle_fastq:
-    input: 'simreads/{community}-{rep}-combined_R{rd}.fq'
+rule shuffle_fastqs:
+    input: 'simreads/{community}-{rep}-combined_R{rd}.combined'
 
     output: 'simreads/{community}-{rep}_R{rd}.fastq'
 
-    params: seed=lambda wildcards: seed_dic[int(wildcards.rep)],
-            script_path=os.path.join(pipeline_path,'shuffle.sh')
+    params: seed = lambda wildcards: seed_dic[int(wildcards.rep)],
+            script_path = os.path.join(pipeline_path,'shuffle.sh')
 
     log: "logs/shuffling/{community}-{rep}-{rd}-shuffling-seed.log"
 
@@ -225,7 +232,7 @@ rule shuffle_fastq:
         """
 
 
-rule compress_fastq:
+rule compress_fastqs:
     conda: "../envs/pigz.yml"
 
     input: 'simreads/{community}-{rep}_R{rd}.fastq'
