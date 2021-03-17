@@ -9,7 +9,8 @@ if config['read_status']=='paired':
     read_direction=['1','2']
 
 rule all_sim :
-    input: expand('krona/{community}-simrep-{rep}.html',rep=list(range(1,replicates+1)),community=community_name),
+    input: expand('summary-{community}-{rep}.tsv',rep=list(range(1,replicates + 1)),community=community_name),
+           expand('krona/{community}-simrep-{rep}.html',rep=list(range(1,replicates + 1)),community=community_name),
            expand('simreads/{community}-{rep}_R{rd}.fastq.gz', rep = list(range(1,replicates + 1)),
                community = community_name, rd = read_direction)
 
