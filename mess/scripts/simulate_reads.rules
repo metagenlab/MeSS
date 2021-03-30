@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import random
-
+community_name=config["community_name"]
 pipeline_path=workflow.basedir
 random.seed(config["set_seed"])
 nb_rep=config["replicates"]
@@ -20,34 +20,25 @@ def get_input_value(path):
     if nans>0:
         raise Exception(f'{nans} values in {lastcol} are not set, make sure to input values')
     if lastcol in acceptedvals:
-        print(f'Taking {lastcol} as input to simulate reads')
         return lastcol
     else:
         raise Exception(f'{lastcol} is not recognized as an input to simulate reads')
 
 input_val=get_input_value(config['input_table_path'])
 
-rule populate_table:#merge assembly table with user input values
-    input: input_tb = config['input_table_path'],
-           assemblies_tb = 'assemblies-summary.tsv'
-
-    output: temp('merged.tsv')
-
-    params: proportion_reads = config['proportion_reads'],
-            val=input_val
-
-    script: 'populate_table.py'
 
 rule create_read_counts_table:
     '''
     Rule for generating a table per sample with read counts for each genome 
     '''
-    input: 'merged.tsv'
+    input: input_tb = config['input_table_path'],
+           assemblies_tb = f'{community_name}-assemblies-summary.tsv'
 
     output: rc_table='summary-{community}-{rep}.tsv',
             krona_output=temp('krona/{community}-simrep-{rep}.txt')
 
-    params: value=input_val
+    params: proportion_reads = config['proportion_reads'],
+            value=input_val
 
     log: "logs/read_counts_table/{community}-{rep}.txt"
 
@@ -118,7 +109,7 @@ if config['seq_tech']=='illumina':
             shell:
                 """
                 art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} -p \
-                -m {params.mean_frag_len} -s {params.sd} -l {params.read_length} -c {params.read_num} \
+                -nf 1 -m {params.mean_frag_len} -s {params.sd} -l {params.read_length} -c {params.read_num} \
                 -o simreads/{wildcards.community}-paired-simrep-{wildcards.rep}-{wildcards.assemblyname}_R &> {log}
                 """
 
@@ -143,7 +134,7 @@ if config['seq_tech']=='illumina':
             shell:
                 """
                 art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} \
-                -l {params.read_length} -c {params.read_num} \
+                -nf 1 -l {params.read_length} -c {params.read_num} \
                 -o simreads/{wildcards.community}-single-simrep-{wildcards.rep}-{wildcards.assemblyname}_R1 &> {log}
                 """
 
@@ -190,18 +181,18 @@ if config['seq_tech']=='longreads':
             """
 
 def combine_fastq_input(wildcards):
-    with checkpoints.combine_assembly_tables.get(**wildcards).output[0].open() as f:
-        tb = pd.read_csv(f,sep='\t')
-        assemblynames=list(tb['AssemblyNames'])
-        if config['seq_tech']=='illumina' and config['read_status']=='paired':
-            return expand('simreads/{community}-paired-simrep-{rep}-{assemblyname}_R{rd}.fq', community = community_name,
-                rep = list(range(1,replicates + 1)), rd=read_direction, assemblyname=assemblynames)
-        if config['seq_tech']=='illumina' and config['read_status']=='single':
-            return expand('simreads/{community}-single-simrep-{rep}-{assemblyname}_R1.fq', community=community_name,
-                rep = list(range(1,replicates + 1)), assemblyname=assemblynames)
-        if config['seq_tech'] == 'longreads':
-            return expand('simreads/{community}-simrep-{rep}-{assemblyname}_0001.fastq', community=community_name,
-                rep=list(range(1,replicates + 1)), assemblyname=assemblynames)
+    f = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
+    tb = pd.read_csv(f,sep='\t')
+    assemblynames=list(tb['AssemblyNames'])
+    if config['seq_tech']=='illumina' and config['read_status']=='paired':
+        return expand('simreads/{community}-paired-simrep-{rep}-{assemblyname}_R{rd}.fq', community = community_name,
+            rep = list(range(1,replicates + 1)), rd=read_direction, assemblyname=assemblynames)
+    if config['seq_tech']=='illumina' and config['read_status']=='single':
+        return expand('simreads/{community}-single-simrep-{rep}-{assemblyname}_R1.fq', community=community_name,
+            rep = list(range(1,replicates + 1)), assemblyname=assemblynames)
+    if config['seq_tech'] == 'longreads':
+        return expand('simreads/{community}-simrep-{rep}-{assemblyname}_0001.fastq', community=community_name,
+            rep=list(range(1,replicates + 1)), assemblyname=assemblynames)
 
 rule concat_fastqs:
     input: lambda wildcards: combine_fastq_input(wildcards)
