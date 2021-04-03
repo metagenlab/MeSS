@@ -14,7 +14,7 @@ def get_input_value(path):
     Function that parses input table and raises exceptions if there are NA in the table
     """
     tb=pd.read_csv(path,sep='\t')
-    acceptedvals=['Coverage','PercentReads','RelativeProp']
+    acceptedvals=['Reads','Coverage','PercentReads','RelativeProp']
     lastcol=tb.columns[len(tb.columns)-1]
     nans=tb[lastcol].isna().sum()
     if nans>0:
@@ -37,8 +37,7 @@ rule create_read_counts_table:
     output: rc_table='summary-{community}-{rep}.tsv',
             krona_output=temp('krona/{community}-simrep-{rep}.txt')
 
-    params: proportion_reads = config['proportion_reads'],
-            value=input_val
+    params: value=input_val
 
     log: "logs/read_counts_table/{community}-{rep}.txt"
 
@@ -58,11 +57,14 @@ rule create_krona_chart:
 
 
 rule decompress_assemblies:
-    input: 'assembly_gz/{assemblyname}.fna.gz',
+    input: 'assembly_gz/{assemblyname}_genomic.fna.gz',
 
-    output: temp('assembly_gz/{assemblyname}.fna')
+    output: temp('assembly_gz/{assemblyname,[0-9a-zA-Z._-]+}.fna')
+
+    benchmark: "benchmark/decompress/{assemblyname}.txt"
 
     shell: 'zcat {input} > {output}'
+
 
 
 rule merge_contigs:
@@ -70,9 +72,19 @@ rule merge_contigs:
 
     input: 'assembly_gz/{assemblyname}.fna'
 
-    output: temp('simreads/{community}-{assemblyname}.fa')
+    output: temp('simreads/{community,[-_0-9a-zA-Z]+}-{assemblyname,[0-9a-zA-Z._-]+}.fa')
+
+    benchmark: "benchmark/merge/{community}-{assemblyname}.txt"
 
     script: "merge_contigs.py"
+
+def filenames(wildcards):
+    f = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
+    assemblynames = pd.read_csv(f,sep='\t')['AssemblyNames']
+    return expand('simreads/{community}-{assemblyname}.fa',community=community_name,assemblyname=assemblynames)
+
+rule all_merge:
+    input: filenames
 
 
 if config['seq_tech']=='illumina':
@@ -82,7 +94,7 @@ if config['seq_tech']=='illumina':
             return -1
         with open(table) as f:
             tb = pd.read_csv(f,delimiter='\t',index_col='AssemblyNames')
-            reads = tb.loc[wildcards.assemblyname]['SimReads']
+            reads = tb.loc[wildcards.assemblyname]['Reads']
             return reads
 
     if config['read_status']=='paired':
@@ -92,8 +104,8 @@ if config['seq_tech']=='illumina':
             input:  fa='simreads/{community}-{assemblyname}.fa',
                     tab='summary-{community}-{rep}.tsv'
 
-            output: temp('simreads/{community}-paired-simrep-{rep,[0-9]+}-{assemblyname}_R1.fq'),
-                    temp('simreads/{community}-paired-simrep-{rep,[0-9]+}-{assemblyname}_R2.fq')
+            output: temp('simreads/{community,[-_0-9a-zA-Z]+}-paired-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R1.fq'),
+                    temp('simreads/{community,[-_0-9a-zA-Z]+}-paired-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R2.fq')
 
             params: seq_system = config['illumina_sequencing_system'],
                     read_length = config['illumina_read_len'],
@@ -106,6 +118,8 @@ if config['seq_tech']=='illumina':
 
             log: "logs/art_illumina/{community}-replicate-{rep}-{assemblyname}.log"
 
+            benchmark: "benchmark/art_illumina/{community}-{rep}-{assemblyname}.txt"
+
             shell:
                 """
                 art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} -p \
@@ -117,10 +131,10 @@ if config['seq_tech']=='illumina':
         rule generate_illumina_single_reads:
             conda: "../envs/art.yml"
 
-            input: fa='simreads/{community}-{assemblyname}.fa',
+            input: fa='simreads/{community}-{assemblyname,[.0-9a-zA-Z_-]}.fa',
                     tab='summary-{community}-{rep}.tsv'
 
-            output: temp('simreads/{community}-single-simrep-{rep}-{assemblyname}_R1.fq')
+            output: temp('simreads/{community,[-_0-9a-zA-Z]+}-single-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R1.fq')
 
             params: seq_system = config['illumina_sequencing_system'],
                     read_length = config['illumina_read_len'],
@@ -130,6 +144,8 @@ if config['seq_tech']=='illumina':
             resources: nb_simulation=1
 
             log: "logs/art_illumina/{community}-replicate-{rep}-{assemblyname}.log"
+
+            benchmark: "benchmark/art_illumina/{community}-{rep}-{assemblyname}.txt"
 
             shell:
                 """
@@ -153,9 +169,9 @@ if config['seq_tech']=='longreads':
 
         input: fa='simreads/{community}-{assemblyname}.fa',
                tab='summary-{community}-{rep}.tsv'
-        output: temp('simreads/{community}-simrep-{rep}-{assemblyname}_0001.fastq'),
-                temp('simreads/{community}-simrep-{rep}-{assemblyname}_0001.maf'),
-                temp('simreads/{community}-simrep-{rep}-{assemblyname}_0001.ref'),
+        output: temp('simreads/{community,[-_0-9a-zA-Z]+}-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.fastq'),
+                temp('simreads/{community,[-_0-9a-zA-Z]+}-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.maf'),
+                temp('simreads/{community,[-_0-9a-zA-Z]+}-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.ref'),
 
         params: chemistry = config["chemistry"],
                 min_read_len = config["longreads_min_len"],
@@ -171,6 +187,8 @@ if config['seq_tech']=='longreads':
 
         log: "logs/pbsim2/{community}-replicate-{rep}-{assemblyname}.log"
 
+        benchmark: "benchmark/pbsim2/{community}-{rep}-{assemblyname}.txt"
+
         shell:
             """
             pbsim --prefix simreads/{wildcards.community}-simrep-{wildcards.rep}-{wildcards.assemblyname} \
@@ -182,24 +200,26 @@ if config['seq_tech']=='longreads':
 
 def combine_fastq_input(wildcards):
     f = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
-    tb = pd.read_csv(f,sep='\t')
-    assemblynames=list(tb['AssemblyNames'])
+    assemblynames = pd.read_csv(f,sep='\t')['AssemblyNames']
     if config['seq_tech']=='illumina' and config['read_status']=='paired':
-        return expand('simreads/{community}-paired-simrep-{rep}-{assemblyname}_R{rd}.fq', community = community_name,
-            rep = list(range(1,replicates + 1)), rd=read_direction, assemblyname=assemblynames)
+        return expand('simreads/{community}-paired-simrep-{rep}-{assemblyname}_R{{rd}}.fq',
+            community=community_name,rep=rep_list,assemblyname=assemblynames)
     if config['seq_tech']=='illumina' and config['read_status']=='single':
-        return expand('simreads/{community}-single-simrep-{rep}-{assemblyname}_R1.fq', community=community_name,
-            rep = list(range(1,replicates + 1)), assemblyname=assemblynames)
+        return expand('simreads/{community}-single-simrep-{rep}-{assemblyname}_R1.fq',
+            community=community_name,rep=rep_list,assemblyname=assemblynames)
     if config['seq_tech'] == 'longreads':
-        return expand('simreads/{community}-simrep-{rep}-{assemblyname}_0001.fastq', community=community_name,
-            rep=list(range(1,replicates + 1)), assemblyname=assemblynames)
+        return expand('simreads/{community}-simrep-{rep}-{assemblyname}_0001.fastq',
+            community=community_name,rep=rep_list,assemblyname=assemblynames)
+
 
 rule concat_fastqs:
-    input: lambda wildcards: combine_fastq_input(wildcards)
+    input: combine_fastq_input
 
     output: temp('simreads/{community}-{rep}-combined_R{rd}.combined')
 
     resources: parallel_cat = 1
+
+    benchmark: "benchmark/concat/{community}-{rep}_{rd}.txt"
 
     shell:
         '''
@@ -217,6 +237,8 @@ rule shuffle_fastqs:
 
     log: "logs/shuffling/{community}-{rep}-{rd}-shuffling-seed.log"
 
+    benchmark: "benchmark/shuffle/{community}-{rep}_{rd}.txt"
+
     shell:
         """
         {params.script_path} {input} {output} {params.seed} &> {log}
@@ -231,6 +253,8 @@ rule compress_fastqs:
     output: 'simreads/{community}-{rep}_R{rd}.fastq.gz'
 
     threads: 12
+
+    benchmark: "benchmark/compress/{community}-{rep}_{rd}.txt"
 
     shell:
         """
