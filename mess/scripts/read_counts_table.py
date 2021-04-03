@@ -61,6 +61,8 @@ def calculate_reads_and_coverage(table, total, sd, read_len, pairing, rep, input
     dic = {}
     genomenames = list(table['AssemblyNames'])
     genomesizes = list(table['Assembly_length'])
+    reads_per_genome = 0
+    coverage_per_genome = 0
     if input_value == 'RelativeProp':
         props = list(table['RelativeProp'])
         totalgensize = sum(genomesizes)
@@ -74,14 +76,17 @@ def calculate_reads_and_coverage(table, total, sd, read_len, pairing, rep, input
         reads_per_genome = [r*total for r in readpercents]
         coverage_per_genome = [(i[0]*read_len*pairing)/(i[1]) for i in zip(reads_per_genome, genomesizes)]
     if input_value == 'Coverage':
-        coverage_per_genome=list(table['Coverage'])
-        reads_per_genome=[(i[0]*i[1])/(read_len*pairing)for i in zip(coverage_per_genome, genomesizes)]
-    for name,r,c in zip(genomenames, reads_per_genome, coverage_per_genome):
-        read=round(np.random.normal(r, sd))
-        cov=round(np.random.normal(c, sd))
+        coverage_per_genome = list(table['Coverage'])
+        reads_per_genome = [(i[0]*i[1])/(read_len*pairing)for i in zip(coverage_per_genome, genomesizes)]
+    if input_value == 'Reads':
+        reads_per_genome = list(table['Reads'])
+        coverage_per_genome = [(i[0]*read_len*pairing)/i[1] for i in zip(reads_per_genome, genomesizes)]
+    for name, r, c in zip(genomenames, reads_per_genome, coverage_per_genome):
+        read = round(np.random.normal(r, sd))
+        cov = round(np.random.normal(c, sd))
         dic[name] = {}
         dic[name]['AssemblyNames'] = name
-        dic[name]['SimReads'] = read
+        dic[name]['Reads'] = read
         dic[name]['Coverage'] = cov
         logging.info(f"simulating {read} reads, with a coverage value of {cov} reads for accession {name}, "
                      f"replicate {rep}")
@@ -92,28 +97,30 @@ def calculate_reads_and_coverage(table, total, sd, read_len, pairing, rep, input
 """
 Main
 """
-intb = pd.read_csv(snakemake.input.input_tb,sep='\t')
-astb = pd.read_csv(snakemake.input.assemblies_tb,sep='\t')
+proportion_reads = {'virus': 0.01, 'human': 0.9, 'bacteria': 0.08, 'non_human_eukaryotes': 0.01}
+
+intb = pd.read_csv(snakemake.input.input_tb, sep='\t')
+astb = pd.read_csv(snakemake.input.assemblies_tb, sep='\t')
 assemblies_with_val = astb.merge(intb, how='left', on='UserInputNames')
-if inputval == 'Coverage':
-    assemblies_with_val['Coverage'] = np.int64(assemblies_with_val['Coverage']/assemblies_with_val['nb_genomes'])
+if inputval == 'Coverage' or inputval == 'Reads':
+    assemblies_with_val[f'{inputval}'] = np.int64(assemblies_with_val[f'{inputval}']/assemblies_with_val['nb_genomes'])
     assemblies_with_val.drop(columns='nb_genomes', inplace=True)
 elif inputval == 'PercentReads' or inputval == 'RelativeProp':
     assemblies_with_val[f'{inputval}'] = np.float64(assemblies_with_val[f'{inputval}'] /
                                                     assemblies_with_val['nb_genomes'])
     assemblies_with_val.drop(columns='nb_genomes', inplace=True)
 else:
-    vrp = snakemake.params['proportion_reads']['virus']
-    hrp = snakemake.params['proportion_reads']['human']
-    brp = snakemake.params['proportion_reads']['bacteria']
-    erp = snakemake.params['proportion_reads']['non_human_eukaryotes']
+    vrp = proportion_reads['virus']
+    hrp = proportion_reads['human']
+    brp = proportion_reads['bacteria']
+    erp = proportion_reads['non_human_eukaryotes']
     assemblies_with_val = get_even_reads(assembly_tb, pv=vrp, pb=brp, ph=hrp, pe=erp)
 
 cov_read_tb = calculate_reads_and_coverage(assemblies_with_val, totalreads, sdr, rl, pair, reps, inputval)
 mergedtb = assemblies_with_val.merge(cov_read_tb, on=[f'{inputval}', 'AssemblyNames'])
 tax_df = mergedtb[['AssemblyNames', 'AssemblyID', 'AssemblyStatus', 'Assembly_length', 'Taxid', 'superkingdom',
-                   'phylum', 'order', 'family', 'genus', 'species', 'SimReads', 'Coverage']]
-krona = mergedtb[['SimReads', 'superkingdom', 'phylum', 'order', 'family', 'genus', 'species']].set_index('SimReads')
+                   'phylum', 'order', 'family', 'genus', 'species', 'Reads', 'Coverage']]
+krona = mergedtb[['Reads', 'superkingdom', 'phylum', 'order', 'family', 'genus', 'species']].set_index('Reads')
 krona.to_csv(snakemake.output["krona_output"], sep='\t', index=True)
 tax_df.to_csv(snakemake.output["rc_table"], sep='\t', index=False)
 
