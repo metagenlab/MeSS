@@ -56,21 +56,21 @@ rule create_krona_chart:
     shell: 'ktImportText -o {output} {input} &> {log}'
 
 
-rule decompress_assemblies:
-    input: 'assembly_gz/{assemblyname}_genomic.fna.gz',
 
-    output: temp('assembly_gz/{assemblyname,[0-9a-zA-Z._-]+}.fna')
+rule decompress_assemblies:
+    input: f'assembly_gz/{community_name}/{{assemblyname}}_genomic.fna.gz'
+
+    output: temp(f'assembly_gz/{community_name}/{{assemblyname,[0-9a-zA-Z._-]+}}.fna')
 
     benchmark: "benchmark/decompress/{assemblyname}.txt"
 
     shell: 'zcat {input} > {output}'
 
 
-
 rule merge_contigs:
     conda: "../envs/biopython.yml"
 
-    input: 'assembly_gz/{assemblyname}.fna'
+    input: f'assembly_gz/{community_name}/{{assemblyname}}.fna'
 
     output: temp('simreads/{community,[-_0-9a-zA-Z]+}-{assemblyname,[0-9a-zA-Z._-]+}.fa')
 
@@ -78,13 +78,6 @@ rule merge_contigs:
 
     script: "merge_contigs.py"
 
-def filenames(wildcards):
-    f = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
-    assemblynames = pd.read_csv(f,sep='\t')['AssemblyNames']
-    return expand('simreads/{community}-{assemblyname}.fa',community=community_name,assemblyname=assemblynames)
-
-rule all_merge:
-    input: filenames
 
 
 if config['seq_tech']=='illumina':
@@ -199,8 +192,9 @@ if config['seq_tech']=='longreads':
             """
 
 def combine_fastq_input(wildcards):
-    f = checkpoints.combine_assembly_tables.get(**wildcards).output[0]
-    assemblynames = pd.read_csv(f,sep='\t')['AssemblyNames']
+    checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
+    directory = '/'.join((checkpoint_output.split('/')[0:2]))
+    assemblynames = glob_wildcards(os.path.join(directory, '{i}_genomic.fna.gz')).i
     if config['seq_tech']=='illumina' and config['read_status']=='paired':
         return expand('simreads/{community}-paired-simrep-{rep}-{assemblyname}_R{{rd}}.fq',
             community=community_name,rep=rep_list,assemblyname=assemblynames)
