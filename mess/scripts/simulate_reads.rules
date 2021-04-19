@@ -58,13 +58,14 @@ rule create_krona_chart:
 
 
 rule decompress_assemblies:
-    input: f'assembly_gz/{community_name}/{{assemblyname}}_genomic.fna.gz'
+    input: f'assembly_gz/{community_name}/{{assemblyname}}_genomic.fna.gz',
+            f"assembly_gz/{community_name}/{community_name}.done"
 
     output: temp(f'assembly_gz/{community_name}/{{assemblyname,[0-9a-zA-Z._-]+}}.fna')
 
     benchmark: "benchmark/decompress/{assemblyname}.txt"
 
-    shell: 'zcat {input} > {output}'
+    shell: 'zcat {input[0]} > {output}'
 
 
 rule merge_contigs:
