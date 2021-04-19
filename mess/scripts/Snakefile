@@ -8,9 +8,17 @@ if config['read_status']=='single' or config['seq_tech']=='longreads':
 if config['read_status']=='paired':
     read_direction=['1','2']
 
+def downloaded_list(wildcards):
+    checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
+    directory = '/'.join((checkpoint_output.split('/')[0:2]))
+    return expand(f'assembly_gz/{community_name}/{{i}}_genomic.fna.gz',
+           i=glob_wildcards(os.path.join(directory, '{i}_genomic.fna.gz')).i)
+
 rule all_sim :
     input: expand('summary-{community}-{rep}.tsv',rep=list(range(1,replicates + 1)),community=community_name),
            expand('krona/{community}-simrep-{rep}.html',rep=list(range(1,replicates + 1)),community=community_name),
            expand('simreads/{community}-{rep}_R{rd}.fastq.gz', rep = list(range(1,replicates + 1)),
-               community = community_name, rd = read_direction)
+               community = community_name, rd = read_direction),
+            downloaded_list,
+            f"assembly_gz/{community_name}/{community_name}.done"
 
