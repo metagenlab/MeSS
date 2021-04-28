@@ -210,7 +210,7 @@ def combine_fastq_input(wildcards):
 rule concat_fastqs:
     input: combine_fastq_input
 
-    output: temp('simreads/{community}-{rep}-combined_R{rd}.combined')
+    output: temp('simreads/{community}-{rep}_R{rd}.unshuffled.fq')
 
     resources: parallel_cat = 1
 
@@ -223,37 +223,25 @@ rule concat_fastqs:
 
 
 rule shuffle_fastqs:
-    input: 'simreads/{community}-{rep}-combined_R{rd}.combined'
+    conda: "../envs/seqkit.yml"
 
-    output: 'simreads/{community}-{rep}_R{rd}.fastq'
+    input: 'simreads/{community}-{rep}_R{rd}.unshuffled.fq'
 
-    params: seed = lambda wildcards: seed_dic[int(wildcards.rep)],
-            script_path = os.path.join(pipeline_path,'shuffle.sh')
+    output: 'simreads/{community}-{rep}_R{rd}.fq.gz'
 
-    log: "logs/shuffling/{community}-{rep}-{rd}-shuffling-seed.log"
+    params: seed = lambda wildcards: seed_dic[int(wildcards.rep)]
+
+    log: "logs/shuffling/{community}-{rep}-{rd}.log"
 
     benchmark: "benchmark/shuffle/{community}-{rep}_{rd}.txt"
 
-    shell:
-        """
-        {params.script_path} {input} {output} {params.seed} &> {log}
-        """
-
-
-rule compress_fastqs:
-    conda: "../envs/pigz.yml"
-
-    input: 'simreads/{community}-{rep}_R{rd}.fastq'
-
-    output: 'simreads/{community}-{rep}_R{rd}.fastq.gz'
-
-    threads: 12
-
-    benchmark: "benchmark/compress/{community}-{rep}_{rd}.txt"
+    threads: 15
 
     shell:
         """
-        pigz -p {threads} {input}
+        seqkit shuffle {input} -j {threads} -s {params.seed} -o {output}  &> {log}
         """
+
+
 
 
