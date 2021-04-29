@@ -56,7 +56,6 @@ rule create_krona_chart:
     shell: 'ktImportText -o {output} {input} &> {log}'
 
 
-
 rule decompress_assemblies:
     input: f'assembly_gz/{community_name}/{{assemblyname}}_genomic.fna.gz',
             f"assembly_gz/{community_name}/{community_name}.done"
@@ -80,9 +79,7 @@ rule merge_contigs:
     script: "merge_contigs.py"
 
 
-
 if config['seq_tech']=='illumina':
-
     def get_read_num(wildcards,table):
         if not os.path.exists(table):
             return -1
@@ -116,7 +113,7 @@ if config['seq_tech']=='illumina':
 
             shell:
                 """
-                art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} -p \
+                art_illumina -d {wildcards.assemblyname} -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} -p \
                 -nf 1 -m {params.mean_frag_len} -s {params.sd} -l {params.read_length} -c {params.read_num} \
                 -o simreads/{wildcards.community}-paired-simrep-{wildcards.rep}-{wildcards.assemblyname}_R &> {log}
                 """
@@ -143,13 +140,12 @@ if config['seq_tech']=='illumina':
 
             shell:
                 """
-                art_illumina -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} \
+                art_illumina -d {wildcards.assemblyname} -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} \
                 -nf 1 -l {params.read_length} -c {params.read_num} \
                 -o simreads/{wildcards.community}-single-simrep-{wildcards.rep}-{wildcards.assemblyname}_R1 &> {log}
                 """
 
 if config['seq_tech']=='longreads':
-
     def get_coverage(wildcards, table):
         if not os.path.exists(table):
             return -1
@@ -217,9 +213,9 @@ rule concat_fastqs:
     benchmark: "benchmark/concat/{community}-{rep}_{rd}.txt"
 
     shell:
-        '''
-        cat {input} >> {output}
-        '''
+        """
+        cat {input} > {output}
+        """
 
 
 rule shuffle_fastqs:
