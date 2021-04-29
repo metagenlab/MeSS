@@ -3,26 +3,28 @@ import numpy as np
 import logging
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',datefmt='%d %b %Y %H:%M:%S',
                     filename=snakemake.log[0], level=logging.DEBUG)
-inputval=snakemake.params.value
+inputval = snakemake.params.value
 if inputval == 'RelativeProp' or inputval == 'ReadPercent':
     totalreads = snakemake.config['total_reads']
 else:
     totalreads = 0
-sdr=snakemake.config["sd_read_num"]
-reps=snakemake.wildcards.rep
+sdr = snakemake.config["sd_read_num"]
+reps = snakemake.wildcards.rep
 read_status = snakemake.config["read_status"]
 if read_status == 'single' or snakemake.config["seq_tech"]=='longreads':
     pair = 1
 else:
     pair = 2
 if snakemake.config["seq_tech"]=='illumina':
-    rl=snakemake.config["illumina_read_len"]
+    rl = snakemake.config["illumina_read_len"]
 else:
-    rl=snakemake.config["longreads_mean_len"]
+    rl = snakemake.config["longreads_mean_len"]
 
 """
 Functions
 """
+
+
 def get_even_reads(tb, pv, pb, ph, pe):
     """
     function that calculates the number of viral human and bacterial genomes from the output of assembly_finder
