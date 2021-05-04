@@ -4,3 +4,4 @@ channels:
 dependencies:
   - pandas = 1.2.2
   - numpy = 1.20.1
+  - biopython = 1.78
