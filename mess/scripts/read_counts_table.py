@@ -120,9 +120,8 @@ else:
 
 cov_read_tb = calculate_reads_and_coverage(assemblies_with_val, totalreads, sdr, rl, pair, reps, inputval)
 mergedtb = assemblies_with_val.merge(cov_read_tb, on=[f'{inputval}', 'AssemblyNames'])
-tax_df = mergedtb[['AssemblyNames', 'AssemblyID', 'AssemblyStatus', 'Assembly_length', 'Taxid', 'superkingdom',
-                   'phylum', 'order', 'family', 'genus', 'species', 'Reads', 'Coverage']]
-krona = mergedtb[['Reads', 'superkingdom', 'phylum', 'order', 'family', 'genus', 'species']].set_index('Reads')
-krona.to_csv(snakemake.output["krona_output"], sep='\t', index=True)
+
+tax_df = mergedtb[['AssemblyNames', 'RefSeq_category', 'AssemblyStatus', 'Assembly_length', 'Taxid', 'superkingdom',
+                   'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain', 'Reads', 'Coverage']]
 tax_df.to_csv(snakemake.output["rc_table"], sep='\t', index=False)
 
