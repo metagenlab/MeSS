@@ -34,8 +34,7 @@ rule create_read_counts_table:
     input: input_tb = config['input_table_path'],
            assemblies_tb = f'{community_name}-assemblies-summary.tsv'
 
-    output: rc_table='summary-{community}-{rep}.tsv',
-            krona_output=temp('krona/{community}-simrep-{rep}.txt')
+    output: rc_table='summary-{community}-{rep}.tsv'
 
     params: value=input_val
 
@@ -43,17 +42,6 @@ rule create_read_counts_table:
 
     script: 'read_counts_table.py'
 
-
-rule create_krona_chart:
-    conda: "../envs/krona.yml"
-
-    input: 'krona/{community}-simrep-{rep}.txt'
-
-    output: 'krona/{community}-simrep-{rep}.html'
-
-    log: 'logs/krona/{community}-simrep-{rep}.log'
-
-    shell: 'ktImportText -o {output} {input} &> {log}'
 
 
 rule decompress_assemblies:
@@ -68,7 +56,7 @@ rule decompress_assemblies:
 
 
 rule merge_contigs:
-    conda: "../envs/biopython.yml"
+    conda: "../envs/utils.yml"
 
     input: f'assembly_gz/{community_name}/{{assemblyname}}.fna'
 
@@ -161,7 +149,7 @@ if config['seq_tech']=='longreads':
                tab='summary-{community}-{rep}.tsv'
         output: temp('simreads/{community,[-_0-9a-zA-Z]+}-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.fastq'),
                 temp('simreads/{community,[-_0-9a-zA-Z]+}-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.maf'),
-                temp('simreads/{community,[-_0-9a-zA-Z]+}-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.ref'),
+                temp('simreads/{community,[-_0-9a-zA-Z]+}-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.ref')
 
         params: chemistry = config["chemistry"],
                 min_read_len = config["longreads_min_len"],
@@ -218,6 +206,35 @@ rule concat_fastqs:
         """
 
 
+rule get_taxonomic_profile:
+    conda: "../envs/utils.yml"
+
+    input: reads='simreads/{community}-{rep}_R1.unshuffled.fq',
+           table='summary-{community}-{rep}.tsv'
+
+    output: tax='taxonomy-{community}-{rep}.tsv',
+            krona='krona/{community}-simrep-{rep}.txt'
+
+    params: config['seq_tech']
+
+    benchmark: "benchmark/taxonomic_profile/{community}-{rep}.txt"
+
+    script: "true-read-counts.py"
+
+
+rule create_krona_chart:
+    conda: "../envs/krona.yml"
+
+    input: 'krona/{community}-simrep-{rep}.txt'
+
+    output: 'krona/{community}-simrep-{rep}.html'
+
+    log: 'logs/krona/{community}-simrep-{rep}.log'
+
+    shell: 'ktImportText -o {output} {input} &> {log}'
+
+
+
 rule shuffle_fastqs:
     conda: "../envs/seqkit.yml"
 
@@ -231,7 +248,7 @@ rule shuffle_fastqs:
 
     benchmark: "benchmark/shuffle/{community}-{rep}_{rd}.txt"
 
-    threads: 15
+    threads: 20
 
     shell:
         """
