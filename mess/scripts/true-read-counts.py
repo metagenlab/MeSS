@@ -29,5 +29,4 @@ cols = ['superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'
 merged[cols].to_csv(snakemake.output[0], sep='\t')
 krona_cols = ['true_read_counts', 'superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain']
 krona = merged[krona_cols]
-krona.set_index(columns='true_read_counts', inplace=True)
-krona.to_csv(snakemake.output.krona)
+krona.set_index('true_read_counts').to_csv(snakemake.output.krona, sep='\t')
