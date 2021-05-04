@@ -11,11 +11,11 @@ else:
 sdr = snakemake.config["sd_read_num"]
 reps = snakemake.wildcards.rep
 read_status = snakemake.config["read_status"]
-if read_status == 'single' or snakemake.config["seq_tech"]=='longreads':
+if read_status == 'single' or snakemake.config["seq_tech"] == 'longreads':
     pair = 1
 else:
     pair = 2
-if snakemake.config["seq_tech"]=='illumina':
+if snakemake.config["seq_tech"] == 'illumina':
     rl = snakemake.config["illumina_read_len"]
 else:
     rl = snakemake.config["longreads_mean_len"]
@@ -100,10 +100,10 @@ def calculate_reads_and_coverage(table, total, sd, read_len, pairing, rep, input
 Main
 """
 proportion_reads = {'virus': 0.01, 'human': 0.9, 'bacteria': 0.08, 'non_human_eukaryotes': 0.01}
-
 intb = pd.read_csv(snakemake.input.input_tb, sep='\t')
 astb = pd.read_csv(snakemake.input.assemblies_tb, sep='\t')
-assemblies_with_val = astb.merge(intb, how='left', on='UserInputNames')
+common_col = intb.columns.intersection(astb.columns)[0]
+assemblies_with_val = astb.merge(intb, how='left', on=f'{common_col}')
 if inputval == 'Coverage' or inputval == 'Reads':
     assemblies_with_val[f'{inputval}'] = np.int64(assemblies_with_val[f'{inputval}']/assemblies_with_val['nb_genomes'])
     assemblies_with_val.drop(columns='nb_genomes', inplace=True)
