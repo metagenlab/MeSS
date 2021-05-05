@@ -26,7 +26,7 @@ summary = pd.read_csv(snakemake.input.table, sep='\t')
 summary['Assembly'] = [assemblyname.split('.')[0] for assemblyname in summary['AssemblyNames']]
 merged = pd.merge(summary, read_counts, on='Assembly')
 cols = ['superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain', 'Taxid', 'true_read_counts']
-merged[cols].to_csv(snakemake.output[0], sep='\t')
+merged[cols].to_csv(snakemake.output[0], sep='\t', index=None)
 krona_cols = ['true_read_counts', 'superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain']
 krona = merged[krona_cols]
 krona.set_index('true_read_counts').to_csv(snakemake.output.krona, sep='\t')
