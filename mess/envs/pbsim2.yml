@@ -1,5 +1,5 @@
 name: pbsim2
 channels:
-  - metagenlab
+  - bioconda
 dependencies:
   - pbsim2 = 2.0.1
