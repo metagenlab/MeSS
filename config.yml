@@ -11,7 +11,7 @@ illumina_sequencing_system: HSXt #HiSeqX TruSeq (read length:150bp)
 illumina_read_len: 150
 illumina_mean_frag_len: 200
 illumina_sd_frag_len: 10
-
+bam: False
 ##Long reads (pbsim2 params)
 chemistry: R94 #Select R94, R95, R103 pore versions for Nanopore.
                 #Select P4C2, P5C3, P6C4 chemistry for PacBio
