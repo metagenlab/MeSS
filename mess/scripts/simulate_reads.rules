@@ -34,7 +34,7 @@ rule create_read_counts_table:
     input: input_tb = config['input_table_path'],
            assemblies_tb = f'{community_name}-assemblies-summary.tsv'
 
-    output: rc_table='summary-{community}-{rep}.tsv'
+    output: rc_table='readcounts-{community}-{rep}.tsv'
 
     params: value=input_val
 
@@ -81,10 +81,11 @@ if config['seq_tech']=='illumina':
             conda: "../envs/art.yml"
 
             input:  fa='simreads/{community}-{assemblyname}.fa',
-                    tab='summary-{community}-{rep}.tsv'
+                    tab='readcounts-{community}-{rep}.tsv'
 
-            output: temp('simreads/{community,[-_0-9a-zA-Z]+}-paired-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R1.fq'),
-                    temp('simreads/{community,[-_0-9a-zA-Z]+}-paired-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R2.fq')
+            output: temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R1.fq'),
+                    temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R2.fq'),
+                    temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R.sam')
 
             params: seq_system = config['illumina_sequencing_system'],
                     read_length = config['illumina_read_len'],
@@ -101,19 +102,20 @@ if config['seq_tech']=='illumina':
 
             shell:
                 """
-                art_illumina -d {wildcards.assemblyname} -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} -p \
-                -nf 1 -m {params.mean_frag_len} -s {params.sd} -l {params.read_length} -c {params.read_num} \
-                -o simreads/{wildcards.community}-paired-simrep-{wildcards.rep}-{wildcards.assemblyname}_R &> {log}
+                art_illumina -d {wildcards.assemblyname} -rs {params.random_seed} -ss {params.seq_system} -na -sam \
+                -i {input.fa} -p -nf 1 -m {params.mean_frag_len} -s {params.sd}  -l {params.read_length} -c {params.read_num} \
+                -o simreads/{wildcards.community}-{wildcards.rep}-{wildcards.assemblyname}_R &> {log}
                 """
 
     if config['read_status']=='single':
         rule generate_illumina_single_reads:
             conda: "../envs/art.yml"
 
-            input: fa='simreads/{community}-{assemblyname,[.0-9a-zA-Z_-]}.fa',
-                    tab='summary-{community}-{rep}.tsv'
+            input: fa='simreads/{community}-{assemblyname}.fa',
+                    tab='readcounts-{community}-{rep}.tsv'
 
-            output: temp('simreads/{community,[-_0-9a-zA-Z]+}-single-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R1.fq')
+            output: temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R1.fq'),
+                    temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R.sam')
 
             params: seq_system = config['illumina_sequencing_system'],
                     read_length = config['illumina_read_len'],
@@ -122,16 +124,30 @@ if config['seq_tech']=='illumina':
 
             resources: nb_simulation=1
 
-            log: "logs/art_illumina/{community}-replicate-{rep}-{assemblyname}.log"
+            log: "logs/art_illumina/{community}-{rep}-{assemblyname}.log"
 
             benchmark: "benchmark/art_illumina/{community}-{rep}-{assemblyname}.txt"
 
             shell:
                 """
-                art_illumina -d {wildcards.assemblyname} -rs {params.random_seed} -ss {params.seq_system} -na -i {input.fa} \
-                -nf 1 -l {params.read_length} -c {params.read_num} \
-                -o simreads/{wildcards.community}-single-simrep-{wildcards.rep}-{wildcards.assemblyname}_R1 &> {log}
+                art_illumina -d {wildcards.assemblyname} -rs {params.random_seed} -ss {params.seq_system} -sam \
+                -na -i {input.fa} -nf 1 -l {params.read_length} -c {params.read_num} \
+                -o simreads/{wildcards.community}-{wildcards.rep}-{wildcards.assemblyname}_R1 &> {log}
                 """
+    rule convert_sam_to_bam_files:
+        conda: "../envs/bioconvert.yml"
+
+        input: sam='simreads/{community}-{rep}-{assemblyname}_R.sam'
+
+        output: bam='bam/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}.bam'
+
+        log: "logs/bam/{community}-{rep}-{assemblyname}.log"
+
+        shell:
+            """
+            bioconvert {input} {output} 2> {log}
+            """
+
 
 if config['seq_tech']=='longreads':
     def get_coverage(wildcards, table):
@@ -146,10 +162,10 @@ if config['seq_tech']=='longreads':
         conda: '../envs/pbsim2.yml'
 
         input: fa='simreads/{community}-{assemblyname}.fa',
-               tab='summary-{community}-{rep}.tsv'
-        output: temp('simreads/{community,[-_0-9a-zA-Z]+}-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.fastq'),
-                temp('simreads/{community,[-_0-9a-zA-Z]+}-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.maf'),
-                temp('simreads/{community,[-_0-9a-zA-Z]+}-simrep-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.ref')
+               tab='readcounts-{community}-{rep}.tsv'
+        output: temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.fastq'),
+                temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.maf'),
+                temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.ref')
 
         params: chemistry = config["chemistry"],
                 min_read_len = config["longreads_min_len"],
@@ -169,25 +185,41 @@ if config['seq_tech']=='longreads':
 
         shell:
             """
-            pbsim --prefix simreads/{wildcards.community}-simrep-{wildcards.rep}-{wildcards.assemblyname} \
+            pbsim --prefix simreads/{wildcards.community}-{wildcards.rep}-{wildcards.assemblyname} \
             --id-prefix {wildcards.assemblyname} --depth {params.coverage} --length-min {params.min_read_len} \
             --length-max {params.max_read_len} --difference-ratio {params.diff_ratio} --seed {params.seed} \
             --hmm_model ${{CONDA_PREFIX}}/data/{params.chemistry}.model --length-mean {params.mean_read_len} \
             --length-sd {params.sd_read_len} {input.fa} &> {log}
             """
+    rule convert_maf_to_bam_files:
+        conda: "../envs/bioconvert.yml"
+
+        input: maf='simreads/{community}-{rep}-{assemblyname}_0001.maf'
+
+        output: sam=temp('bam/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}.sam'),
+                bam='bam/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}.bam'
+
+        log: "logs/bam/{community}-{rep}-{assemblyname}.log"
+
+        shell:
+            """
+            bioconvert {input} {output.sam} 2>> {log}
+            bioconvert {output.sam} {output.bam} 2>> {log}
+            """
+
 
 def combine_fastq_input(wildcards):
     checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
     directory = '/'.join((checkpoint_output.split('/')[0:2]))
     assemblynames = glob_wildcards(os.path.join(directory, '{i}_genomic.fna.gz')).i
     if config['seq_tech']=='illumina' and config['read_status']=='paired':
-        return expand('simreads/{community}-paired-simrep-{rep}-{assemblyname}_R{{rd}}.fq',
+        return expand('simreads/{community}-{rep}-{assemblyname}_R{{rd}}.fq',
             community=community_name,rep=rep_list,assemblyname=assemblynames)
     if config['seq_tech']=='illumina' and config['read_status']=='single':
-        return expand('simreads/{community}-single-simrep-{rep}-{assemblyname}_R1.fq',
+        return expand('simreads/{community}-{rep}-{assemblyname}_R1.fq',
             community=community_name,rep=rep_list,assemblyname=assemblynames)
     if config['seq_tech'] == 'longreads':
-        return expand('simreads/{community}-simrep-{rep}-{assemblyname}_0001.fastq',
+        return expand('simreads/{community}-{rep}-{assemblyname}_0001.fastq',
             community=community_name,rep=rep_list,assemblyname=assemblynames)
 
 
@@ -210,10 +242,10 @@ rule get_taxonomic_profile:
     conda: "../envs/utils.yml"
 
     input: reads='simreads/{community}-{rep}_R1.unshuffled.fq',
-           table='summary-{community}-{rep}.tsv'
+           table='readcounts-{community}-{rep}.tsv'
 
     output: tax='taxonomy-{community}-{rep}.tsv',
-            krona='krona/{community}-simrep-{rep}.txt'
+            krona='krona/{community}-{rep}.txt'
 
     params: config['seq_tech']
 
@@ -225,11 +257,11 @@ rule get_taxonomic_profile:
 rule create_krona_chart:
     conda: "../envs/krona.yml"
 
-    input: 'krona/{community}-simrep-{rep}.txt'
+    input: 'krona/{community}-{rep}.txt'
 
-    output: 'krona/{community}-simrep-{rep}.html'
+    output: 'krona/{community}-{rep}.html'
 
-    log: 'logs/krona/{community}-simrep-{rep}.log'
+    log: 'logs/krona/{community}-{rep}.log'
 
     shell: 'ktImportText -o {output} {input} &> {log}'
 

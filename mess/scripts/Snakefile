@@ -8,17 +8,24 @@ if config['read_status']=='single' or config['seq_tech']=='longreads':
 if config['read_status']=='paired':
     read_direction=['1','2']
 
-def downloaded_list(wildcards):
+def assembly_and_bam_list(wildcards):
     checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
     directory = '/'.join((checkpoint_output.split('/')[0:2]))
-    return expand(f'assembly_gz/{community_name}/{{i}}_genomic.fna.gz',
-           i=glob_wildcards(os.path.join(directory, '{i}_genomic.fna.gz')).i)
+    assemblies = expand(f'assembly_gz/{community_name}/{{i}}_genomic.fna.gz',
+        i=glob_wildcards(os.path.join(directory,'{i}_genomic.fna.gz')).i)
+    if config["bam"]:
+        bam = expand(f'bam/{community_name}-{{rep}}-{{i}}.bam',
+            i=glob_wildcards(os.path.join(directory,'{i}_genomic.fna.gz')).i, rep=replicates)
+        all = bam + assemblies
+    else:
+        all = assemblies
+    return all
 
 rule all_sim :
     input: expand('taxonomy-{community}-{rep}.tsv',rep=list(range(1,replicates + 1)),community=community_name),
-           expand('krona/{community}-simrep-{rep}.html',rep=list(range(1,replicates + 1)),community=community_name),
+           expand('krona/{community}-{rep}.html',rep=list(range(1,replicates + 1)),community=community_name),
            expand('simreads/{community}-{rep}_R{rd}.fq.gz', rep = list(range(1,replicates + 1)),
                community = community_name, rd = read_direction),
-            downloaded_list,
-            f"assembly_gz/{community_name}/{community_name}.done"
+           assembly_and_bam_list,
+           f"assembly_gz/{community_name}/{community_name}.done"
 
