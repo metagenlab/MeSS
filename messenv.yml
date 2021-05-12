@@ -14,3 +14,4 @@ dependencies:
  - biopython = 1.78
  - pbsim2 = 2.0.1
  - seqkit = 0.16.0
+ - bioconvert = 0.4.3
