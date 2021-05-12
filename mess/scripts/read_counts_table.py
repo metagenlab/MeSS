@@ -84,8 +84,8 @@ def calculate_reads_and_coverage(table, total, sd, read_len, pairing, rep, input
         reads_per_genome = list(table['Reads'])
         coverage_per_genome = [(i[0]*read_len*pairing)/i[1] for i in zip(reads_per_genome, genomesizes)]
     for name, r, c in zip(genomenames, reads_per_genome, coverage_per_genome):
-        read = round(np.random.normal(r, sd))
-        cov = round(np.random.normal(c, sd))
+        read = np.random.normal(r, sd)
+        cov = np.random.normal(c, sd)
         dic[name] = {}
         dic[name]['AssemblyNames'] = name
         dic[name]['Reads'] = read
