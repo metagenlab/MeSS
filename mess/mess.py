@@ -1,5 +1,5 @@
-#Parts of this wrapper are inspired by atlas, an easy-to-use metagenomic pipeline based on snakemake.
-#Go check it out on https://github.com/metagenome-atlas/atlas
+#  Parts of this wrapper are inspired by atlas, an easy-to-use metagenomic pipeline based on snakemake.
+#  Go check it out on https://github.com/metagenome-atlas/atlas
 import logging
 import os
 import sys
