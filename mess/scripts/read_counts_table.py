@@ -88,7 +88,7 @@ def calculate_reads_and_coverage(table, total, sd, read_len, pairing, rep, input
         cov = np.random.normal(c, sd)
         dic[name] = {}
         dic[name]['AssemblyNames'] = name
-        dic[name]['Reads'] = read
+        dic[name]['Reads'] = int(read)
         dic[name]['Coverage'] = cov
         logging.info(f"simulating {read} reads, with a coverage value of {cov} reads for accession {name}, "
                      f"replicate {rep}")
@@ -104,10 +104,11 @@ intb = pd.read_csv(snakemake.input.input_tb, sep='\t')
 astb = pd.read_csv(snakemake.input.assemblies_tb, sep='\t')
 common_col = intb.columns.intersection(astb.columns)[0]
 assemblies_with_val = astb.merge(intb, how='left', on=f'{common_col}')
+
 if inputval == 'Coverage' or inputval == 'Reads':
     assemblies_with_val[f'{inputval}'] = np.int64(assemblies_with_val[f'{inputval}']/assemblies_with_val['nb_genomes'])
     assemblies_with_val.drop(columns='nb_genomes', inplace=True)
-elif inputval == 'PercentReads' or inputval == 'RelativeProp':
+elif inputval == 'ReadPercent' or inputval == 'RelativeProp':
     assemblies_with_val[f'{inputval}'] = np.float64(assemblies_with_val[f'{inputval}'] /
                                                     assemblies_with_val['nb_genomes'])
     assemblies_with_val.drop(columns='nb_genomes', inplace=True)
@@ -116,12 +117,11 @@ else:
     hrp = proportion_reads['human']
     brp = proportion_reads['bacteria']
     erp = proportion_reads['non_human_eukaryotes']
-    assemblies_with_val = get_even_reads(assembly_tb, pv=vrp, pb=brp, ph=hrp, pe=erp)
-
+    assemblies_with_val = get_even_reads(astb, pv=vrp, pb=brp, ph=hrp, pe=erp)
 cov_read_tb = calculate_reads_and_coverage(assemblies_with_val, totalreads, sdr, rl, pair, reps, inputval)
-mergedtb = assemblies_with_val.merge(cov_read_tb, on=[f'{inputval}', 'AssemblyNames'])
-
-tax_df = mergedtb[['AssemblyNames', 'RefSeq_category', 'AssemblyStatus', 'Assembly_length', 'Taxid', 'superkingdom',
-                   'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain', 'Reads', 'Coverage']]
-tax_df.to_csv(snakemake.output["rc_table"], sep='\t', index=False)
-
+if inputval == 'Coverage' or inputval == 'Reads':
+    cov_read_tb = cov_read_tb.drop(inputval, axis=1)
+mergedtb = assemblies_with_val.merge(cov_read_tb, how='left', on='AssemblyNames')
+rc_tb = mergedtb[['AssemblyNames', 'RefSeq_category', 'AssemblyStatus', 'Assembly_length', 'Taxid', 'superkingdom',
+                  'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain', 'Reads', 'Coverage']]
+rc_tb.to_csv(snakemake.output["rc_table"], sep='\t', index=False)
