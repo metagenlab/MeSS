@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import random
+import glob
 community_name=config["community_name"]
 pipeline_path=workflow.basedir
 random.seed(config["set_seed"])
@@ -14,7 +15,7 @@ def get_input_value(path):
     Function that parses input table and raises exceptions if there are NA in the table
     """
     tb=pd.read_csv(path,sep='\t')
-    acceptedvals=['Reads','Coverage','PercentReads','RelativeProp']
+    acceptedvals=['Reads','Coverage','ReadPercent','RelativeProp']
     lastcol=tb.columns[len(tb.columns)-1]
     nans=tb[lastcol].isna().sum()
     if nans>0:
@@ -45,10 +46,9 @@ rule create_read_counts_table:
 
 
 rule decompress_assemblies:
-    input: f'assembly_gz/{community_name}/{{assemblyname}}_genomic.fna.gz',
-            f"assembly_gz/{community_name}/{community_name}.done"
+    input: f'assembly_gz/{community_name}/{{assemblyname}}_genomic.fna.gz'
 
-    output: temp(f'assembly_gz/{community_name}/{{assemblyname,[0-9a-zA-Z._-]+}}.fna')
+    output: temp(f'assembly_gz/{community_name}/{{assemblyname,[0-9a-zA-Z._-]+}}_genomic.fna')
 
     benchmark: "benchmark/decompress/{assemblyname}.txt"
 
@@ -58,7 +58,7 @@ rule decompress_assemblies:
 rule merge_contigs:
     conda: "../envs/utils.yml"
 
-    input: f'assembly_gz/{community_name}/{{assemblyname}}.fna'
+    input: f'assembly_gz/{community_name}/{{assemblyname}}_genomic.fna'
 
     output: temp('simreads/{community,[-_0-9a-zA-Z]+}-{assemblyname,[0-9a-zA-Z._-]+}.fa')
 
@@ -209,9 +209,15 @@ if config['seq_tech']=='longreads':
 
 
 def combine_fastq_input(wildcards):
-    checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
-    directory = '/'.join((checkpoint_output.split('/')[0:2]))
-    assemblynames = glob_wildcards(os.path.join(directory, '{i}_genomic.fna.gz')).i
+    try:
+        directory = config['assemblies_dir']
+        files = glob.glob(os.path.join(directory,'*_genomic.fna*'))
+        assemblynames = [file.split('/')[-1].split('_genomic.fna')[0] for file in files]
+    except KeyError:
+        checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
+        directory = '/'.join((checkpoint_output.split('/')[0:2]))
+        assemblynames = glob_wildcards(os.path.join(directory,'{i}_genomic.fna.gz')).i
+
     if config['seq_tech']=='illumina' and config['read_status']=='paired':
         return expand('simreads/{community}-{rep}-{assemblyname}_R{{rd}}.fq',
             community=community_name,rep=rep_list,assemblyname=assemblynames)
