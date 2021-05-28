@@ -1,6 +1,7 @@
 #MeSS parameters
 replicates: 1 #You con set the number of times to simulate the same metagenome
 community_name: CF-metagenome
+assemblies_dir: /absolute/path/to/assemblies
 #Sequencing run params
 seq_tech: illumina #[illumina,longreads]
 read_status: paired #set to single for single read simulation or longread simulation
