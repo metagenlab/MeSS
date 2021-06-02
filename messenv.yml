@@ -4,7 +4,7 @@ channels:
  - conda-forge
  - metagenlab
 dependencies:
- - snakemake
+ - snakemake-minimal
  - click
  - pigz = 2.5
  - art = 2016.06.05
