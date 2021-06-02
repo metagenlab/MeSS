@@ -2,32 +2,37 @@ import pandas as pd
 import os
 import random
 import glob
-community_name=config["community_name"]
-pipeline_path=workflow.basedir
-random.seed(config["set_seed"])
-nb_rep=config["replicates"]
-rep_list=list(range(1,nb_rep+1))
-seed_list=random.sample(range(1,1000000),len(rep_list))
-seed_dic=dict(zip(rep_list,seed_list))
+random.seed(config["seed"])
+community_name = config["community_name"]
+pipeline_path = workflow.basedir
+nb_rep = config["replicates"]
+rep_list = list(range(1,nb_rep+1))
+seed_list = random.sample(range(1,1000000),len(rep_list))
+seed_dic = dict(zip(rep_list,seed_list))
+
 
 def get_input_value(path):
     """
     Function that parses input table and raises exceptions if there are NA in the table
+    Returns the input value set by the user, useful for read count calculation
     """
     tb=pd.read_csv(path,sep='\t')
-    acceptedvals=['Reads','Coverage','ReadPercent','RelativeProp']
-    lastcol=tb.columns[len(tb.columns)-1]
-    nans=tb[lastcol].isna().sum()
-    if nans>0:
-        raise Exception(f'{nans} values in {lastcol} are not set, make sure to input values')
-    if lastcol in acceptedvals:
+    acceptedvals = ['Reads','Coverage','ReadPercent','RelativeProp']
+    lastcol = tb.columns[len(tb.columns)-1]
+    nans = tb[lastcol].isna().sum()
+    if nans > 0:
+        raise Exception(f'{nans} values in {lastcol} are NA, make sure to input values')
+    try:
+        lastcol = config["dist"] #If the user has set a specific distribution for read counts
         return lastcol
-    else:
-        raise Exception(f'{lastcol} is not recognized as an input to simulate reads')
+    except KeyError:
+        if lastcol in acceptedvals:
+            return lastcol
+        else:
+            raise Exception(f'{lastcol} is not recognized as an input to simulate reads')
 
-input_val=get_input_value(config['input_table_path'])
 
-
+input_val = get_input_value(config['input_table_path'])
 rule create_read_counts_table:
     '''
     Rule for generating a table per sample with read counts for each genome 
