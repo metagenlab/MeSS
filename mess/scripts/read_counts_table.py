@@ -1,13 +1,16 @@
 import pandas as pd
 import numpy as np
 import logging
-logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',datefmt='%d %b %Y %H:%M:%S',
+import random
+seed = snakemake.config["seed"]
+random.seed(seed)
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%d %b %Y %H:%M:%S',
                     filename=snakemake.log[0], level=logging.DEBUG)
 inputval = snakemake.params.value
-if inputval == 'RelativeProp' or inputval == 'ReadPercent':
-    totalreads = snakemake.config['total_reads']
-else:
+if inputval == 'Reads' or inputval == 'Coverage':
     totalreads = 0
+else:
+    totalreads = snakemake.config['total_reads']
 sdr = snakemake.config["sd_read_num"]
 reps = snakemake.wildcards.rep
 read_status = snakemake.config["read_status"]
@@ -19,43 +22,41 @@ if snakemake.config["seq_tech"] == 'illumina':
     rl = snakemake.config["illumina_read_len"]
 else:
     rl = snakemake.config["longreads_mean_len"]
-
 """
 Functions
 """
 
 
-def get_even_reads(tb, pv, pb, ph, pe):
-    """
-    function that calculates the number of viral human and bacterial genomes from the output of assembly_finder
-    and assigns even proportions for each genome
+def get_lognormal_dist(tb, mu, sigma):
+    d = [random.lognormvariate(mu=mu, sigma=sigma) for i in range(len(tb))]
+    tb.insert(loc=tb.shape[1], column='lognormal', value=d)
+    tb['RelativeProp'] = tb['lognormal']/tb['lognormal'].sum()
+    return tb
 
-    ph=proportion of human reads
-    pb=proportion of bacterial reads
-    pv=proportion of viral reads
-    pe=proportion of eukaryotic reads
-    table=output of assembly_finder
+
+def get_even_dist(tb):
     """
-    even_prop = []
+    function that calculates even read percentages across superkingdoms
+    """
+    nb_superkingdoms = len(set(tb['superkingdom']))
+    even_prop = 1/nb_superkingdoms
+    prop = 0
+    props = []
     nb = list(tb['superkingdom']).count('Bacteria')
+    na = list(tb['superkingdom']).count('Archaea')
     nv = list(tb['superkingdom']).count('Viruses')
-    nh = list(tb['species']).count('Homo sapiens')
-    ne = list(tb['superkingdom']).count('Eukaryota') - nh  # Eukaryota number, except humans
-
+    ne = list(tb['superkingdom']).count('Eukaryota')
     for i in range(len(tb)):
         if tb.iloc[i]['superkingdom'] == 'Bacteria':
-            even_prop.append(round(pb / nb, 4))#Round to 4 digits after the comma
-
+            prop = even_prop / nb
+        if tb.iloc[i]['superkingdom'] == 'Archaea':
+            prop = even_prop / na
         if tb.iloc[i]['superkingdom'] == 'Viruses':
-            even_prop.append(round(pv / nv, 4))
-
-        if tb.iloc[i]['superkingdom'] == 'Eukaryota' and tb.iloc[i]['species'] == 'Homo sapiens':
-            even_prop.append(round(ph / nh, 4))
-
-        if tb.iloc[i]['superkingdom'] == 'Eukaryota' and not tb.iloc[i]['species'] == 'Homo sapiens' and ne > 0:
-            even_prop.append(round(pe / ne, 4))
-
-    tb['PercentReads'] = even_prop
+            prop = even_prop / nv
+        if tb.iloc[i]['superkingdom'] == 'Eukaryota':
+            prop = even_prop / ne
+        props.append(prop)
+    tb['RelativeProp'] = props
     return tb
 
 
@@ -65,7 +66,7 @@ def calculate_reads_and_coverage(table, total, sd, read_len, pairing, rep, input
     genomesizes = list(table['Assembly_length'])
     reads_per_genome = 0
     coverage_per_genome = 0
-    if input_value == 'RelativeProp':
+    if input_value == 'RelativeProp' or input_value == 'lognormal' or input_value == 'even':
         props = list(table['RelativeProp'])
         totalgensize = sum(genomesizes)
         fraction_genome = [i/float(totalgensize) for i in genomesizes]
@@ -99,12 +100,10 @@ def calculate_reads_and_coverage(table, total, sd, read_len, pairing, rep, input
 """
 Main
 """
-proportion_reads = {'virus': 0.01, 'human': 0.9, 'bacteria': 0.08, 'non_human_eukaryotes': 0.01}
 intb = pd.read_csv(snakemake.input.input_tb, sep='\t')
 astb = pd.read_csv(snakemake.input.assemblies_tb, sep='\t')
 common_col = intb.columns.intersection(astb.columns)[0]
 assemblies_with_val = astb.merge(intb, how='left', on=f'{common_col}')
-
 if inputval == 'Coverage' or inputval == 'Reads':
     assemblies_with_val[f'{inputval}'] = np.int64(assemblies_with_val[f'{inputval}']/assemblies_with_val['nb_genomes'])
     assemblies_with_val.drop(columns='nb_genomes', inplace=True)
@@ -112,16 +111,16 @@ elif inputval == 'ReadPercent' or inputval == 'RelativeProp':
     assemblies_with_val[f'{inputval}'] = np.float64(assemblies_with_val[f'{inputval}'] /
                                                     assemblies_with_val['nb_genomes'])
     assemblies_with_val.drop(columns='nb_genomes', inplace=True)
-else:
-    vrp = proportion_reads['virus']
-    hrp = proportion_reads['human']
-    brp = proportion_reads['bacteria']
-    erp = proportion_reads['non_human_eukaryotes']
-    assemblies_with_val = get_even_reads(astb, pv=vrp, pb=brp, ph=hrp, pe=erp)
+elif inputval == 'even':
+    assemblies_with_val = get_even_dist(astb)
+elif inputval == 'lognormal':
+    mu = snakemake.config['mu']
+    si = snakemake.config['sigma']
+    assemblies_with_val = get_lognormal_dist(astb, mu=mu, sigma=si)
 cov_read_tb = calculate_reads_and_coverage(assemblies_with_val, totalreads, sdr, rl, pair, reps, inputval)
 if inputval == 'Coverage' or inputval == 'Reads':
     cov_read_tb = cov_read_tb.drop(inputval, axis=1)
 mergedtb = assemblies_with_val.merge(cov_read_tb, how='left', on='AssemblyNames')
-rc_tb = mergedtb[['AssemblyNames', 'RefSeq_category', 'AssemblyStatus', 'Assembly_length', 'Taxid', 'superkingdom',
-                  'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain', 'Reads', 'Coverage']]
+rc_tb = mergedtb.drop(['AssemblyInput', 'GbUid', 'FtpPath_GenBank', 'FtpPath_RefSeq', 'AsmReleaseDate_GenBank',
+                       'ContigN50', 'ScaffoldN50', 'Assembly_coverage', 'Contig_count'], axis=1)
 rc_tb.to_csv(snakemake.output["rc_table"], sep='\t', index=False)
