@@ -73,7 +73,7 @@ def calculate_reads_and_coverage(table, total, sd, read_len, pairing, rep, input
         combined_fractions = [i[0]*i[1] for i in zip(props, fraction_genome)]
         x = total/sum(combined_fractions)
         reads_per_genome = [i*x for i in combined_fractions]
-        coverage_per_genome = [(i[0]*read_len)/i[1] for i in zip(reads_per_genome, genomesizes)]
+        coverage_per_genome = [(i[0]*read_len*pairing)/i[1] for i in zip(reads_per_genome, genomesizes)]
     if input_value == 'ReadPercent':
         readpercents = list(table['ReadPercent'])
         reads_per_genome = [r*total for r in readpercents]
