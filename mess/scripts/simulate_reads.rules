@@ -16,8 +16,8 @@ def get_input_value(path):
     Function that parses input table and raises exceptions if there are NA in the table
     Returns the input value set by the user, useful for read count calculation
     """
-    tb=pd.read_csv(path,sep='\t')
-    acceptedvals = ['Reads','Coverage','ReadPercent','RelativeProp']
+    tb = pd.read_csv(path, sep='\t')
+    acceptedvals = ['Reads', 'Coverage', 'ReadPercent', 'RelativeProp']
     lastcol = tb.columns[len(tb.columns)-1]
     nans = tb[lastcol].isna().sum()
     if nans > 0:
