@@ -81,7 +81,7 @@ def cli(obj):
     "--cores",
     type=int,
     help="number of cores to allow for the workflow",
-    default=10,
+    default=2,
 )
 @click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
 def run_workflow(conda_prefix, config_file, dryrun_status, ncbi_requests, nb_sim, nb_cat, cores, snakemake_args):
