@@ -1,23 +1,25 @@
+import gzip
 from Bio import SeqIO
 import pandas as pd
 from collections import Counter
 seqtech = snakemake.params[0]
 
 
-def get_read_counts(fastq, ss):
+def get_read_counts(fastq_gz, ss):
     """
     function that returns a table with each genome read count
     """
-    fastq_parser = SeqIO.parse(fastq, 'fastq')
-    headers = [record.description for record in fastq_parser]
-    if ss == 'illumina':
-        headers = [header.split('-')[-1].split('.')[0] for header in headers]
-    else:
-        headers = [header.split('.')[0] for header in headers]
-    c = dict(Counter(headers))
-    rc = pd.DataFrame.from_dict(c, orient='index', columns=['true_read_counts'])
-    rc.index.set_names('Assembly', inplace=True)
-    rc.reset_index(inplace=True)
+    with gzip.open(fastq_gz, 'rt') as handle:
+        fastq_parser = SeqIO.parse(handle, 'fastq')
+        headers = [record.description for record in fastq_parser]
+        if ss == 'illumina':
+            headers = [header.split('-')[-1].split('.')[0] for header in headers]
+        else:
+            headers = [header.split('.')[0] for header in headers]
+        c = dict(Counter(headers))
+        rc = pd.DataFrame.from_dict(c, orient='index', columns=['true_read_counts'])
+        rc.index.set_names('Assembly', inplace=True)
+        rc.reset_index(inplace=True)
     return rc
 
 
