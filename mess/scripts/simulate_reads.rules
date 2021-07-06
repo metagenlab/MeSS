@@ -239,13 +239,10 @@ def concat_fastq(wildcards):
             community=community_name, assemblyname=assemblynames)
 
 
-
-
-
 rule concat_fastqs:
     input: concat_fastq
 
-    output: 'simreads/{community}-{rep}_R{rd}.unshuffled.fq'
+    output: temp('simreads/{community}-{rep}_R{rd}.unshuffled.fq')
 
     resources: parallel_cat = 1
 
@@ -254,6 +251,27 @@ rule concat_fastqs:
     shell:
         """
         cat {input} > {output}
+        """
+
+
+rule shuffle_fastqs:
+    conda: "../envs/seqkit.yml"
+
+    input: 'simreads/{community}-{rep}_R{rd}.unshuffled.fq'
+
+    output: 'simreads/{community}-{rep}_R{rd}.fq.gz'
+
+    params: seed = lambda wildcards: seed_dic[int(wildcards.rep)]
+
+    log: "logs/shuffling/{community}-{rep}-{rd}.log"
+
+    benchmark: "benchmark/shuffle/{community}-{rep}_{rd}.txt"
+
+    threads: 10
+
+    shell:
+        """
+        seqkit shuffle {input} -j {threads} -s {params.seed} -o {output}  &> {log}
         """
 
 
@@ -283,29 +301,6 @@ rule create_krona_chart:
     log: 'logs/krona/{community}-{rep}.log'
 
     shell: 'ktImportText -o {output} {input} &> {log}'
-
-
-
-rule shuffle_fastqs:
-    conda: "../envs/seqkit.yml"
-
-    input: 'simreads/{community}-{rep}_R{rd}.unshuffled.fq'
-
-    output: 'simreads/{community}-{rep}_R{rd}.fq.gz'
-
-    params: seed = lambda wildcards: seed_dic[int(wildcards.rep)]
-
-    log: "logs/shuffling/{community}-{rep}-{rd}.log"
-
-    benchmark: "benchmark/shuffle/{community}-{rep}_{rd}.txt"
-
-    threads: 10
-
-    shell:
-        """
-        seqkit shuffle {input} -j {threads} -s {params.seed} -o {output}  &> {log}
-        """
-
 
 
 
