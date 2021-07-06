@@ -30,8 +30,9 @@ difference_ratio: "23:31:46" #Rate of substitution:insertion:deletion.
                           #For PacBio the default values is 6:50:54
                           #For Nanopore it is 23:31:46
 ##Replicate params
-sd_read_num: 0 #Standard deviation for varying the number of reads per genome between replicates,
+sd_rep: 0 #Standard deviation for varying the number of reads per genome between replicates,
               #if 0 keep the same number of reads per genome for each replicate
+              #else vary the read number between replicates by sampling from a normal distribution
 seed: 1 #Set this parameter to a fixed number so data from random number generators is reproducible
 
 #Assembly finder parameters
