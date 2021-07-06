@@ -55,14 +55,12 @@ For ATCC_13985, the 3 genomes will have a RelativeProp value of 0.1.
 #MeSS parameters
 input_table_path: input_table.tsv
 community_name: metagenome-1
-proportion_reads: {'virus':0.01,'human':0.9,'bacteria':0.08,
-                   'non_human_eukaryotes':0.01}
 #Replicates parameters
 replicates: 1 
 sd_read_num: 0 
 
 #Random seeds
-set_seed: 1 
+seed: 1 
 
 #Sequencing run params
 seq_tech: longreads #[illumina,longreads]
@@ -100,15 +98,13 @@ The path to the input table can be set by the input_table_path parameter in the 
 
 MeSS offers the possibility to generate multiple mock communities using the same set of assembly files in 
 the same directory.
-For this, the user has to set up one configuration file per mock community and change the community_name accordingly.
-The user can also control the read percentage attributed to each superkingdom, by changing percentage values in the 
-proportion_reads dictionary. If the user has set read percentages manually, this dictionary is not used.  
+For this, the user has to set up one configuration file per mock community and change the community_name accordingly. 
 #### Replicates parameters
 The user has the option to te create a set of replicates for one community. Each replicate read number can be drawn 
 from a normal distribution with a standard deviation set in the sd_read_num parameter. 
 #### Random seeds
 The MeSS workflow uses random seeds for read generation and read shuffling. To ensure reproducible results, one can
-give the set_seed parameter a fixed number.
+give the seed parameter a fixed number.
 
 #### Sequencing run params
 MeSS offers the possibility to select art_illumina or pbsim2 to simulate illumina and long reads respecitvely.
