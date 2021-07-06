@@ -35,7 +35,6 @@ rule all_sim :
     input: expand('taxonomy-{community}-{rep}.tsv',rep=replicates,community=community_name),
            expand('readcounts-{community}-{rep}.tsv',rep=replicates,community=community_name),
            expand('krona/{community}-{rep}.html',rep=replicates,community=community_name),
-           expand('simreads/{community}-{rep}_R{rd}.fq.gz', rep=replicates, community=community_name,
-               rd=read_direction),
+           expand('simreads/{community}-{rep}_R{rd}.fq.gz', rep=replicates, community=community_name,rd=read_direction),
            assembly_and_bam_list
 
