@@ -3,12 +3,16 @@ import os
 import random
 import glob
 random.seed(config["seed"])
+replicates = list(range(1, config["replicates"] + 1))
 community_name = config["community_name"]
+read_direction = []
+if config['read_status'] ==' single' or config['seq_tech'] == 'longreads':
+    read_direction=['1']
+if config['read_status'] == 'paired':
+    read_direction=['1','2']
 pipeline_path = workflow.basedir
-nb_rep = config["replicates"]
-rep_list = list(range(1,nb_rep+1))
-seed_list = random.sample(range(1,1000000),len(rep_list))
-seed_dic = dict(zip(rep_list,seed_list))
+seed_list = random.sample(range(1,1000000),len(replicates))
+seed_dic = dict(zip(replicates,seed_list))
 
 
 def get_input_value(path):
@@ -42,7 +46,8 @@ rule create_read_counts_table:
 
     output: rc_table='readcounts-{community}-{rep}.tsv'
 
-    params: value=input_val
+    params: value=input_val,
+            seed=lambda wildcards: seed_dic[int(wildcards.rep)]
 
     log: "logs/read_counts_table/{community}-{rep}.txt"
 
@@ -120,7 +125,7 @@ if config['seq_tech']=='illumina':
                     tab='readcounts-{community}-{rep}.tsv'
 
             output: temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R1.fq'),
-                    temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R.sam')
+                    temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R1.sam')
 
             params: seq_system = config['illumina_sequencing_system'],
                     read_length = config['illumina_read_len'],
@@ -213,7 +218,7 @@ if config['seq_tech']=='longreads':
             """
 
 
-def combine_fastq_input(wildcards):
+def concat_fastq(wildcards):
     try:
         directory = config['assemblies_dir']
         files = glob.glob(os.path.join(directory,'*_genomic.fna*'))
@@ -222,22 +227,25 @@ def combine_fastq_input(wildcards):
         checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
         directory = '/'.join((checkpoint_output.split('/')[0:2]))
         assemblynames = glob_wildcards(os.path.join(directory,'{i}_genomic.fna.gz')).i
+    if config['seq_tech'] == 'illumina':
+        if config['read_status'] == 'paired':
+            return expand('simreads/{community}-{{rep}}-{assemblyname}_R{rd}.fq',
+                community=community_name, rd=read_direction ,assemblyname=assemblynames)
+        elif config['read_status']=='single':
+            return expand('simreads/{community}-{{rep}}-{assemblyname}_R1.fq',
+                community=community_name, assemblyname=assemblynames)
+    elif config['seq_tech'] == 'longreads':
+        return expand('simreads/{community}-{{rep}}-{assemblyname}_0001.fastq',
+            community=community_name, assemblyname=assemblynames)
 
-    if config['seq_tech']=='illumina' and config['read_status']=='paired':
-        return expand('simreads/{community}-{rep}-{assemblyname}_R{{rd}}.fq',
-            community=community_name,rep=rep_list,assemblyname=assemblynames)
-    if config['seq_tech']=='illumina' and config['read_status']=='single':
-        return expand('simreads/{community}-{rep}-{assemblyname}_R1.fq',
-            community=community_name,rep=rep_list,assemblyname=assemblynames)
-    if config['seq_tech'] == 'longreads':
-        return expand('simreads/{community}-{rep}-{assemblyname}_0001.fastq',
-            community=community_name,rep=rep_list,assemblyname=assemblynames)
+
+
 
 
 rule concat_fastqs:
-    input: combine_fastq_input
+    input: concat_fastq
 
-    output: temp('simreads/{community}-{rep}_R{rd}.unshuffled.fq')
+    output: 'simreads/{community}-{rep}_R{rd}.unshuffled.fq'
 
     resources: parallel_cat = 1
 
@@ -252,7 +260,7 @@ rule concat_fastqs:
 rule get_taxonomic_profile:
     conda: "../envs/utils.yml"
 
-    input: reads='simreads/{community}-{rep}_R1.unshuffled.fq',
+    input: reads='simreads/{community}-{rep}_R1.fq.gz',
            table='readcounts-{community}-{rep}.tsv'
 
     output: tax='taxonomy-{community}-{rep}.tsv',
@@ -291,7 +299,7 @@ rule shuffle_fastqs:
 
     benchmark: "benchmark/shuffle/{community}-{rep}_{rd}.txt"
 
-    threads: 20
+    threads: 10
 
     shell:
         """

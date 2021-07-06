@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 import logging
 import random
-seed = snakemake.config["seed"]
-random.seed(seed)
+replicate = snakemake.wildcards.rep
+seed = snakemake.params.seed
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%d %b %Y %H:%M:%S',
                     filename=snakemake.log[0], level=logging.DEBUG)
 inputval = snakemake.params.value
@@ -11,8 +11,8 @@ if inputval == 'Reads' or inputval == 'Coverage':
     totalreads = 0
 else:
     totalreads = snakemake.config['total_reads']
-sdr = snakemake.config["sd_read_num"]
-reps = snakemake.wildcards.rep
+sdr = snakemake.config["sd_rep"]
+
 read_status = snakemake.config["read_status"]
 if read_status == 'single' or snakemake.config["seq_tech"] == 'longreads':
     pair = 1
@@ -117,7 +117,7 @@ elif inputval == 'lognormal':
     mu = snakemake.config['mu']
     si = snakemake.config['sigma']
     assemblies_with_val = get_lognormal_dist(astb, mu=mu, sigma=si)
-cov_read_tb = calculate_reads_and_coverage(assemblies_with_val, totalreads, sdr, rl, pair, reps, inputval)
+cov_read_tb = calculate_reads_and_coverage(assemblies_with_val, totalreads, sdr, rl, pair, replicate, inputval)
 if inputval == 'Coverage' or inputval == 'Reads':
     cov_read_tb = cov_read_tb.drop(inputval, axis=1)
 mergedtb = assemblies_with_val.merge(cov_read_tb, how='left', on='AssemblyNames')
