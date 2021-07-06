@@ -1,4 +1,4 @@
-from setuptools import setup,find_packages
+from setuptools import setup, find_packages
 from mess import __version__
 
 setup(name='MeSS',
@@ -10,8 +10,8 @@ setup(name='MeSS',
       description="MeSS is a snakemake workflow used for simulating metagenomic mock communities",
       packages=find_packages(),
       include_package_data=True,
-      data_files=[(".", ["LICENSE","README.md"])],
-      install_requires=['click', 'snakemake'],
+      data_files=[(".", ["LICENSE", "README.md"])],
+      install_requires=['click', 'snakemake-minimal'],
       entry_points={
             'console_scripts': [
                   'mess = mess.mess:cli'
