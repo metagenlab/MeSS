@@ -102,7 +102,7 @@ def run_workflow(conda_prefix, config_file, dryrun_status, ncbi_requests, nb_sim
     if conda_prefix is None:
         conda_prefix = os.environ['CONDA_PREFIX']
     if not os.path.exists(conda_prefix):
-        logging.critical(f"conda env path not found: {config_file}\n")
+        logging.critical(f"conda env path not found: {conda_prefix}")
         sys.exit(1)
     cmd = (
         f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix {conda_prefix} "
