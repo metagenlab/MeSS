@@ -63,7 +63,7 @@ sd_read_num: 0
 seed: 1 
 
 #Sequencing run params
-seq_tech: longreads #[illumina,longreads]
+seq_tech: ont #[illumina, ont, illumina]
 read_status: single 
 total_reads: 100000
 
