@@ -4,6 +4,7 @@ import logging
 import random
 replicate = snakemake.wildcards.rep
 seed = snakemake.params.seed
+random.seed(seed)
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%d %b %Y %H:%M:%S',
                     filename=snakemake.log[0], level=logging.DEBUG)
 inputval = snakemake.params.value
@@ -14,7 +15,7 @@ else:
 sdr = snakemake.config["sd_rep"]
 
 read_status = snakemake.config["read_status"]
-if read_status == 'single' or snakemake.config["seq_tech"] == 'longreads':
+if read_status == 'single' or snakemake.config["seq_tech"] == 'pacbio' or snakemake.config["seq_tech"] == 'ont':
     pair = 1
 else:
     pair = 2
@@ -22,6 +23,7 @@ if snakemake.config["seq_tech"] == 'illumina':
     rl = snakemake.config["illumina_read_len"]
 else:
     rl = snakemake.config["longreads_mean_len"]
+
 """
 Functions
 """
@@ -92,7 +94,7 @@ def calculate_reads_and_coverage(table, total, sd, read_len, pairing, rep, input
         dic[name]['Reads'] = int(read)
         dic[name]['Coverage'] = cov
         logging.info(f"simulating {read} reads, with a coverage value of {cov} reads for accession {name}, "
-                     f"replicate {rep}")
+                     f"replicate {rep} with seed {seed}")
     tb = pd.DataFrame.from_dict(dic, orient='index').reset_index(drop=True)
     return tb
 
