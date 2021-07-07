@@ -4,10 +4,12 @@ include : "../assembly_finder/Snakefile"
 replicates = list(range(1, config["replicates"] + 1))
 community_name = config["community_name"]
 read_direction = []
-if config['read_status'] ==' single' or config['seq_tech'] == 'longreads':
-    read_direction=['1']
-if config['read_status'] == 'paired':
-    read_direction=['1','2']
+if config['seq_tech'] != 'illumina':
+    read_direction = config['seq_tech']
+if config['seq_tech'] == 'illumina' and config['read_status'] == 'single':
+    read_direction = 'single'
+if config['seq_tech'] == 'illumina' and config['read_status'] == 'paired':
+    read_direction = ['R1','R2']
 
 def assembly_and_bam_list(wildcards):
     try:
@@ -32,9 +34,9 @@ def assembly_and_bam_list(wildcards):
     return all
 
 rule all_sim :
-    input: expand('taxonomy-{community}-{rep}.tsv',rep=replicates,community=community_name),
-           expand('readcounts-{community}-{rep}.tsv',rep=replicates,community=community_name),
-           expand('krona/{community}-{rep}.html',rep=replicates,community=community_name),
-           expand('simreads/{community}-{rep}_R{rd}.fq.gz', rep=replicates, community=community_name,rd=read_direction),
+    input: expand('simreads/{community}-{rep}_{rd}.fq.gz', community=community_name, rep=replicates, rd=read_direction),
+           expand('taxonomy-{community}-{rep}_{rd}.tsv', community=community_name, rep=replicates, rd=read_direction),
+           expand('readcounts-{community}-{rep}.tsv', community=community_name, rep=replicates),
+           expand('krona/{community}-{rep}_{rd}.html', community=community_name, rep=replicates, rd=read_direction),
            assembly_and_bam_list
 
