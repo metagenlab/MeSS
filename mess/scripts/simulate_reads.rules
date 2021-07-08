@@ -37,7 +37,22 @@ def get_input_value(path):
             raise Exception(f'{lastcol} is not recognized as an input to simulate reads')
 
 
+def get_read_counts_seed(rep, rep2seed, general_seed):
+    """
+    Function that returns a seed for calculating read counts
+    By default each replicate has a unique seed
+    If the param same_dist_rep is True, return a single seed for all replicates
+    """
+    try:
+        same_dist_rep = config['same_dist_rep']
+        if same_dist_rep:
+            return general_seed
+    except KeyError:
+        return rep2seed[int(rep)]
+
+
 input_val = get_input_value(config['input_table_path'])
+
 rule create_read_counts_table:
     '''
     Rule for generating a table per sample with read counts for each genome 
@@ -48,7 +63,7 @@ rule create_read_counts_table:
     output: rc_table='readcounts-{community}-{rep}.tsv'
 
     params: value=input_val,
-            seed=lambda wildcards: seed_dic[int(wildcards.rep)]
+            seed=lambda wildcards: get_read_counts_seed(wildcards.rep, seed_dic, config['seed'])
 
     log: "logs/read_counts_table/{community}-{rep}.txt"
 
