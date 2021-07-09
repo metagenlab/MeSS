@@ -4,8 +4,8 @@ channels:
  - conda-forge
  - metagenlab
 dependencies:
- - snakemake=6.2.1
- - click
+ - snakemake-minimal = 6.2.1
+ - click = 7
  - pigz = 2.5
  - art = 2016.06.05
  - pandas = 1.2.2
