@@ -1,17 +1,19 @@
-# MeSS [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/version.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/latest_release_date.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/downloads.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/platforms.svg)](https://anaconda.org/metagenlab/mess) [![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/license.svg)](https://anaconda.org/metagenlab/mess)
+# MeSS 
+[![Downloads](https://img.shields.io/conda/dn/bioconda/mess.svg?label=Bioconda)](https://anaconda.org/metagenlab/mess) 
+[![Anaconda-Server Badge](https://img.shields.io/badge/Platforms-noarch-orange.svg?style=round-square)](https://anaconda.org/bioconda/mess/badges/platforms.svg) 
+[![biocontainer](https://quay.io/repository/biocontainers/mess/status)](https://quay.io/repository/biocontainers/mess)
+
 The Metagenomic Sequence Simulator (MeSS) is a snakemake workflow used for simulating metagenomic mock communities.
 ## Installation
 ```bash
-git clone --recursive https://github.com/metagenlab/MeSS.git
-conda install -c conda-forge mamba
-mamba create -c conda-forge -c bioconda -n snakemake snakemake
+git clone https://github.com/metagenlab/MeSS.git
+conda env create -f Mess/messenv.yml
 ```
 ### Or
-
-[![Anaconda-Server Badge](https://anaconda.org/metagenlab/mess/badges/installer/conda.svg)](https://conda.anaconda.org/metagenlab)    
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/mess/README.html)
 ```bash
 conda install -c conda-forge mamba
-mamba install -c metagenlab -c conda-forge -c bioconda mess
+mamba create -c bioconda -n mess mess
 ```
 ## Required files
 ### Input table examples
@@ -63,7 +65,7 @@ sd_read_num: 0
 seed: 1 
 
 #Sequencing run params
-seq_tech: ont #[illumina, ont, illumina]
+seq_tech: ont #[illumina, ont, pacbio]
 read_status: single 
 total_reads: 100000
 
