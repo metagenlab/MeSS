@@ -1,7 +1,7 @@
 # MeSS 
-[![Downloads](https://img.shields.io/conda/dn/bioconda/mess.svg?label=Bioconda)](https://anaconda.org/metagenlab/mess) 
-[![Anaconda-Server Badge](https://img.shields.io/badge/Platforms-noarch-orange.svg?style=round-square)](https://anaconda.org/bioconda/mess/badges/platforms.svg) 
-[![biocontainer](https://quay.io/repository/biocontainers/mess/status)](https://quay.io/repository/biocontainers/mess)
+[![Downloads](https://img.shields.io/conda/dn/bioconda/mess.svg?label=Bioconda)](https://anaconda.org/bioconda/mess) 
+[![Anaconda-Server Badge](https://img.shields.io/badge/Platforms-noarch-orange.svg?style=round-square)](https://anaconda.org/bioconda/mess) 
+[![container](https://quay.io/repository/biocontainers/mess/status)](https://quay.io/repository/biocontainers/mess)
 
 The Metagenomic Sequence Simulator (MeSS) is a snakemake workflow used for simulating metagenomic mock communities.
 ## Installation
@@ -149,7 +149,7 @@ Thus, for big genomes it is recommended to lower this parameter.
 For big genomes and computers with low memory, lowering this parameter lowers memory usage.
 ### Using the wrapper
 ```bash
-mess run -c 10 
+mess run -f config.yml -p /path/to/conda/envs/ -c 10
 ```
 Runs the Mess workflow using 10 cores.
 ## MeSS outputs
