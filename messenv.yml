@@ -6,12 +6,4 @@ channels:
 dependencies:
  - snakemake-minimal = 6.2.1
  - click = 7
- - pigz = 2.5
- - art = 2016.06.05
  - pandas = 1.2.2
- - numpy = 1.20.1
- - krona = 2.8
- - biopython = 1.78
- - pbsim2 = 2.0.1
- - seqkit = 0.16.0
- - bioconvert = 0.4.3
