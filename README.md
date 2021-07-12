@@ -20,7 +20,7 @@ relative abundances.
 #### Read percentage
 Below is an example of input table where the user can set, for each entry, read percentages of the total metagenomic reads
 
-UserInputNames | nb_genomes | PercentReads
+TaxonomyInput | nb_genomes | PercentReads
 --- | --- | ---
 1813735 | 1 | 0.3
 114185 | 1 |  0.4
@@ -32,7 +32,7 @@ In the input table shown above, if no PercentReads is present, each entry will h
 #### Coverage values
 The user has also the option to set coverage values instead of %reads of the total metagenomic reads for each entry.
 
-UserInputNames | nb_genomes | Coverage
+TaxonomyInput | nb_genomes | Coverage
 --- | --- | ---
 1813735 | 1 | 20
 114185 | 1 |  30
@@ -43,7 +43,7 @@ In this case, all 3 assemblies found for ATCC_13985 will have the same coverage 
 Alternatively, the user can specify relative proportions between assemblies. Given the total number of reads to
 be present in the metagenome, scripts will calculate coverage and read numbers respecting the relative proportions.
 
-UserInputNames | nb_genomes | RelativeProp
+TaxonomyInput | nb_genomes | RelativeProp
 --- | --- | ---
 1813735 | 1 | 0.3
 114185 | 1 |  0.4
@@ -54,7 +54,7 @@ For ATCC_13985, the 3 genomes will have a RelativeProp value of 0.1.
 ```yaml
 #MeSS parameters
 input_table_path: input_table.tsv
-community_name: metagenome-1
+community_name: metagenome-sim
 #Replicates parameters
 replicates: 1 
 sd_read_num: 0 
@@ -152,16 +152,15 @@ mess run -c 10
 Runs the Mess workflow using 10 cores.
 ## MeSS outputs
 ### Directory structure
-After running MeSS, your working directory should look like this:
+After running MeSS for two replicates of the same metagenome with single end reads, 
+your working directory should look like this:
 ```
 ├── assembly_gz
 │   ├── assembly-accession-1.fna.gz
 │   └── assembly-accession-2.fna.gz
 ├── krona
-│   ├── sample-1-metagenome
-│   │   └── replicate-1-krona-plot.html 
-│   └── sample-2-metagenome
-│       └── replicate-1-krona-plot.html
+│   ├── metagenome-sim-rep1_single.html
+│   └──  metagenome-sim-rep2_single.html
 ├── logs
 │   ├── downloads
 │   ├── filtered
@@ -170,21 +169,19 @@ After running MeSS, your working directory should look like this:
 │   ├── read_generation
 │   └── shuffling
 ├── simreads
-│   ├── sample-1-metagenome
-│   │    └── replicate-1
-│   │        └── simulated-reads.fastq
-│   ├── sample-2-metagenome
-│   │    └── replicate-1
-│   │        └── simulated-reads.fastq
+│   ├── metagenome-sim-rep1_single.fastq
+│   ├── metagenome-sim-rep1_single.fastq
 ├── tables
 │   ├── filtered
 │   └── not-filtered  
 ├── config.yaml
 ├── input_table.tsv
-├── summary-metagenome-1.tsv
-├── summary-metagenome-2.tsv
-└── assemblies-summary.tsv
+├── readcounts-metagenome-sim-rep1.tsv
+├── readcounts-metagenome-sim-rep2.tsv
+├── metagenome-sim-assemblies-summary.tsv
+├── taxonomy-metagenome-sim-rep1_single.tsv
+└──taxonomy-metagenome-sim-rep2_single.tsv
 ```
-The simulated reads fastqs are compressed and located in the simreads/ directory, and their composition is summarized in 
-summary-<community_name>.tsv. 
+The simulated reads fastqs are compressed and located in the simreads/ directory, and their taxonomic profile is in
+taxonomy-<community_name>-<replicate>-<read_status>.tsv. 
 
