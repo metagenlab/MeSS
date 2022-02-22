@@ -26,9 +26,10 @@ checkpoint download_assemblies:
         ncbi_email = config["NCBI_email"],
         complete_assemblies = config["complete_assemblies"],
         filter_rank = config["Rank_to_filter_by"],
+        output_prefix = f"{community_name}"
     shell:
         """
-        af run --nolock --input-table {params.input_table} --output_prefix genomes --conda-prefix {params.conda_prefix} --ncbi_key {params.ncbi_key} --ncbi_email {params.ncbi_email} --complete_assemblies {params.complete_assemblies} --filter_rank {params.filter_rank}
+        af run --nolock --input-table {params.input_table} --output_prefix {params.output_prefix} --conda-prefix {params.conda_prefix} --ncbi_key {params.ncbi_key} --ncbi_email {params.ncbi_email} --complete_assemblies {params.complete_assemblies} --filter_rank {params.filter_rank}
         """
 
 
