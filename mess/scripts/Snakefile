@@ -1,5 +1,7 @@
 include : "simulate_reads.rules"
-include : "../assembly_finder/Snakefile"
+
+
+
 
 replicates = list(range(1, config["replicates"] + 1))
 community_name = config["community_name"]
@@ -10,6 +12,25 @@ if config['seq_tech'] == 'illumina' and config['read_status'] == 'single':
     read_direction = 'single'
 if config['seq_tech'] == 'illumina' and config['read_status'] == 'paired':
     read_direction = ['R1','R2']
+
+
+checkpoint download_assemblies:
+    conda:
+        "../envs/af.yml"
+    output:
+        f"{community_name}-assemblies-summary.tsv"
+    params:
+        input_table = config["input_table_path"],
+        conda_prefix = workflow.conda_prefix,
+        ncbi_key = config["NCBI_key"],
+        ncbi_email = config["NCBI_email"],
+        complete_assemblies = config["complete_assemblies"],
+        filter_rank = config["Rank_to_filter_by"],
+    shell:
+        """
+        af run --nolock --input-table {params.input_table} --output_prefix genomes --conda-prefix {params.conda_prefix} --ncbi_key {params.ncbi_key} --ncbi_email {params.ncbi_email} --complete_assemblies {params.complete_assemblies} --filter_rank {params.filter_rank}
+        """
+
 
 def assembly_and_bam_list(wildcards):
     try:
