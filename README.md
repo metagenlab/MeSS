@@ -22,7 +22,7 @@ relative abundances.
 #### Read percentage
 Below is an example of input table where the user can set, for each entry, read percentages of the total metagenomic reads
 
-TaxonomyInput | nb_genomes | PercentReads
+Taxonomy | NbGenomes | PercentReads
 --- | --- | ---
 1813735 | 1 | 0.3
 114185 | 1 |  0.4
@@ -34,7 +34,7 @@ In the input table shown above, if no PercentReads is present, each entry will h
 #### Coverage values
 The user has also the option to set coverage values instead of %reads of the total metagenomic reads for each entry.
 
-TaxonomyInput | nb_genomes | Coverage
+Taxonomy | NbGenomes | Coverage
 --- | --- | ---
 1813735 | 1 | 20
 114185 | 1 |  30
@@ -45,7 +45,7 @@ In this case, all 3 assemblies found for ATCC_13985 will have the same coverage 
 Alternatively, the user can specify relative proportions between assemblies. Given the total number of reads to
 be present in the metagenome, scripts will calculate coverage and read numbers respecting the relative proportions.
 
-TaxonomyInput | nb_genomes | RelativeProp
+Taxonomy | NbGenomes | RelativeProp
 --- | --- | ---
 1813735 | 1 | 0.3
 114185 | 1 |  0.4
