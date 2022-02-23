@@ -15,12 +15,55 @@ mamba create -c bioconda -n mess mess
 ```
 
 # Quick start
-To run mess, you simply have to provide a config.yml file with a list of parameters (explained in more details below)
+To run mess, you simply have to provide a config.yml file with a list of parameters:
 ```bash
 mess run -f config.yml -c 10
 ```
 Examples of config.yml files are provided in data/hmp_templates (parameters are explained below).
 
+# Config file example
+```yaml
+#MeSS parameters
+input_table_path: input_table.tsv
+community_name: metagenome-sim
+#Replicates parameters
+replicates: 1 
+sd_read_num: 0 
+
+#Random seeds
+seed: 1 
+
+#Sequencing run params
+seq_tech: ont #[illumina, ont, pacbio]
+read_status: single 
+total_reads: 100000
+
+#Illumina (art params)
+illumina_sequencing_system: HSXt #HiSeqX TruSeq (read length:150bp)
+illumina_read_len: 150
+illumina_mean_frag_len: 200
+illumina_sd_frag_len: 10
+
+#Long reads (pbsim2 params)
+chemistry: R94 
+longreads_min_len: 100
+longreads_max_len: 1000000
+longreads_sd_len: 7000
+longreads_mean_len: 9000
+longreads_mean_acc: 85
+difference_ratio: "23:31:46"
+
+#Assembly download
+NCBI_key: your_ncbi_key
+NCBI_email: your_ncbi_email
+complete_assemblies: False
+reference_assemblies: False
+representative_assemblies: False
+exclude_from_metagenomes: True
+Genbank_assemblies: True
+Refseq_assemblies: True
+Rank_to_filter_by: False
+```
 # Required files
 ## Input table examples
 MeSS takes the same input as Assembly_finder, with an additional column for either coverage values, read percentages or
@@ -71,49 +114,7 @@ ATCC_13985 | 3 |  30000
 
 For ATCC_13985, 10000 reads will be simulated for each genome
 
-# Config file example
-```yaml
-#MeSS parameters
-input_table_path: input_table.tsv
-community_name: metagenome-sim
-#Replicates parameters
-replicates: 1 
-sd_read_num: 0 
 
-#Random seeds
-seed: 1 
-
-#Sequencing run params
-seq_tech: ont #[illumina, ont, pacbio]
-read_status: single 
-total_reads: 100000
-
-#Illumina (art params)
-illumina_sequencing_system: HSXt #HiSeqX TruSeq (read length:150bp)
-illumina_read_len: 150
-illumina_mean_frag_len: 200
-illumina_sd_frag_len: 10
-
-#Long reads (pbsim2 params)
-chemistry: R94 
-longreads_min_len: 100
-longreads_max_len: 1000000
-longreads_sd_len: 7000
-longreads_mean_len: 9000
-longreads_mean_acc: 85
-difference_ratio: "23:31:46"
-
-#Assembly download
-NCBI_key: your_ncbi_key
-NCBI_email: your_ncbi_email
-complete_assemblies: False
-reference_assemblies: False
-representative_assemblies: False
-exclude_from_metagenomes: True
-Genbank_assemblies: True
-Refseq_assemblies: True
-Rank_to_filter_by: False
-```
 ## Mess parameters
 The path to the input table can be set by the input_table_path parameter in the config file as shown above.
 
