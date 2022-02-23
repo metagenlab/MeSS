@@ -1,8 +1,5 @@
 include : "simulate_reads.rules"
 
-
-
-
 replicates = list(range(1, config["replicates"] + 1))
 community_name = config["community_name"]
 read_direction = []
@@ -15,8 +12,6 @@ if config['seq_tech'] == 'illumina' and config['read_status'] == 'paired':
 
 
 checkpoint download_assemblies:
-    conda:
-        "../envs/af.yml"
     output:
         f"{community_name}-assemblies-summary.tsv"
     params:

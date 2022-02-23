@@ -82,8 +82,6 @@ rule decompress_assemblies:
 
 
 rule merge_contigs:
-    conda: "../envs/utils.yml"
-
     input: f'assembly_gz/{community_name}/{{assemblyname}}_genomic.fna'
 
     output: temp('assembly_gz/{community,[-_0-9a-zA-Z]+}-{assemblyname,[0-9a-zA-Z._-]+}.fa')
@@ -104,8 +102,6 @@ if config['seq_tech']=='illumina':
 
     if config['read_status']=='paired':
         rule generate_illumina_paired_reads:
-            conda: "../envs/art.yml"
-
             input:  fa='assembly_gz/{community}-{assemblyname}.fa',
                     tab='readcounts-{community}-{rep}.tsv'
 
@@ -135,8 +131,6 @@ if config['seq_tech']=='illumina':
 
     if config['read_status']=='single':
         rule generate_illumina_single_reads:
-            conda: "../envs/art.yml"
-
             input: fa='assembly_gz/{community}-{assemblyname}.fa',
                     tab='readcounts-{community}-{rep}.tsv'
 
@@ -169,8 +163,6 @@ if config['seq_tech']=='illumina':
 
 
     rule convert_sam_to_bam_files:
-        conda: "../envs/bioconvert.yml"
-
         input: get_sam(config['read_status'])
 
         output: 'bam/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}.bam'
@@ -193,8 +185,6 @@ elif config['seq_tech']=='ont' or config['seq_tech']=='pacbio':
             return cov
 
     rule generate_long_reads:
-        conda: '../envs/pbsim2.yml'
-
         input: fa='assembly_gz/{community}-{assemblyname}.fa',
                tab='readcounts-{community}-{rep}.tsv'
         output: temp('simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.fastq'),
@@ -226,8 +216,6 @@ elif config['seq_tech']=='ont' or config['seq_tech']=='pacbio':
             --length-sd {params.sd_read_len} {input.fa} &> {log}
             """
     rule convert_maf_to_bam_files:
-        conda: "../envs/bioconvert.yml"
-
         input: 'simreads/{community}-{rep}-{assemblyname}_0001.maf'
 
         output: sam=temp('bam/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}.sam'),
@@ -273,8 +261,6 @@ rule concat_fastqs:
 
 
 rule shuffle_fastqs:
-    conda: "../envs/seqkit.yml"
-
     input: 'simreads/{community}-{rep}_{rd}.unshuffled.fq'
 
     output: 'simreads/{community}-{rep}_{rd}.fq.gz'
@@ -294,8 +280,6 @@ rule shuffle_fastqs:
 
 
 rule get_taxonomic_profile:
-    conda: "../envs/utils.yml"
-
     input: reads='simreads/{community}-{rep}_{rd}.fq.gz',
            table='readcounts-{community}-{rep}.tsv'
 
@@ -310,8 +294,6 @@ rule get_taxonomic_profile:
 
 
 rule create_krona_chart:
-    conda: "../envs/krona.yml"
-
     input: 'krona/{community}-{rep}_{rd}.txt'
 
     output: 'krona/{community}-{rep}_{rd}.html'

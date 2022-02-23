@@ -3,7 +3,19 @@ channels:
  - bioconda
  - conda-forge
  - metagenlab
+ - HCC
 dependencies:
- - snakemake-minimal = 6.2.1
+ - aspera-cli = 3.9.1
+ - assembly_finder = 0.2.0
+ - ete3 = 3.1.2
+ - art = 2016.06.05
+ - bioconvert = 0.4.3
  - click = 7
+ - krona = 2.8
  - pandas = 1.2.2
+ - pbsim2 = 2.0.1
+ - snakemake-minimal = 6.2.1
+ - seqkit = 0.16.0
+ - biopython = 1.78
+
+ 
