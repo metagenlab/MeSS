@@ -107,12 +107,12 @@ astb = pd.read_csv(snakemake.input.assemblies_tb, sep='\t')
 common_col = intb.columns.intersection(astb.columns)[0]
 assemblies_with_val = astb.merge(intb, how='left', on=f'{common_col}')
 if inputval == 'Coverage' or inputval == 'Reads':
-    assemblies_with_val[f'{inputval}'] = np.int64(assemblies_with_val[f'{inputval}']/assemblies_with_val['nb_genomes'])
-    assemblies_with_val.drop(columns='nb_genomes', inplace=True)
+    assemblies_with_val[f'{inputval}'] = np.int64(assemblies_with_val[f'{inputval}']/assemblies_with_val['NbGenomes'])
+    assemblies_with_val.drop(columns='NbGenomes', inplace=True)
 elif inputval == 'ReadPercent' or inputval == 'RelativeProp':
     assemblies_with_val[f'{inputval}'] = np.float64(assemblies_with_val[f'{inputval}'] /
-                                                    assemblies_with_val['nb_genomes'])
-    assemblies_with_val.drop(columns='nb_genomes', inplace=True)
+                                                    assemblies_with_val['NbGenomes'])
+    assemblies_with_val.drop(columns='NbGenomes', inplace=True)
 elif inputval == 'even':
     assemblies_with_val = get_even_dist(astb)
 elif inputval == 'lognormal':

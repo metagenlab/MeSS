@@ -1,6 +1,5 @@
 include : "simulate_reads.rules"
 
-
 replicates = list(range(1, config["replicates"] + 1))
 community_name = config["community_name"]
 read_direction = []
