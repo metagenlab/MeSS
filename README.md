@@ -150,7 +150,7 @@ For more details check [pbsim2's documentation](https://github.com/yukiteruono/p
 
 ### Assembly download
 MeSS uses [Assembly_finder](https://github.com/metagenlab/assembly_finder) to download genomes, and requires the user 
-to have an NCBI account. For more details on Assembly_finder parameters check its documentation.
+to have an NCBI account. For more details on Assembly_finder parameters check its [documentation](https://github.com/metagenlab/assembly_finder/blob/master/README.md).
 
 # Running MeSS
 ## Snakemake command
