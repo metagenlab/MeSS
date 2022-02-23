@@ -9,12 +9,12 @@ illumina_read_len: 100
 illumina_mean_frag_len: 200
 illumina_sd_frag_len: 20
 set_seed: 19
-NCBI_key: 8dcddb56e866bec9d21c8f9e70aa4e1e8309
-NCBI_email: farid.chaabane@unil.ch
+NCBI_key: your_ncbi_key
+NCBI_email: your_ncbi_email
 complete_assemblies: True
 reference_assemblies: False
 representative_assemblies: False
 exclude_from_metagenomes: True
 Genbank_assemblies: True
 Refseq_assemblies: True
-Rank_to_filter_by: 'None'
+Rank_to_filter_by: False

@@ -51,7 +51,7 @@ Genbank_assemblies: True
 Refseq_assemblies: True
 
 ##Parameters for the filtering function
-Rank_to_filter_by: 'None'
+Rank_to_filter_by: False
 #None: Assemblies are ranked by their assembly status (complete or not)
 #and Refseq category (reference, representative ...)
 #If you want to filter by species, set this parameter to 'species'. The filtering function will list all unique species
