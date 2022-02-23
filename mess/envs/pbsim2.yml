@@ -1,5 +1,0 @@
-name: pbsim2
-channels:
-  - bioconda
-dependencies:
-  - pbsim2 = 2.0.1

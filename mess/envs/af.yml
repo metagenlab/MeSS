@@ -1,5 +1,0 @@
-name: assembly_finder
-channels:
-- metagenlab
-dependencies:
-- assembly_finder

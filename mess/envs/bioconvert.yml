@@ -1,5 +1,0 @@
-name: samtools
-channels:
-  - bioconda
-dependencies:
-  - bioconvert = 0.4.3
