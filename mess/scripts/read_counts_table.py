@@ -123,6 +123,6 @@ cov_read_tb = calculate_reads_and_coverage(assemblies_with_val, totalreads, sdr,
 if inputval == 'Coverage' or inputval == 'Reads':
     cov_read_tb = cov_read_tb.drop(inputval, axis=1)
 mergedtb = assemblies_with_val.merge(cov_read_tb, how='left', on='AssemblyNames')
-rc_tb = mergedtb.drop(['AssemblyInput', 'GbUid', 'FtpPath_GenBank', 'FtpPath_RefSeq', 'AsmReleaseDate_GenBank',
+rc_tb = mergedtb.drop(['GbUid', 'FtpPath_GenBank', 'FtpPath_RefSeq', 'AsmReleaseDate_GenBank',
                        'ContigN50', 'ScaffoldN50', 'Assembly_coverage', 'Contig_count'], axis=1)
 rc_tb.to_csv(snakemake.output["rc_table"], sep='\t', index=False)

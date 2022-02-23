@@ -36,9 +36,8 @@ def assembly_and_bam_list(wildcards):
         assemblies = expand(f'assembly_gz/{community_name}/{{i}}_genomic.fna',
             i=assemblynames)
     except KeyError:
-        checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
-        directory = '/'.join((checkpoint_output.split('/')[0:2]))
-        assemblynames = glob_wildcards(os.path.join(directory,'{i}_genomic.fna.gz')).i
+        checkpoint_directory = f"assembly_gz/{community_name}/"
+        assemblynames = glob_wildcards(os.path.join(checkpoint_directory,'{i}_genomic.fna.gz')).i
         assemblies = expand(f'assembly_gz/{community_name}/{{i}}_genomic.fna.gz',
             i=assemblynames)
 
@@ -48,6 +47,7 @@ def assembly_and_bam_list(wildcards):
         all = bam + assemblies
     else:
         all = assemblies
+    print("ALL", all)
     return all
 
 rule all_sim :
