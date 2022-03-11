@@ -1,9 +1,0 @@
-name: Assembly_finder
-channels:
- - bioconda
- - conda-forge
-
-dependencies:
- - biopython = 1.78
- - pandas = 1.2.2
- - ete3 = 3.1.2

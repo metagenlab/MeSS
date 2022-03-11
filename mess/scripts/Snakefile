@@ -1,5 +1,4 @@
 include : "simulate_reads.rules"
-include : "../assembly_finder/Snakefile"
 
 replicates = list(range(1, config["replicates"] + 1))
 community_name = config["community_name"]
@@ -11,6 +10,23 @@ if config['seq_tech'] == 'illumina' and config['read_status'] == 'single':
 if config['seq_tech'] == 'illumina' and config['read_status'] == 'paired':
     read_direction = ['R1','R2']
 
+
+checkpoint download_assemblies:
+    output:
+        f"{community_name}-assemblies-summary.tsv"
+    params:
+        input_table = config["input_table_path"],
+        ncbi_key = config["NCBI_key"],
+        ncbi_email = config["NCBI_email"],
+        complete_assemblies = config["complete_assemblies"],
+        filter_rank = config["Rank_to_filter_by"],
+        output_prefix = f"{community_name}"
+    shell:
+        """
+        af run --nolock --input-table {params.input_table} --output_prefix {params.output_prefix} --ncbi_key {params.ncbi_key} --ncbi_email {params.ncbi_email} --complete_assemblies {params.complete_assemblies} --filter_rank {params.filter_rank}
+        """
+
+
 def assembly_and_bam_list(wildcards):
     try:
         directory = config['assemblies_dir']
@@ -19,9 +35,8 @@ def assembly_and_bam_list(wildcards):
         assemblies = expand(f'assembly_gz/{community_name}/{{i}}_genomic.fna',
             i=assemblynames)
     except KeyError:
-        checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
-        directory = '/'.join((checkpoint_output.split('/')[0:2]))
-        assemblynames = glob_wildcards(os.path.join(directory,'{i}_genomic.fna.gz')).i
+        checkpoint_directory = f"assembly_gz/{community_name}/"
+        assemblynames = glob_wildcards(os.path.join(checkpoint_directory,'{i}_genomic.fna.gz')).i
         assemblies = expand(f'assembly_gz/{community_name}/{{i}}_genomic.fna.gz',
             i=assemblynames)
 
@@ -31,6 +46,7 @@ def assembly_and_bam_list(wildcards):
         all = bam + assemblies
     else:
         all = assemblies
+    print("ALL", all)
     return all
 
 rule all_sim :
