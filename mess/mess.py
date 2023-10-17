@@ -6,6 +6,7 @@ import sys
 import click
 import subprocess
 from mess import __version__
+
 logging.basicConfig(
     level=logging.INFO,
     datefmt="%Y-%m-%d %H:%M",
@@ -15,7 +16,7 @@ logging.basicConfig(
 
 def get_snakefile():
     thisdir = os.path.abspath(os.path.dirname(__file__))
-    sf = os.path.join(thisdir, 'scripts', 'Snakefile')
+    sf = os.path.join(thisdir, "bin", "Snakefile")
     if not os.path.exists(sf):
         sys.exit(f"Unable to locate the Snakemake workflow file at {sf}")
     return sf
@@ -26,14 +27,14 @@ def get_snakefile():
 @click.pass_context
 def cli(obj):
     """
-    MeSS is a snakemake workflow used for simulating metagenomic mock communities
+    MeSS is a snakemake pipeline used for simulating long and short reads metagenomic mock communities
     """
 
 
 @cli.command(
     "run",
     context_settings=dict(ignore_unknown_options=True),
-    short_help="run all MeSS pipeline steps"
+    short_help="run all MeSS pipeline steps",
 )
 @click.option(
     "-f",
@@ -84,30 +85,42 @@ def cli(obj):
     default=2,
 )
 @click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
-def run_workflow(conda_prefix, config_file, dryrun_status, ncbi_requests, nb_sim, nb_cat, cores, snakemake_args):
+def run_workflow(
+    conda_prefix,
+    config_file,
+    dryrun_status,
+    ncbi_requests,
+    nb_sim,
+    nb_cat,
+    cores,
+    snakemake_args,
+):
     """
     Runs MeSS pipeline with all steps
     """
     if config_file is None:
-        config_file = 'config.yml'
+        config_file = "config.yml"
 
     if not os.path.exists(config_file):
-        logging.critical(f"config-file not found: {config_file}\n"
-                         "make sure your config.yml is in your working directory")
+        logging.critical(
+            f"config-file not found: {config_file}\n"
+            "make sure your config.yml is in your working directory"
+        )
         sys.exit(1)
     if dryrun_status:
-        dryrun = '-n'
+        dryrun = "-n"
     else:
-        dryrun = ''
+        dryrun = ""
     if conda_prefix is None:
-        conda_prefix = os.environ['CONDA_PREFIX']
+        conda_prefix = os.environ["CONDA_PREFIX"]
     if not os.path.exists(conda_prefix):
         logging.critical(f"conda env path not found: {conda_prefix}")
         sys.exit(1)
     cmd = (
         f"snakemake --snakefile {get_snakefile()} --configfile {config_file} --use-conda --conda-prefix {conda_prefix} "
         f" --resources ncbi_requests={ncbi_requests} nb_simulation={nb_sim} parallel_cat={nb_cat} --cores {cores} "
-        f"all_sim {dryrun} {' '.join(snakemake_args)}")
+        f"all_sim {dryrun} {' '.join(snakemake_args)}"
+    )
     logging.info("Executing: %s" % cmd)
     try:
         subprocess.check_call(cmd, shell=True)
