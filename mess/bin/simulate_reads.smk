@@ -60,13 +60,28 @@ def get_read_counts_seed(rep, rep2seed, general_seed):
 input_val = get_input_value(config["input_table_path"])
 
 
+checkpoint download_assemblies:
+    input:
+        config["input_table_path"],
+    output:
+        f"{community_name}/assembly_summary.tsv",
+    params:
+        ncbi_key=config["NCBI_key"],
+        ncbi_email=config["NCBI_email"],
+        prefix=f"{community_name}",
+    shell:
+        """
+        assembly_finder -i {input} -o {params.prefix} -nk {params.ncbi_key} -ne {params.ncbi_email}
+        """
+
+
 rule create_read_counts_table:
     """
     Rule for generating a table per sample with read counts for each genome 
     """
     input:
         input_tb=config["input_table_path"],
-        assemblies_tb=f"{community_name}-assemblies-summary.tsv",
+        assemblies_tb=f"{community_name}/assembly_summary.tsv",
     output:
         rc_table="readcounts-{community}-{rep}.tsv",
     params:
@@ -82,10 +97,10 @@ rule create_read_counts_table:
 
 rule decompress_assemblies:
     input:
-        f"assembly_gz/{community_name}/{{assemblyname}}_genomic.fna.gz",
+        f"{community_name}/assemblies/{{assemblyname}}_genomic.fna.gz",
     output:
         temp(
-            f"assembly_gz/{community_name}/{{assemblyname,[0-9a-zA-Z._-]+}}_genomic.fna"
+            f"{community_name}/assemblies/{{assemblyname,[0-9a-zA-Z._-]+}}_genomic.fna"
         ),
     benchmark:
         "benchmark/decompress/{assemblyname}.txt"
@@ -95,9 +110,9 @@ rule decompress_assemblies:
 
 rule merge_contigs:
     input:
-        f"assembly_gz/{community_name}/{{assemblyname}}_genomic.fna",
+        f"{community_name}/assemblies/{{assemblyname}}_genomic.fna",
     output:
-        temp("assembly_gz/{community,[-_0-9a-zA-Z]+}-{assemblyname,[0-9a-zA-Z._-]+}.fa"),
+        temp("{community,[-_0-9a-zA-Z]+}-{assemblyname,[0-9a-zA-Z._-]+}.fa"),
     benchmark:
         "benchmark/merge/{community}-{assemblyname}.txt"
     script:
@@ -118,7 +133,7 @@ if config["seq_tech"] == "illumina":
 
         rule generate_illumina_paired_reads:
             input:
-                fa="assembly_gz/{community}-{assemblyname}.fa",
+                fa="{community}-{assemblyname}.fa",
                 tab="readcounts-{community}-{rep}.tsv",
             output:
                 temp(
@@ -271,7 +286,7 @@ def concat_fastq(wildcards):
         files = glob.glob(os.path.join(directory, "*_genomic.fna*"))
         assemblynames = [file.split("/")[-1].split("_genomic.fna")[0] for file in files]
     except KeyError:
-        checkpoint_directory = f"assembly_gz/{community_name}/"
+        checkpoint_directory = f"{community_name}/assemblies"
         assemblynames = glob_wildcards(
             os.path.join(checkpoint_directory, "{i}_genomic.fna.gz")
         ).i

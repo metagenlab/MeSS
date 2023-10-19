@@ -1,4 +1,4 @@
-include: "simulate_reads.rules"
+include: "simulate_reads.smk"
 
 
 replicates = list(range(1, config["replicates"] + 1))
@@ -12,38 +12,19 @@ if config["seq_tech"] == "illumina" and config["read_status"] == "paired":
     read_direction = ["R1", "R2"]
 
 
-checkpoint download_assemblies:
-    input:
-        config["input_table_path"],
-    output:
-        f"{community_name}/assembly_summary.tsv",
-    params:
-        ncbi_key=config["NCBI_key"],
-        ncbi_email=config["NCBI_email"],
-        complete_assemblies=config["complete_assemblies"],
-        filter_rank=config["Rank_to_filter_by"],
-        prefix=f"{community_name}",
-    shell:
-        """
-        assembly_finder -i {input} -o {params.prefix} -nk {params.ncbi_key} -ne {params.ncbi_email}
-        """
-
-
 def assembly_and_bam_list(wildcards):
     try:
         directory = config["assemblies_dir"]
-        files = glob.glob(os.path.join(directory, "*_genomic.fna*"))
-        assemblynames = [file.split("/")[-1].split("_genomic.fna")[0] for file in files]
-        assemblies = expand(
-            f"assembly_gz/{community_name}/{{i}}_genomic.fna", i=assemblynames
-        )
+        files = glob.glob(os.path.join(directory, "*.fna"))
+        assemblynames = [file.split("/")[-1].split(".fna")[0] for file in files]
+        assemblies = expand(f"{community_name}/assemblies/{{i}}.fna", i=assemblynames)
     except KeyError:
-        checkpoint_directory = f"assembly_gz/{community_name}/"
+        checkpoint_directory = f"{community_name}/assemblies"
         assemblynames = glob_wildcards(
             os.path.join(checkpoint_directory, "{i}_genomic.fna.gz")
         ).i
         assemblies = expand(
-            f"assembly_gz/{community_name}/{{i}}_genomic.fna.gz", i=assemblynames
+            f"{checkpoint_directory}/{{i}}_genomic.fna.gz", i=assemblynames
         )
 
     if config["bam"]:
@@ -55,6 +36,21 @@ def assembly_and_bam_list(wildcards):
         all = assemblies
     print("ALL", all)
     return all
+
+
+def downloads(wildcards, extension):
+    checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
+    directory = "/".join((checkpoint_output.split("/")[0:2]))
+    return expand(
+        f"{community_name}/assemblies/{{i}}{extension}",
+        i=glob_wildcards(os.path.join(directory, f"{{i}}{extension}")).i,
+    )
+
+
+rule all_download:
+    input:
+        f"{community_name}/assembly_summary.tsv",
+        lambda wildcards: downloads(wildcards, ".fna.gz"),
 
 
 rule all_sim:
