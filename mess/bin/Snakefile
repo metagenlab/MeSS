@@ -49,7 +49,7 @@ def downloads(wildcards, extension):
 
 rule all_download:
     input:
-        f"{community_name}/assembly_summary.tsv",
+        f"{community_name}/download/assembly_summary.tsv",
         lambda wildcards: downloads(wildcards, ".fna.gz"),
 
 
