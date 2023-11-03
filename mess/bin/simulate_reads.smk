@@ -60,18 +60,29 @@ def get_read_counts_seed(rep, rep2seed, general_seed):
 input_val = get_input_value(config["input_table_path"])
 
 
-checkpoint download_assemblies:
+rule get_entries:
     input:
         config["input_table_path"],
+    output:
+        temp(f"{community_name}/entries.tsv"),
+    run:
+        pd.read_csv(input[0], sep="\t").iloc[:, 0].to_csv(
+            output[0], sep="\t", index=None
+        )
+
+
+checkpoint download_assemblies:
+    input:
+        f"{community_name}/entries.tsv",
     output:
         f"{community_name}/assembly_summary.tsv",
     params:
         ncbi_key=config["NCBI_key"],
         ncbi_email=config["NCBI_email"],
-        prefix=f"{community_name}",
+        prefix=f"{community_name}/download",
     shell:
         """
-        assembly_finder -i {input} -o {params.prefix} -nk {params.ncbi_key} -ne {params.ncbi_email}
+        assembly_finder -i {input} -o {params.prefix} -nk {params.ncbi_key} -ne {params.ncbi_email} nolock
         """
 
 
