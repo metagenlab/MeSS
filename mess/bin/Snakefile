@@ -38,13 +38,13 @@ def assembly_and_bam_list(wildcards):
     return all
 
 
-def downloads(wildcards, extension):
-    checkpoint_output = checkpoints.download_assemblies.get(**wildcards).output[0]
-    directory = "/".join((checkpoint_output.split("/")[0:2]))
-    return expand(
-        f"{community_name}/assemblies/{{i}}{extension}",
-        i=glob_wildcards(os.path.join(directory, f"{{i}}{extension}")).i,
+def downloads(wildcards, extensions):
+    extensions = extensions.split(",")
+    checkpoint_directory = os.path.dirname(
+        checkpoints.download_assemblies.get(**wildcards).output[0]
     )
+    files = [glob.glob(f"{checkpoint_directory}/*_{e}") for e in extensions]
+    return list(chain.from_iterable(files))
 
 
 rule all_download:

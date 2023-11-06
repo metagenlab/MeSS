@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import random
 import glob
+from itertools import chain
 
 random.seed(config["seed"])
 replicates = list(range(1, config["replicates"] + 1))
@@ -60,29 +61,18 @@ def get_read_counts_seed(rep, rep2seed, general_seed):
 input_val = get_input_value(config["input_table_path"])
 
 
-rule get_entries:
+checkpoint download_assemblies:
     input:
         config["input_table_path"],
     output:
-        temp(f"{community_name}/entries.tsv"),
-    run:
-        pd.read_csv(input[0], sep="\t").iloc[:, 0].to_csv(
-            output[0], sep="\t", index=None
-        )
-
-
-checkpoint download_assemblies:
-    input:
-        f"{community_name}/entries.tsv",
-    output:
-        f"{community_name}/assembly_summary.tsv",
+        f"{community_name}/download/assembly_summary.tsv",
     params:
         ncbi_key=config["NCBI_key"],
         ncbi_email=config["NCBI_email"],
         prefix=f"{community_name}/download",
     shell:
         """
-        assembly_finder -i {input} -o {params.prefix} -nk {params.ncbi_key} -ne {params.ncbi_email} nolock
+        assembly_finder -i {input} -o {params.prefix} -nk {params.ncbi_key} -ne {params.ncbi_email} --nolock
         """
 
 
@@ -92,7 +82,7 @@ rule create_read_counts_table:
     """
     input:
         input_tb=config["input_table_path"],
-        assemblies_tb=f"{community_name}/assembly_summary.tsv",
+        assemblies_tb=f"{community_name}/download/assembly_summary.tsv",
     output:
         rc_table="readcounts-{community}-{rep}.tsv",
     params:
