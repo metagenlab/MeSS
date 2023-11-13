@@ -1,0 +1,6 @@
+# Namespaced config file example
+mess:
+    args: # Command line args will be (over)written here at runtime
+        input:
+        output:
+    # Add customisable config here
