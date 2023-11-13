@@ -112,13 +112,28 @@ def common_options(func):
     return func
 
 
+version = get_version()
+
+
+def print_splash():
+    click.echo(
+        f"""
+        ___  ___     _____ _____ 
+        |  \/  |    /  ___/  ___|
+        | .  . | ___\ `--.\ `--. 
+        | |\/| |/ _ \`--. \`--. \\
+        | |  | |  __/\__/ /\__/ /
+        \_|  |_/\___\____/\____/ v{version}
+        """
+    )
+
+
 @click.group(
     cls=OrderedCommands, context_settings=dict(help_option_names=["-h", "--help"])
 )
-@click.version_option(get_version(), "-v", "--version", is_flag=True)
+@click.version_option(version, "-v", "--version", is_flag=True)
 def cli():
-    """Snakemake pipeline for simulating short and long read metagenomes
-    \b
+    """
     For more options, run:
     mess command --help"""
     pass
@@ -162,7 +177,7 @@ def run(**kwargs):
         # Full path to Snakefile
         snakefile_path=snake_base(os.path.join("workflow", "Snakefile")),
         merge_config=merge_config,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -185,6 +200,7 @@ cli.add_command(citation)
 
 
 def main():
+    print_splash()
     cli()
 
 
