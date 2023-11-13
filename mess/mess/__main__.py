@@ -8,7 +8,12 @@ https://github.com/beardymcjohnface/Snaketool/wiki/Customising-your-Snaketool
 import os
 import click
 
-from snaketool_utils.cli_utils import OrderedCommands, run_snakemake, copy_config, echo_click
+from snaketool_utils.cli_utils import (
+    OrderedCommands,
+    run_snakemake,
+    copy_config,
+    echo_click,
+)
 
 
 def snake_base(rel_path):
@@ -112,7 +117,7 @@ def common_options(func):
 )
 @click.version_option(get_version(), "-v", "--version", is_flag=True)
 def cli():
-    """Automated pipeline for short and long read metagenomic simulation, implemented in Snakemake using Snaketool
+    """Snakemake pipeline for simulating short and long read metagenomes
     \b
     For more options, run:
     mess command --help"""
@@ -150,11 +155,7 @@ Available targets:
 def run(**kwargs):
     """Run MeSS"""
     # Config to add or update in configfile
-    merge_config = {
-        "mess": {
-            "args": kwargs
-        }
-    }
+    merge_config = {"mess": {"args": kwargs}}
 
     # run!
     run_snakemake(

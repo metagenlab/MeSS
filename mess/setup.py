@@ -11,7 +11,7 @@ def get_version():
         )
     ) as f:
         return f.readline().strip()
-    
+
 
 def get_description():
     with open("README.md", "r") as fh:
@@ -43,7 +43,7 @@ setup(
     packages=find_packages(),
     url="https://github.com/metagenlab/MeSS",
     python_requires=">=3.9",
-    description="Automated pipeline for short and long read metagenomic simulation, implemented in Snakemake using Snaketool",
+    description="Snakemake pipeline for simulating short and long read metagenomes",
     long_description=get_description(),
     long_description_content_type="text/markdown",
     version=get_version(),
@@ -57,10 +57,6 @@ setup(
         "pyyaml>=6.0",
         "Click>=8.1.3",
     ],
-    entry_points={
-        "console_scripts": [
-            "mess=mess.__main__:main"
-        ]
-    },
+    entry_points={"console_scripts": ["mess=mess.__main__:main"]},
     include_package_data=True,
 )

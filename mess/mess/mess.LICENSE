@@ -1,7 +1,7 @@
 GNU GENERAL PUBLIC LICENSE
                       Version 3, 29 June 2007
 
-    Automated pipeline for short and long read metagenomic simulation, implemented in Snakemake using Snaketool
+    Snakemake pipeline for simulating short and long read metagenomes
     Copyright (C) 2023  Farid Chaabane
 
     This program is free software: you can redistribute it and/or modify
