@@ -1,7 +1,8 @@
 #MeSS parameters
+input: /path/to/abundances #path to abundance tables
 replicates: 1 #You con set the number of times to simulate the same metagenome
-community_name: CF-metagenome
-assemblies_dir: /absolute/path/to/assemblies
+outdir: results
+fasta_dir: /absolute/path/to/assemblies
 
 #Distribution params
 dist: lognormal
@@ -9,13 +10,12 @@ mu: 1
 sigma: 0
 #Sequencing run params
 seq_tech: illumina #[illumina, pacbio, nanopore]
-read_status: paired #set to single for single read simulation or longread simulation
-total_reads:
-  10000000 #10 mil reads in total.
-  #If the user inputs coverage values in input_table.tsv, then this value will not be used
+paired: True #set to single for single read simulation or longread simulation
+read_len: 150
+total_bases: 1G
+
 ##Illumina (art params)
 illumina_sequencing_system: HSXt #HiSeqX TruSeq (read length:150bp)
-illumina_read_len: 150
 illumina_mean_frag_len: 200
 illumina_sd_frag_len: 10
 bam: False
@@ -33,7 +33,7 @@ difference_ratio:
   #For PacBio the default values is 6:50:54
   #For Nanopore it is 23:31:46
 ##Replicate params
-sd_rep_reads:
+rep_sd:
   0 #Standard deviation for varying the number of reads per genome between replicates,
   #if 0 keep the same number of reads per genome for each replicate
   #else vary the read number between replicates by sampling from a normal distribution
