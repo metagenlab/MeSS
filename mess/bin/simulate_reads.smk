@@ -1,52 +1,21 @@
+import json
 import pandas as pd
 import os
 import random
 import glob
 from itertools import chain
-
-random.seed(config["seed"])
-replicates = list(range(1, config["replicates"] + 1))
-community_name = config["community_name"]
-read_direction = []
-if config["seq_tech"] != "illumina":
-    read_direction = config["seq_tech"]
-if config["seq_tech"] == "illumina" and config["read_status"] == "single":
-    read_direction = "single"
-if config["seq_tech"] == "illumina" and config["read_status"] == "paired":
-    read_direction = ["R1", "R2"]
-pipeline_path = workflow.basedir
-seed_list = random.sample(range(1, 1000000), len(replicates))
-seed_dic = dict(zip(replicates, seed_list))
+from itertools import product
 
 
-def get_input_value(path):
+def list_files(indir, extensions):
+    extensions = extensions.split(",")
+    files = [glob.glob(f"{indir}/*.{e}") for e in extensions]
+    return list(chain.from_iterable(files))
+
+
+def get_cov_seed(rep, sample2seed, general_seed):
     """
-    Function that parses input table and raises exceptions if there are NA in the table
-    Returns the input value set by the user, useful for read count calculation
-    """
-    tb = pd.read_csv(path, sep="\t")
-    acceptedvals = ["Reads", "Coverage", "ReadPercent", "RelativeProp"]
-    lastcol = tb.columns[len(tb.columns) - 1]
-    nans = tb[lastcol].isna().sum()
-    if nans > 0:
-        raise Exception(f"{nans} values in {lastcol} are NA, make sure to input values")
-    try:
-        lastcol = config[
-            "dist"
-        ]  # If the user has set a specific distribution for read counts
-        return lastcol
-    except KeyError:
-        if lastcol in acceptedvals:
-            return lastcol
-        else:
-            raise Exception(
-                f"{lastcol} is not recognized as an input to simulate reads"
-            )
-
-
-def get_read_counts_seed(rep, rep2seed, general_seed):
-    """
-    Function that returns a seed for calculating read counts
+    Function that returns a seed for coverage
     By default each replicate has a unique seed
     If the param same_dist_rep is True, return a single seed for all replicates
     """
@@ -55,103 +24,128 @@ def get_read_counts_seed(rep, rep2seed, general_seed):
         if same_dist_rep:
             return general_seed
     except KeyError:
-        return rep2seed[int(rep)]
+        return sample2seed[int(rep)]
 
 
-input_val = get_input_value(config["input_table_path"])
+outdir = config["outdir"]
+random.seed(config["seed"])
+replicates = list(range(1, config["replicates"] + 1))
+samples = list_files(config["input_path"], "tsv")
+sample_list = list(product(samples, replicates))
+
+seed_list = random.sample(range(1, 1000000), len(sample_list) * len(replicates))
+seed_dic = dict(zip(replicates, seed_list))
 
 
 checkpoint download_assemblies:
     input:
-        config["input_table_path"],
+        config["input_path"],
     output:
-        f"{community_name}/download/assembly_summary.tsv",
+        f"{outdir}/download/assembly_summary.tsv",
     params:
         ncbi_key=config["NCBI_key"],
         ncbi_email=config["NCBI_email"],
-        prefix=f"{community_name}/download",
+        prefix=f"{outdir}/download",
     shell:
         """
         assembly_finder -i {input} -o {params.prefix} -nk {params.ncbi_key} -ne {params.ncbi_email} --nolock
         """
 
 
-rule create_read_counts_table:
-    """
-    Rule for generating a table per sample with read counts for each genome 
-    """
+def get_assembly_summary_path(wildcards):
+    try:
+        table = os.path.abspath(
+            checkpoints.download_assemblies.get(**wildcards).output[0]
+        )
+    except KeyError:
+        table = os.path.abspath(config["fasta_dir"])
+    return table
+
+
+rule calculate_coverage:
     input:
-        input_tb=config["input_table_path"],
-        assemblies_tb=f"{community_name}/download/assembly_summary.tsv",
+        entry=lambda wildcards: list_files(config["input_path"], ".tsv"),
+        asm=lambda wildcards: get_assembly_summary_path(wildcards),
     output:
-        rc_table="readcounts-{community}-{rep}.tsv",
+        f"{outdir}/{{sample}}-{{rep}}-cov.json",
     params:
-        value=input_val,
-        seed=lambda wildcards: get_read_counts_seed(
-            wildcards.rep, seed_dic, config["seed"]
-        ),
+        dist=config["dist"],
+        mu=config["mu"],
+        sigma=config["sigma"],
+        total_bases=config["total_bases"],
+        read_len=config["read_len"],
+        pairing=config["paired"],
+        rep_sd=config["rep_sd"],
+        seed=lambda wildcards: get_cov_seed(wildcards.rep, seed_dic, config["seed"]),
     log:
-        "logs/read_counts_table/{community}-{rep}.txt",
-    script:
-        "read_counts_table.py"
+        f"logs/tables/{{sample}}-{{rep}}.tsv",
+    shell:
+        """
+        calculate_cov.py -i {input.entry} -a {input.asm} \
+        -d {params.dist} -m {params.mu} -s {params.sigma} \
+        -n {params.total_bases} -l {params.read_len} -p {params.pairing} \
+        -sd {params.rep_sd} --seed {params.seed}
+        """
+
+
+def get_fasta_dir(wildcards):
+    try:
+        table_dir = os.path.dirname(
+            checkpoints.download_assemblies.get(**wildcards).output[0]
+        )
+        fasta_dir = os.path.join(table_dir, "assemblies")
+    except KeyError:
+        fasta_dir = os.path.abspath(config["fasta_dir"])
+    return fasta_dir
+
+
+fasta_dir = lambda wildcards: get_fasta_dir(wildcards)
 
 
 rule decompress_assemblies:
     input:
-        f"{community_name}/assemblies/{{assemblyname}}_genomic.fna.gz",
+        f"{fasta_dir}/{{fasta}}.gz",
     output:
-        temp(
-            f"{community_name}/assemblies/{{assemblyname,[0-9a-zA-Z._-]+}}_genomic.fna"
-        ),
+        temp(f"{outdir}/{{fasta}}"),
     benchmark:
-        "benchmark/decompress/{assemblyname}.txt"
+        f"benchmark/decompress/{outdir}/{{fasta}}.txt"
     shell:
-        "zcat {input[0]} > {output}"
+        "zcat {input} > {output}"
 
 
-rule merge_contigs:
-    input:
-        f"{community_name}/assemblies/{{assemblyname}}_genomic.fna",
-    output:
-        temp("{community,[-_0-9a-zA-Z]+}-{assemblyname,[0-9a-zA-Z._-]+}.fa"),
-    benchmark:
-        "benchmark/merge/{community}-{assemblyname}.txt"
-    script:
-        "merge_contigs.py"
+def get_coverage(json, fasta):
+    d = json.load(open(json))
+    return d["cov_sim"][fasta]
 
 
 if config["seq_tech"] == "illumina":
 
-    def get_read_num(wildcards, table):
-        if not os.path.exists(table):
-            return -1
-        with open(table) as f:
-            tb = pd.read_csv(f, delimiter="\t", index_col="AssemblyNames")
-            reads = tb.loc[wildcards.assemblyname]["Reads"]
-            return reads
+    rule merge_contigs:
+        input:
+            f"{outdir}/{{fasta}}",
+        output:
+            temp(f"{outdir}/{{fasta}}.merged"),
+        benchmark:
+            "benchmark/merge/{fasta}.txt"
+        script:
+            "merge_contigs.py"
 
-    if config["read_status"] == "paired":
+    if config["paired"]:
 
         rule generate_illumina_paired_reads:
             input:
-                fa="{community}-{assemblyname}.fa",
-                tab="readcounts-{community}-{rep}.tsv",
+                fa=f"{outdir}/{{fasta}}.merged",
+                json=f"{outdir}/coverage-{{rep}}.json",
             output:
-                temp(
-                    "simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R1.fq"
-                ),
-                temp(
-                    "simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R2.fq"
-                ),
-                temp(
-                    "simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_R.sam"
-                ),
+                temp(f"{outdir}/fastq/{{fasta}}_R1.fq"),
+                temp(f"{outdir}/fastq/{{fasta}}_R2.fq"),
+                temp(f"{outdir}/fastq/{{fasta}}_R.sam"),
             params:
                 seq_system=config["illumina_sequencing_system"],
-                read_length=config["illumina_read_len"],
+                read_length=config["read_len"],
                 mean_frag_len=config["illumina_mean_frag_len"],
                 sd=config["illumina_sd_frag_len"],
-                read_num=lambda wildcards, input: get_read_num(wildcards, input.tab),
+                cov=lambda wildcards, input: get_coverage(input.json, wildcards.fasta),
                 random_seed=lambda wildcards: seed_dic[int(wildcards.rep)],
             resources:
                 nb_simulation=1,
@@ -166,19 +160,15 @@ if config["seq_tech"] == "illumina":
                 -o simreads/{wildcards.community}-{wildcards.rep}-{wildcards.assemblyname}_R &> {log}
                 """
 
-    if config["read_status"] == "single":
+    else:
 
         rule generate_illumina_single_reads:
             input:
                 fa="assembly_gz/{community}-{assemblyname}.fa",
                 tab="readcounts-{community}-{rep}.tsv",
             output:
-                temp(
-                    "simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_single.fq"
-                ),
-                temp(
-                    "simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_single.sam"
-                ),
+                temp("{outdir}/fastq/{{fasta}}_single.fq"),
+                temp("{outdir}/fastq/{{fasta}}_single.sam"),
             params:
                 seq_system=config["illumina_sequencing_system"],
                 read_length=config["illumina_read_len"],
@@ -230,15 +220,9 @@ elif config["seq_tech"] == "ont" or config["seq_tech"] == "pacbio":
             fa="assembly_gz/{community}-{assemblyname}.fa",
             tab="readcounts-{community}-{rep}.tsv",
         output:
-            temp(
-                "simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.fastq"
-            ),
-            temp(
-                "simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.maf"
-            ),
-            temp(
-                "simreads/{community,[-_0-9a-zA-Z]+}-{rep,[0-9]+}-{assemblyname,[0-9a-zA-Z._-]+}_0001.ref"
-            ),
+            temp("{outdir}/fastq/{{fasta}}_0001.fastq"),
+            temp("{outdir}/fastq/{{fasta}}_0001.maf"),
+            temp("{outdir}/fastq/{{fasta}}_0001.ref"),
         params:
             chemistry=config["chemistry"],
             min_read_len=config["longreads_min_len"],
@@ -287,7 +271,7 @@ def concat_fastq(wildcards):
         files = glob.glob(os.path.join(directory, "*_genomic.fna*"))
         assemblynames = [file.split("/")[-1].split("_genomic.fna")[0] for file in files]
     except KeyError:
-        checkpoint_directory = f"{community_name}/assemblies"
+        checkpoint_directory = f"{fasta_dir}"
         assemblynames = glob_wildcards(
             os.path.join(checkpoint_directory, "{i}_genomic.fna.gz")
         ).i
