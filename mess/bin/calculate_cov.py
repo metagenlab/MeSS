@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import logging
 import os
+from humanfriendly import parse_size
 
 """
 Description
@@ -127,15 +128,6 @@ def get_even_dist(df, cols):
     return df.merge(abundances)
 
 
-def conv(s):
-    try:
-        # multiply with meter-prefix value
-        return float(s[:-1]) * prefix[s[-1]]
-    except KeyError:
-        # no or unknown meter-prefix
-        return float(s)
-
-
 """
 Main
 """
@@ -156,10 +148,7 @@ else:
     p = 1
 
 # Calculate total base count
-
-prefix = {"T": 10**12, "G": 10**9, "M": 10**6, "k": 10**3}
-total_bases = conv(args.total_bases)
-
+total_bases = parse_size(args.total_bases)
 
 # Get table with assembly genomsizes and their taxonomy
 entry_df = pd.read_csv(args.input, sep="\t")
@@ -175,14 +164,12 @@ if args.dist == "even":
     df["bases"] = df["proportion"] * total_bases
     df["reads"] = df["bases"] / (args.read_length * p)
     df["cov_sim"] = df["bases"] / df["genome_size"]
-    df["abundance"] = df["cov_sim"] / df["cov_sim"].sum()
 
 elif args.dist == "lognormal":
     df = get_lognormal_dist(df, args.mu, args.sigma)
     df["bases"] = df["proportion"] * total_bases
     df["reads"] = df["bases"] / (args.read_length * p)
     df["cov_sim"] = df["bases"] / df["genome_size"]
-    df["abundance"] = df["cov_sim"] / df["cov_sim"].sum()
 
 elif args.dist == None:
     if "proportion" in entry_df.columns:
@@ -190,7 +177,6 @@ elif args.dist == None:
         df["bases"] = df["proportion"] * total_bases
         df["reads"] = df["bases"] / (args.read_length * p)
         df["cov_sim"] = df["bases"] / df["genome_size"]
-        df["abundance"] = df["cov_sim"] / df["cov_sim"].sum()
 
     elif "reads" in entry_df.columns:
         df["reads"] = df["reads"] / df["count"]
@@ -198,7 +184,6 @@ elif args.dist == None:
         total_bases = df["bases"].sum()
         df["proportion"] = df["bases"] / total_bases
         df["cov_sim"] = df["bases"] / df["genome_size"]
-        df["abundance"] = df["cov_sim"] / df["cov_sim"].sum()
 
     elif "bases" in entry_df.columns:
         total_bases = df["bases"].sum()
@@ -206,18 +191,17 @@ elif args.dist == None:
         df["reads"] = df["bases"] / (args.read_length * p)
         df["proportion"] = df["bases"] / total_bases
         df["cov_sim"] = df["bases"] / df["genome_size"]
-        df["abundance"] = df["cov_sim"] / df["cov_sim"].sum()
 
     elif "cov_sim" in entry_df.columns:
         df["cov_sim"] = df["cov_sim"] / df["count"]
         df["bases"] = df["cov_sim"] * df["genome_size"]
         df["reads"] = df["bases"] / (args.read_length * p)
         df["proportion"] = df["bases"] / df["bases"].sum()
-        df["abundance"] = df["cov_sim"] / df["cov_sim"].sum()
 
+df = df.astype({"bases": int, "reads": int})
 df["fasta"] = df["path"].apply(os.path.basename)
-df["cov_sim"] = [np.random.normal(cov, args.sd_rep) for cov in df["cov_sim"]]
-sel_df = df[["fasta", "proportion", "bases", "reads", "cov_sim", "abundance"]]
-
+sel_df = df[["fasta", "genome_size", "proportion", "bases", "reads", "cov_sim"]].round(
+    3
+)
 sel_df.to_csv(args.log, sep="\t", index=None)
 sel_df.set_index("fasta").to_json(args.output, index=None)
