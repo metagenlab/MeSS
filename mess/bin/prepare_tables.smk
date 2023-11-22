@@ -1,7 +1,9 @@
+import pandas as pd
 import random
 import glob
 from itertools import chain
 from itertools import product
+import json
 
 
 def list_files(indir, extensions):
@@ -27,19 +29,31 @@ def get_cov_seed(rep, sample2seed, general_seed):
 outdir = config["outdir"]
 random.seed(config["seed"])
 replicates = list(range(1, config["replicates"] + 1))
-samples = list_files(config["input_path"], "tsv")
+
+samples = []
+if os.path.isfile(config["input_path"]):
+    files = config["input_path"]
+else:
+    files = list_files(config["input_path"], "tsv")
+
+for file in files:
+    df = pd.read_csv(file, sep="\t")
+    try:
+        samples.append(list(set(df["sample"])))
+    except KeyError:
+        samples.append([os.path.basename(file).split(".")[0]])
+
+samples = list(chain.from_iterable(samples))
 samples_rep = list(product(samples, replicates))
 renamed_samples = [
     "-".join([os.path.basename(sample[0]).split(".")[0], str(sample[1])])
     for sample in samples_rep
 ]
-seed_list = random.sample(range(1, 1000000), len(renamed_samples))
-seed_dict = dict(zip(renamed_samples, seed_list))
 
 
-rule all_prepare_tables:
+rule prep_tables:
     input:
-        expand("{outdir}/{sample}-cov.json", outdir=outdir, sample=renamed_samples),
+        f"{outdir}/sample2fa.json",
 
 
 def get_assembly_summary_path(wildcards):
@@ -60,12 +74,10 @@ rule get_samples_and_replicates:
     params:
         outdir=outdir,
         rep=config["replicates"],
-        sd_rep=config["sd_rep"],
+        rep_sd=config["rep_sd"],
         seed=config["seed"],
     script:
-        """
-        get_rep_tables.py
-        """
+        "get_rep_tables.py"
 
 
 rule calculate_coverage:
@@ -82,13 +94,23 @@ rule calculate_coverage:
         read_len=config["read_len"],
         pairing=config["paired"],
         rep_sd=config["rep_sd"],
-        seed=lambda wildcards: get_cov_seed(wildcards.sample, seed_dict, config["seed"]),
+        seed=config["seed"],
     log:
         f"logs/tables/{{sample}}.tsv",
-    shell:
-        """
-        calculate_cov.py -i {input.entry} -a {input.asm} \
-        -d {params.dist} -m {params.mu} -s {params.sigma} \
-        -n {params.total_bases} -l {params.read_len} -p {params.pairing} \
-        -sd {params.rep_sd} --seed {params.seed} -o {output} 
-        """
+    script:
+        "calculate_cov.py"
+
+
+rule merge_tables:
+    input:
+        expand("{outdir}/{sample}-cov.json", outdir=outdir, sample=renamed_samples),
+    output:
+        f"{outdir}/sample2fa.json",
+    run:
+        d = {}
+        with open(output[0], "w") as sample2fa:
+            for file in input:
+                fastas = list(json.load(open(file))["genome_size"])
+                sample = os.path.basename(file).split("-cov")[0]
+                d[sample] = fastas
+            json.dump(d, sample2fa)
