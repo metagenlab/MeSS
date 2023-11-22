@@ -1,113 +1,12 @@
 #!/usr/bin/env python3
 
-import argparse
 import pandas as pd
 import numpy as np
 import logging
 import os
 from humanfriendly import parse_size
+import random
 
-"""
-Description
-"""
-desc = "calculate reads, bases, coverage, proportions and abundances"
-example = """Example usage: get_dist.py -i input.tsv -a assembly_summary.tsv -o abundances.json"""
-argParser = argparse.ArgumentParser(description=desc, epilog=example)
-
-"""
-Arguments
-"""
-argParser.add_argument(
-    "-i",
-    dest="input",
-    type=str,
-    help="mess input table",
-    required=True,
-)
-argParser.add_argument(
-    "-a",
-    dest="asm_summary",
-    type=str,
-    help="assembly summary table with taxonomy and sequence info",
-    required=True,
-)
-argParser.add_argument(
-    "-o", dest="output", type=str, help="output json", default="abundances.json"
-)
-
-argParser.add_argument(
-    "-d",
-    dest="dist",
-    type=list,
-    help="distribution of reads across genomes",
-    choices=["lognormal", "even", None],
-    default=None,
-)
-
-argParser.add_argument(
-    "-m",
-    "--mu",
-    dest="mu",
-    type=int,
-    help="mu of lognormal distribution",
-    default=1,
-)
-argParser.add_argument(
-    "-s",
-    "--sigma",
-    dest="sigma",
-    type=int,
-    help="sigma of lognormal distribution",
-    default=0,
-)
-
-argParser.add_argument(
-    "--log", dest="log", type=str, help="log path", default="log.txt"
-)
-argParser.add_argument(
-    "-n",
-    "--total_bases",
-    dest="total_bases",
-    type=str,
-    help="total sequencing bases",
-    default="1G",
-)
-
-argParser.add_argument(
-    "-l",
-    "--read_length",
-    dest="read_length",
-    type=int,
-    help="average read length",
-    default=150,
-)
-
-argParser.add_argument(
-    "-p",
-    "--pairing",
-    dest="pairing",
-    type=bool,
-    help="are reads paired or not",
-    default=False,
-)
-
-argParser.add_argument(
-    "-sd",
-    "--sd_rep",
-    dest="sd_rep",
-    type=int,
-    help="standard deviation of read count between replicates",
-    default=0,
-)
-argParser.add_argument(
-    "--seed",
-    dest="seed",
-    type=int,
-    help="set seed for reproducibility",
-    default=42,
-)
-
-args = argParser.parse_args()
 
 """
 Functions
@@ -135,52 +34,54 @@ Main
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s",
     datefmt="%d %b %Y %H:%M:%S",
-    filename=args.log,
+    filename=snakemake.log[0],
     level=logging.DEBUG,
 )
-# Set seed
-np.random.seed(args.seed)
+# Set seed for distributions
+np.random.seed(snakemake.params.seed)
+
+# Set seed for seed simulation
+rng = random.Random(snakemake.params.seed)
 
 # Pairing
-if args.pairing:
+if snakemake.params.pairing:
     p = 2
 else:
     p = 1
 
 # Calculate total base count
-total_bases = parse_size(args.total_bases)
+total_bases = parse_size(snakemake.params.total_bases)
 
 # Get table with assembly genomsizes and their taxonomy
-entry_df = pd.read_csv(args.input, sep="\t")
-asm_df = pd.read_csv(args.asm_summary, sep="\t")
-df = entry_df.merge(asm_df)
-
+entry_df = pd.read_csv(snakemake.input.entry, sep="\t", dtype={"entry": object})
+asm_df = pd.read_csv(snakemake.input.asm, sep="\t", dtype={"entry": object})
+df = entry_df.merge(asm_df, on="entry")
 # Count number of entries
 df["count"] = df.groupby("entry")["entry"].transform("count")
 
 # Calculate prportion with dist
-if args.dist == "even":
+if snakemake.params.dist == "even":
     df = get_even_dist(df, ["taxid"])
     df["bases"] = df["proportion"] * total_bases
-    df["reads"] = df["bases"] / (args.read_length * p)
+    df["reads"] = df["bases"] / (snakemake.params.read_len * p)
     df["cov_sim"] = df["bases"] / df["genome_size"]
 
-elif args.dist == "lognormal":
-    df = get_lognormal_dist(df, args.mu, args.sigma)
+elif snakemake.params.dist == "lognormal":
+    df = get_lognormal_dist(df, snakemake.params.mu, snakemake.params.sigma)
     df["bases"] = df["proportion"] * total_bases
-    df["reads"] = df["bases"] / (args.read_length * p)
+    df["reads"] = df["bases"] / (snakemake.params.read_len * p)
     df["cov_sim"] = df["bases"] / df["genome_size"]
 
-elif args.dist == None:
+else:
     if "proportion" in entry_df.columns:
         df["proportion"] = df["proportion"] / df["count"]
         df["bases"] = df["proportion"] * total_bases
-        df["reads"] = df["bases"] / (args.read_length * p)
+        df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["cov_sim"] = df["bases"] / df["genome_size"]
 
     elif "reads" in entry_df.columns:
         df["reads"] = df["reads"] / df["count"]
-        df["bases"] = df["reads"] * (args.read_length * p)
+        df["bases"] = df["reads"] * (snakemake.params.read_len * p)
         total_bases = df["bases"].sum()
         df["proportion"] = df["bases"] / total_bases
         df["cov_sim"] = df["bases"] / df["genome_size"]
@@ -188,20 +89,19 @@ elif args.dist == None:
     elif "bases" in entry_df.columns:
         total_bases = df["bases"].sum()
         df["bases"] = df["bases"] / df["count"]
-        df["reads"] = df["bases"] / (args.read_length * p)
+        df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["proportion"] = df["bases"] / total_bases
         df["cov_sim"] = df["bases"] / df["genome_size"]
 
     elif "cov_sim" in entry_df.columns:
         df["cov_sim"] = df["cov_sim"] / df["count"]
         df["bases"] = df["cov_sim"] * df["genome_size"]
-        df["reads"] = df["bases"] / (args.read_length * p)
+        df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["proportion"] = df["bases"] / df["bases"].sum()
 
 df = df.astype({"bases": int, "reads": int})
-df["fasta"] = df["path"].apply(os.path.basename)
-sel_df = df[["fasta", "genome_size", "proportion", "bases", "reads", "cov_sim"]].round(
-    3
-)
-sel_df.to_csv(args.log, sep="\t", index=None)
-sel_df.set_index("fasta").to_json(args.output, index=None)
+df["fasta"] = [os.path.basename(fa).split(".fna.gz")[0] for fa in df["path"]]
+df["seed"] = rng.sample(range(1, 1000000), len(df))
+sel_df = df[["fasta", "genome_size", "proportion", "bases", "reads", "cov_sim", "seed"]]
+sel_df.to_csv(snakemake.log[0], sep="\t", index=None)
+sel_df.set_index("fasta").to_json(snakemake.output[0], index=None)
