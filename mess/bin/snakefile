@@ -1,0 +1,8 @@
+include: "prepare_tables.smk"
+include: "sim_short_reads.smk"
+
+
+rule dalsim:
+    input:
+        f"{outdir}/cov.tsv",
+        list_illumina_reads(config["bam"]),
