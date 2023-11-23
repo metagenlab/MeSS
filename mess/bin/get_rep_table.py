@@ -14,7 +14,8 @@ def list_files(indir, extensions):
     return list(chain.from_iterable(files))
 
 
-random.seed(snakemake.params.seed)
+# Set seed for replicates
+np.random.seed(snakemake.params.seed)
 # Read input path
 if os.path.isfile(snakemake.input[0]):
     files = snakemake.input[0]
@@ -46,11 +47,9 @@ accepted_cols = ["proportion", "reads", "bases", "cov_sim"]
 for col in accepted_cols:
     try:
         rep_df[f"{col}"] = [
-            np.random.normal(val, snakemake.params.sd_rep) for val in rep_df[f"{col}"]
+            np.random.normal(val, snakemake.params.rep_sd) for val in rep_df[f"{col}"]
         ]
     except KeyError:
         continue
 
-for sample in set(rep_df["samplename"]):
-    sample_df = rep_df[rep_df["samplename"] == "sample"]
-    sample_df.to_csv(f"{snakemake.params.outdir}/{sample}.tsv", sep="\t", index=None)
+rep_df.to_csv(snakemake.output[0], sep="\t", index=None)
