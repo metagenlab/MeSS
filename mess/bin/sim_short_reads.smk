@@ -2,7 +2,6 @@ include: "prepare_tables.smk"
 
 
 import os
-import json
 import glob
 
 
@@ -24,9 +23,9 @@ def get_fasta_dir():
     return fasta_dir
 
 
-def get_json_value(json_file, fasta, value):
-    d = json.load(open(json_file))
-    return d[value][fasta]
+def get_value(table, sample, fasta, value):
+    df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
+    return df.loc[sample].loc[fasta][value]
 
 
 fasta_dir = get_fasta_dir()
@@ -64,8 +63,6 @@ rule decompress_assemblies:
         f"{fasta_dir}/{{fasta}}.fna.gz",
     output:
         temp(f"{outdir}/fasta/{{fasta}}.fa"),
-    benchmark:
-        f"benchmark/decompress/{outdir}/{{fasta}}.txt"
     shell:
         "zcat {input} > {output}"
 
@@ -75,8 +72,6 @@ rule merge_contigs:
         f"{outdir}/fasta/{{fasta}}.fa",
     output:
         temp(f"{outdir}/fasta/{{fasta}}.merged"),
-    benchmark:
-        "benchmark/merge/{fasta}.txt"
     script:
         "merge_contigs.py"
 
@@ -88,49 +83,60 @@ def get_art_args(args):
     return " ".join([art_args[arg] for arg in args if config[arg]])
 
 
+print(get_art_args)
+
+
+art_args = ""
+if config["paired"]:
+    art_args += f"-p -m {config['mean_frag_len']} -s {config['sd_frag_len']}"
+if config["bam"]:
+    art_args += " -sam"
+
+
+sam_out = []
+if config["bam"] and config["paired"]:
+    sam_out = temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.sam")
+elif config["bam"] and config["paired"] == False:
+    sam_out = temp(f"{outdir}/fastq/{{sample}}/{{fasta}}1.sam")
+if config["bam"] == False:
+    sam_out = temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.txt")
+
+
 rule sim_art_illumina_reads:
     input:
         fasta=f"{outdir}/fasta/{{fasta}}.merged",
-        json=f"{outdir}/{{sample}}-cov.json",
+        df=f"{outdir}/cov.tsv",
     output:
+        sam=sam_out,
         fastqs=[
-            temp(f"{outdir}/fastq/{{sample}}/{{fasta}}1.fq.gz"),
-            temp(f"{outdir}/fastq/{{sample}}/{{fasta}}2.fq.gz"),
+            temp(f"{outdir}/fastq/{{sample}}/{{fasta}}1.fq"),
+            temp(f"{outdir}/fastq/{{sample}}/{{fasta}}2.fq"),
         ]
         if config["paired"]
-        else temp(f"{outdir}/fastq/{{sample}}/{{fasta}}1.fq.gz"),
-        sam=temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.sam")
-        if config["paired"]
-        else temp(f"{outdir}/fastq/{{sample}}/{{fasta}}1.sam"),
+        else temp(f"{outdir}/fastq/{{sample}}/{{fasta}}1.fq"),
     params:
-,
-        args=get_art_args(["bam", "paired"]),
+        args=art_args,
         seq_system=config["seq_system"],
         read_len=config["read_len"],
-        cov=lambda wildcards, input: get_json_value(
-            input.json, wildcards.fasta, "cov_sim"
+        cov=lambda wildcards, input: get_value(
+            input.df, wildcards.sample, wildcards.fasta, "cov_sim"
         ),
-        frag_len=config["mean_frag_len"],
-        sd=config["sd_frag_len"],
-        seed=lambda wildcards, input: get_json_value(
-            input.json, wildcards.fasta, "seed"
+        seed=lambda wildcards, input: get_value(
+            input.df, wildcards.sample, wildcards.fasta, "seed"
         ),
         prefix=f"{outdir}/fastq/{{sample}}/{{fasta}}"
         if config["paired"]
         else f"{outdir}/fastq/{{sample}}/{{fasta}}1",
     log:
         "logs/art_illumina/{sample}/{fasta}.log",
-    benchmark:
-        "benchmark/art_illumina/{sample}/{fasta}.txt"
     shell:
         """
         art_illumina -ss {params.seq_system} \\
         -i {input.fasta} -rs {params.seed} \\
-        -m {params.frag_len} -s {params.sd} \\
         -l {params.read_len} -f {params.cov} \\
-        -d {wildcards.fasta} -sam -na \\
+        -d {wildcards.fasta} -na \\
         -o {params.prefix} {params.args} &> {log}
-        gzip {params.prefix}*.fq
+        touch {output.sam}  
         """
 
 
@@ -140,7 +146,7 @@ rule convert_sam_to_bam:
         if config["paired"]
         else f"{outdir}/fastq/{{sample}}/{{fasta}}1.sam",
     output:
-        f"{outdir}/bam/{{sample}}/{{fasta}}.bam",
+        temp(f"{outdir}/bam/{{sample}}/{{fasta}}.bam"),
     log:
         "logs/bam/{sample}/{fasta}.log",
     shell:
@@ -149,12 +155,13 @@ rule convert_sam_to_bam:
         """
 
 
-def list_concat(file, sample, ext):
-    d = json.load(open(file))
-    fastas = d[sample]
+def list_concat(wildcards, ext):
+    table = checkpoints.calculate_coverage.get(**wildcards).output[0]
+    df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
+    fastas = list(df.loc[wildcards.sample].index)
     if ext == "fastq":
         return expand(
-            "{outdir}/fastq/{{sample}}/{fasta}{{p}}.fq.gz",
+            "{outdir}/fastq/{{sample}}/{fasta}{{p}}.fq",
             outdir=outdir,
             fasta=fastas,
         )
@@ -168,25 +175,23 @@ def list_concat(file, sample, ext):
 
 rule concat_bam:
     input:
-        lambda wildcards: list_concat(
-            f"{outdir}/sample2fa.json", wildcards.sample, "bam"
-        ),
+        lambda wildcards: list_concat(wildcards, "bam"),
     output:
         f"{outdir}/bam/{{sample}}.bam",
+    threads: 3
     shell:
         """
-        samtools merge -o {output} {input}
+        samtools merge -@ {threads} -o {output} {input}
         """
 
 
 rule concat_fastq:
     input:
-        lambda wildcards: list_concat(
-            f"{outdir}/sample2fa.json", wildcards.sample, "fastq"
-        ),
+        lambda wildcards: list_concat(wildcards, "fastq"),
     output:
         f"{outdir}/fastq/{{sample}}_R{{p}}.fq.gz",
+    threads: 3
     shell:
         """
-        cat {input} {output}
+        cat {input} | pigz -p {threads} > {output}
         """
