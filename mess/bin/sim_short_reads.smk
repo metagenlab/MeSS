@@ -102,7 +102,7 @@ if config["bam"] == False:
     sam_out = temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.txt")
 
 
-rule sim_art_illumina_reads:
+rule art_illumina:
     input:
         fasta=f"{outdir}/fasta/{{fasta}}.merged",
         df=f"{outdir}/cov.tsv",
@@ -146,7 +146,7 @@ rule convert_sam_to_bam:
         if config["paired"]
         else f"{outdir}/fastq/{{sample}}/{{fasta}}1.sam",
     output:
-        temp(f"{outdir}/bam/{{sample}}/{{fasta}}.bam"),
+        f"{outdir}/bam/{{sample}}/{{fasta}}.bam",
     log:
         "logs/bam/{sample}/{fasta}.log",
     shell:
