@@ -1,9 +1,7 @@
 import pandas as pd
-import random
 import glob
 from itertools import chain
 from itertools import product
-import json
 
 
 def list_files(indir, extensions):
@@ -27,7 +25,7 @@ def get_cov_seed(rep, sample2seed, general_seed):
 
 
 outdir = config["outdir"]
-random.seed(config["seed"])
+
 replicates = list(range(1, config["replicates"] + 1))
 
 samples = []
