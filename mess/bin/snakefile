@@ -1,3 +1,4 @@
+include: "functions.smk"
 include: "prepare_tables.smk"
 include: "sim_short_reads.smk"
 

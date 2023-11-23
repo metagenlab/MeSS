@@ -1,5 +1,5 @@
 
-include: "./sim_short_reads.smk"
+include: "./functions.smk"
 
 
 rule pbsim2:
