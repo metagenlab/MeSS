@@ -51,9 +51,9 @@ renamed_samples = [
 ]
 
 
-rule prep_tables:
+rule samples_table:
     input:
-        f"{outdir}/sample2fa.json",
+        f"{outdir}/cov.tsv",
 
 
 def get_assembly_summary_path(wildcards):
@@ -70,22 +70,21 @@ rule get_samples_and_replicates:
     input:
         config["input_path"],
     output:
-        temp(f"{outdir}/{{sample}}.tsv"),
+        temp(f"{outdir}/samples.tsv"),
     params:
-        outdir=outdir,
         rep=config["replicates"],
         rep_sd=config["rep_sd"],
         seed=config["seed"],
     script:
-        "get_rep_tables.py"
+        "get_rep_table.py"
 
 
-rule calculate_coverage:
+checkpoint calculate_coverage:
     input:
-        entry=f"{outdir}/{{sample}}.tsv",
+        entry=f"{outdir}/samples.tsv",
         asm=lambda wildcards: get_assembly_summary_path(wildcards),
     output:
-        f"{outdir}/{{sample}}-cov.json",
+        temp(f"{outdir}/cov.tsv"),
     params:
         dist=config["dist"],
         mu=config["mu"],
@@ -96,21 +95,6 @@ rule calculate_coverage:
         rep_sd=config["rep_sd"],
         seed=config["seed"],
     log:
-        f"logs/tables/{{sample}}.tsv",
+        f"logs/tables/cov.tsv",
     script:
         "calculate_cov.py"
-
-
-rule merge_tables:
-    input:
-        expand("{outdir}/{sample}-cov.json", outdir=outdir, sample=renamed_samples),
-    output:
-        f"{outdir}/sample2fa.json",
-    run:
-        d = {}
-        with open(output[0], "w") as sample2fa:
-            for file in input:
-                fastas = list(json.load(open(file))["genome_size"])
-                sample = os.path.basename(file).split("-cov")[0]
-                d[sample] = fastas
-            json.dump(d, sample2fa)
