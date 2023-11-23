@@ -11,6 +11,7 @@ sigma: 0
 #Sequencing run params
 seq_tech: illumina #[illumina, pacbio, nanopore]
 paired: True #set to single for single read simulation or longread simulation
+bam: False
 read_len: 150
 total_bases: 1G
 
@@ -18,7 +19,6 @@ total_bases: 1G
 illumina_sequencing_system: HSXt #HiSeqX TruSeq (read length:150bp)
 illumina_mean_frag_len: 200
 illumina_sd_frag_len: 10
-bam: False
 ##Long reads (pbsim2 params)
 chemistry:
   R94 #Select R94, R95, R103 pore versions for Nanopore.
