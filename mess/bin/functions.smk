@@ -28,34 +28,22 @@ def get_value(table, sample, fasta, value):
     return df.loc[sample].loc[fasta][value]
 
 
-def list_files(indir, extensions):
-    extensions = extensions.split(",")
-    files = [glob.glob(f"{indir}/*.{e}") for e in extensions]
-    return list(chain.from_iterable(files))
+def list_reads():
+    if config["seq_tech"] == "illumina":
+        reads = expand(
+            "{outdir}/fastq/{sample}_R{p}.fq.gz",
+            outdir=outdir,
+            sample=renamed_samples,
+            p=pairs,
+        )
+    else:
+        reads = expand(
+            "{outdir}/fastq/{sample}.fq.gz",
+            outdir=outdir,
+            sample=renamed_samples,
+        )
 
-
-def get_cov_seed(rep, sample2seed, general_seed):
-    """
-    Function that returns a seed for coverage
-    By default each replicate has a unique seed
-    If the param same_dist_rep is True, return a single seed for all replicates
-    """
-    try:
-        same_dist_rep = config["same_dist_rep"]
-        if same_dist_rep:
-            return general_seed
-    except KeyError:
-        return sample2seed[int(rep)]
-
-
-def list_illumina_reads(bam):
-    reads = expand(
-        "{outdir}/fastq/{sample}_R{p}.fq.gz",
-        outdir=outdir,
-        sample=renamed_samples,
-        p=pairs,
-    )
-    if bam:
+    if config["bam"]:
         bams = expand(
             "{outdir}/bam/{sample}.bam", outdir=outdir, sample=renamed_samples
         )
@@ -112,6 +100,7 @@ if config["paired"]:
     art_args += f"-p -m {config['mean_frag_len']} -s {config['sd_frag_len']}"
 if config["bam"]:
     art_args += " -sam"
+
 
 sam_out = []
 if config["bam"] and config["paired"]:
