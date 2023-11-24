@@ -1,9 +1,18 @@
 include: "functions.smk"
 include: "prepare_tables.smk"
-include: "sim_short_reads.smk"
+include: "process_fasta.smk"
+
+
+if config["seq_tech"] == "illumina":
+
+    include: "sim_short_reads.smk"
+
+else:
+
+    include: "sim_long_reads.smk"
 
 
 rule all:
     input:
         f"{outdir}/cov.tsv",
-        list_illumina_reads(config["bam"]),
+        list_reads(),
