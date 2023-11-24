@@ -95,12 +95,6 @@ if config["paired"]:
 else:
     pairs = [1]
 
-art_args = ""
-if config["paired"]:
-    art_args += f"-p -m {config['mean_frag_len']} -s {config['sd_frag_len']}"
-if config["bam"]:
-    art_args += " -sam"
-
 
 sam_out = []
 if config["bam"] and config["paired"]:
@@ -116,11 +110,18 @@ def list_concat(wildcards, ext):
     df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
     fastas = list(df.loc[wildcards.sample].index)
     if ext == "fastq":
-        return expand(
-            "{outdir}/fastq/{{sample}}/{fasta}{{p}}.fq",
-            outdir=outdir,
-            fasta=fastas,
-        )
+        if config["seq_tech"] == "illumina":
+            return expand(
+                "{outdir}/fastq/{{sample}}/{fasta}{{p}}.fq",
+                outdir=outdir,
+                fasta=fastas,
+            )
+        else:
+            return expand(
+                "{outdir}/fastq/{{sample}}/{fasta}_0001.fastq",
+                outdir=outdir,
+                fasta=fastas,
+            )
     elif ext == "bam":
         return expand(
             "{outdir}/bam/{{sample}}/{fasta}.bam",
