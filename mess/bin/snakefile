@@ -12,6 +12,9 @@ else:
     include: "sim_long_reads.smk"
 
 
+include: "reads_format.smk"
+
+
 rule all:
     input:
         f"{outdir}/cov.tsv",
