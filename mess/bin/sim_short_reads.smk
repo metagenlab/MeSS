@@ -1,27 +1,7 @@
-include: "./functions.smk"
-
 
 rule sim_illumina:
     input:
-        list_illumina_reads(config["bam"]),
-
-
-rule decompress_assemblies:
-    input:
-        f"{fasta_dir}/{{fasta}}.fna.gz",
-    output:
-        temp(f"{outdir}/fasta/{{fasta}}.fa"),
-    shell:
-        "zcat {input} > {output}"
-
-
-rule merge_contigs:
-    input:
-        f"{outdir}/fasta/{{fasta}}.fa",
-    output:
-        temp(f"{outdir}/fasta/{{fasta}}.merged"),
-    script:
-        "merge_contigs.py"
+        list_reads(),
 
 
 rule art_illumina:
@@ -56,8 +36,7 @@ rule art_illumina:
         art_illumina -ss {params.seq_system} \\
         -i {input.fasta} -rs {params.seed} \\
         -l {params.read_len} -f {params.cov} \\
-        -d {wildcards.fasta} -na \\
-        -o {params.prefix} {params.args} &> {log}
+        -na {params.args} -o {params.prefix} &> {log}
         touch {output.sam}  
         """
 
