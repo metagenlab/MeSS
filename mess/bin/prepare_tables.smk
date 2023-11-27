@@ -35,6 +35,6 @@ checkpoint calculate_coverage:
         rep_sd=config["rep_sd"],
         seed=config["seed"],
     log:
-        f"logs/tables/cov.tsv",
+        f"{outdir}/logs/tables/cov.tsv",
     script:
         "calculate_cov.py"

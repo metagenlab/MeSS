@@ -31,7 +31,7 @@ rule art_illumina:
         if config["paired"]
         else f"{outdir}/fastq/{{sample}}/{{fasta}}1",
     log:
-        "logs/art_illumina/{sample}/{fasta}.log",
+        f"{outdir}/logs/art_illumina/{{sample}}/{{fasta}}.log",
     shell:
         """
         art_illumina -ss {params.seq_system} \\

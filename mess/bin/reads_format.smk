@@ -4,7 +4,7 @@ rule convert_maf_to_sam:
     output:
         temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.sam"),
     log:
-        "logs/bam/{sample}/{fasta}.log",
+        f"{outdir}/logs/bam/{{sample}}/{{fasta}}.log",
     shell:
         """
         bioconvert {input} {output} 2>> {log}
@@ -19,7 +19,7 @@ rule convert_sam_to_bam:
     output:
         temp(f"{outdir}/bam/{{sample}}/{{fasta}}.bam"),
     log:
-        "logs/bam/{sample}/{fasta}.log",
+        f"{outdir}/logs/bam/{{sample}}/{{fasta}}.log",
     shell:
         """
         bioconvert {input} {output} 2> {log}

@@ -30,7 +30,7 @@ rule pbsim3:
         ),
         prefix=f"{outdir}/fastq/{{sample}}/{{fasta}}",
     log:
-        "logs/pbsim3/{sample}/{fasta}.log",
+        f"{outdir}/logs/pbsim3/{{sample}}/{{fasta}}.log",
     shell:
         """
         pbsim --strategy wgs --method errhmm \\

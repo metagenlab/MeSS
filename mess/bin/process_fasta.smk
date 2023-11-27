@@ -23,6 +23,6 @@ rule merge_contigs:
     input:
         f"{outdir}/fasta/{{fasta}}.renamed",
     output:
-        f"{outdir}/fasta/{{fasta}}.merged",
+        temp(f"{outdir}/fasta/{{fasta}}.merged"),
     script:
         "merge_contigs.py"
