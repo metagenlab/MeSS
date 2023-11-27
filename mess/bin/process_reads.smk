@@ -22,7 +22,7 @@ rule convert_sam_to_bam:
         f"{outdir}/logs/bam/{{sample}}/{{fasta}}.log",
     shell:
         """
-        bioconvert {input} {output} 2> {log}
+        bioconvert {input} {output} 2>> {log}
         """
 
 
