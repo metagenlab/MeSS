@@ -12,7 +12,7 @@ else:
 
 rule pbsim3:
     input:
-        fa=f"{outdir}/fasta/{{fasta}}.fa",
+        fa=f"{outdir}/fasta/{{fasta}}.renamed",
         df=f"{outdir}/cov.tsv",
     output:
         temp(f"{outdir}/fastq/{{sample}}/{{fasta}}_0001.fastq"),
@@ -33,8 +33,8 @@ rule pbsim3:
         f"{outdir}/logs/pbsim3/{{sample}}/{{fasta}}.log",
     shell:
         """
-        pbsim --strategy wgs --method errhmm \\
-        --prefix {params.prefix} --seed {params.seed} \\
+        pbsim --strategy wgs --method errhmm --seed {params.seed} \\
+        --prefix {params.prefix} --id-prefix {wildcards.fasta} \\
         --errhmm ${{CONDA_PREFIX}}/data/{params.model}.model \\
         --length-mean {params.mean_len} --length-sd {params.len_sd} \\
         --depth {params.cov} --genome {input.fa} &> {log}
