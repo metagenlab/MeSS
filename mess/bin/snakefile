@@ -12,7 +12,7 @@ else:
     include: "sim_long_reads.smk"
 
 
-include: "reads_format.smk"
+include: "process_reads.smk"
 
 
 rule all:
