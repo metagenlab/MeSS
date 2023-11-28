@@ -30,11 +30,37 @@ rule concat_bam:
     input:
         lambda wildcards: list_concat(wildcards, "bam"),
     output:
+        temp(f"{outdir}/bam/{{sample}}.unsorted"),
+    threads: 3
+    log:
+        f"{outdir}/logs/bam/{{sample}}/{{fasta}}.log",
+    shell:
+        """
+        samtools merge -@ {threads} -o {output} {input} 2>> {log}
+        """
+
+
+rule sort_bam:
+    input:
+        f"{outdir}/bam/{{sample}}.unsorted",
+    output:
         f"{outdir}/bam/{{sample}}.bam",
     threads: 3
     shell:
         """
-        samtools merge -@ {threads} -o {output} {input}
+        samtools sort -@ {threads} {input} > {output}
+        """
+
+
+rule index_bam:
+    input:
+        f"{outdir}/bam/{{sample}}.bam",
+    output:
+        f"{outdir}/bam/{{sample}}.bam.bai",
+    threads: 3
+    shell:
+        """
+        samtools index -@ {threads} {input}
         """
 
 
