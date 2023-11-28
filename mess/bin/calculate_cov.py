@@ -108,6 +108,7 @@ cols = [
     "samplename",
     "fasta",
     "genome_size",
+    "contig_count",
     "bases",
     "reads",
     "proportion",
