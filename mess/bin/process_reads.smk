@@ -1,6 +1,6 @@
 rule convert_maf_to_sam:
     input:
-        f"{outdir}/fastq/{{sample}}/{{fasta}}_0001.maf",
+        f"{outdir}/fastq/{{sample}}/{{fasta}}.maf",
     output:
         temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.sam"),
     log:
@@ -33,7 +33,7 @@ rule concat_bam:
         temp(f"{outdir}/bam/{{sample}}.unsorted"),
     threads: 3
     log:
-        f"{outdir}/logs/bam/{{sample}}/{{fasta}}.log",
+        f"{outdir}/logs/bam/{{sample}}.log",
     shell:
         """
         samtools merge -@ {threads} -o {output} {input} 2>> {log}
@@ -46,9 +46,11 @@ rule sort_bam:
     output:
         f"{outdir}/bam/{{sample}}.bam",
     threads: 3
+    log:
+        f"{outdir}/logs/bam/{{sample}}.log",
     shell:
         """
-        samtools sort -@ {threads} {input} > {output}
+        samtools sort -@ {threads} {input} > {output} 2>> {log}
         """
 
 

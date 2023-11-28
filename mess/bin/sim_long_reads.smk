@@ -15,9 +15,9 @@ rule pbsim3:
         fa=f"{outdir}/fasta/{{fasta}}.renamed",
         df=f"{outdir}/cov.tsv",
     output:
-        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}_0001.fastq"),
-        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}_0001.maf"),
-        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}_0001.ref"),
+        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.fastq"),
+        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.maf"),
+        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.ref"),
     params:
         model=model,
         mean_len=config["read_len"],
@@ -30,12 +30,44 @@ rule pbsim3:
         ),
         prefix=f"{outdir}/fastq/{{sample}}/{{fasta}}",
     log:
-        f"{outdir}/logs/pbsim3/{{sample}}/{{fasta}}.log",
+        f"{outdir}/logs/pbsim3/{{sample}}/{{fasta}}_{{contig}}.log",
     shell:
         """
-        pbsim --strategy wgs --method errhmm --seed {params.seed} \\
-        --prefix {params.prefix} --id-prefix {wildcards.fasta} \\
+        pbsim --strategy wgs --method errhmm \\
+        --prefix {params.prefix} --seed {params.seed} \\
         --errhmm ${{CONDA_PREFIX}}/data/{params.model}.model \\
         --length-mean {params.mean_len} --length-sd {params.len_sd} \\
         --depth {params.cov} --genome {input.fa} &> {log}
         """
+
+
+rule rename_maf_ref:
+    input:
+        maf=f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.maf",
+        fa=f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.ref",
+    output:
+        f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.header",
+    params:
+        seqname=lambda wildcards, input: get_header(input.fa),
+    shell:
+        """
+        sed 's/ref/{params.seqname}/g' {input.maf} > {output}
+        """
+
+
+rule concat_maf:
+    input:
+        lambda wildcards: list_mafs(wildcards, "header"),
+    output:
+        f"{outdir}/fastq/{{sample}}/{{fasta}}.maf",
+    shell:
+        "cat {input} > {output}"
+
+
+rule cat_contig_fastq:
+    input:
+        lambda wildcards: list_mafs(wildcards, "fastq"),
+    output:
+        f"{outdir}/fastq/{{sample}}/{{fasta}}.fq",
+    shell:
+        "cat {input} > {output}"
