@@ -45,7 +45,10 @@ def list_reads():
 
     if config["bam"]:
         bams = expand(
-            "{outdir}/bam/{sample}.bam", outdir=outdir, sample=renamed_samples
+            "{outdir}/bam/{sample}.{ext}",
+            outdir=outdir,
+            sample=renamed_samples,
+            ext=["bam", "bam.bai"],
         )
         reads.append(bams)
     return reads
