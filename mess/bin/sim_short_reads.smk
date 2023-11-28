@@ -37,7 +37,6 @@ rule art_illumina:
         art_illumina -ss {params.seq_system} \\
         -i {input.fasta} -rs {params.seed} \\
         -l {params.read_len} -f {params.cov} \\
-        -na {params.args} -o {params.prefix} \\
-        -d {wildcards.fasta} &> {log}
+        -na {params.args} -o {params.prefix} &> {log}
         touch {output.sam}  
         """
