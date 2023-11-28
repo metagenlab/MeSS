@@ -3,6 +3,7 @@ import pandas as pd
 import glob
 from itertools import chain
 from itertools import product
+from Bio import SeqIO
 
 
 def list_files(indir, extensions):
@@ -121,7 +122,7 @@ def list_concat(wildcards, ext):
             )
         else:
             return expand(
-                "{outdir}/fastq/{{sample}}/{fasta}_0001.fastq",
+                "{outdir}/fastq/{{sample}}/{fasta}.fq",
                 outdir=outdir,
                 fasta=fastas,
             )
@@ -131,3 +132,21 @@ def list_concat(wildcards, ext):
             outdir=outdir,
             fasta=fastas,
         )
+
+
+## PBSIM3 functions
+def get_header(fa):
+    return SeqIO.read(fa, "fasta").id
+
+
+def list_mafs(wildcards, ext):
+    table = checkpoints.calculate_coverage.get(**wildcards).output[0]
+    df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
+    n = int(df.loc[wildcards.sample].loc[wildcards.fasta]["contig_count"])
+    contigs = [f"{x+1:04}" for x in range(n)]
+    return expand(
+        "{outdir}/fastq/{{sample}}/{{fasta}}_{contig}.{ext}",
+        outdir=outdir,
+        contig=contigs,
+        ext=ext,
+    )
