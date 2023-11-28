@@ -46,7 +46,7 @@ rule rename_maf_ref:
         maf=f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.maf",
         fa=f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.ref",
     output:
-        f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.header",
+        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.header"),
     params:
         seqname=lambda wildcards, input: get_header(input.fa),
     shell:
@@ -59,7 +59,7 @@ rule concat_maf:
     input:
         lambda wildcards: list_mafs(wildcards, "header"),
     output:
-        f"{outdir}/fastq/{{sample}}/{{fasta}}.maf",
+        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.maf"),
     shell:
         "cat {input} > {output}"
 
@@ -68,6 +68,6 @@ rule cat_contig_fastq:
     input:
         lambda wildcards: list_mafs(wildcards, "fastq"),
     output:
-        f"{outdir}/fastq/{{sample}}/{{fasta}}.fq",
+        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.fq"),
     shell:
         "cat {input} > {output}"
