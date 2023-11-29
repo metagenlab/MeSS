@@ -14,7 +14,7 @@ rule convert_maf_to_sam:
 rule convert_sam_to_bam:
     input:
         f"{outdir}/fastq/{{sample}}/{{fasta}}1.sam"
-        if not config["paired"]
+        if (not config["paired"]) and (config["seq_tech"]=="illumina")
         else f"{outdir}/fastq/{{sample}}/{{fasta}}.sam",
     output:
         temp(f"{outdir}/bam/{{sample}}/{{fasta}}.bam"),
