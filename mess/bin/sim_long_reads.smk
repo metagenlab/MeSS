@@ -1,13 +1,10 @@
 if config["seq_tech"] == "pacbio":
-    if config["profile"] == "sequel":
-        model = "ERRHMM-SEQUEL"
-    else:
-        model = "ERRHMM-RSII"
+    model = "QSHMM-RSII"
 else:
     if config["profile"] == "q20":
-        model = "ERRHMM-ONT-HQ"
+        model = "QSHMM-ONT-HQ"
     else:
-        model = "ERRHMM-ONT"
+        model = "QSHMM-ONT"
 
 
 rule pbsim3:
@@ -33,9 +30,9 @@ rule pbsim3:
         f"{outdir}/logs/pbsim3/{{sample}}/{{fasta}}_{{contig}}.log",
     shell:
         """
-        pbsim --strategy wgs --method errhmm \\
+        pbsim --strategy wgs --method qshmm \\
         --prefix {params.prefix} --seed {params.seed} \\
-        --errhmm ${{CONDA_PREFIX}}/data/{params.model}.model \\
+        --qshmm ${{CONDA_PREFIX}}/data/{params.model}.model \\
         --length-mean {params.mean_len} --length-sd {params.len_sd} \\
         --depth {params.cov} --genome {input.fa} &> {log}
         """
