@@ -38,5 +38,5 @@ rule art_illumina:
         -i {input.fasta} -rs {params.seed} \\
         -l {params.read_len} -f {params.cov} \\
         -na {params.args} -o {params.prefix} &> {log}
-        touch {output.sam}  
+        touch {output.sam}
         """
