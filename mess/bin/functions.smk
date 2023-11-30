@@ -142,7 +142,11 @@ def get_header(fa):
     return seqid.replace(">", "")
 
 
-# Distribute amount of passes on
+# Distribute amount of minimum passes until reaching total passes
+def split_in_parts(c, n):
+    r = c % n
+    return [c // n] * (n - r) + [c // n + 1] * r
+
 
 if config["passes"] <= 1:
     passes_per_repeat = {1: 1}
@@ -150,15 +154,8 @@ else:
     min_passes = 2
     total_passes = config["passes"]
     repeats = list(range(1, total_passes // min_passes + 1))
-    passes_per_repeat = {}
-    count = total_passes
-    for i in repeats:
-        count = count - min_passes
-        passes_per_repeat[i] = min_passes
-        if (count <= min_passes) and (count > 0):
-            passes_per_repeat[i] = count
-        else:
-            passes_per_repeat[i] = min_passes
+    passes = split_in_parts(total_passes, len(repeats))
+    passes_per_repeat = dict(zip(repeats, passes))
 
 
 def pbsim3_expand(wildcards, ext, file_type):
@@ -166,6 +163,7 @@ def pbsim3_expand(wildcards, ext, file_type):
     df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
     n = int(df.loc[wildcards.sample].loc[wildcards.fasta]["contig_count"])
     contigs = [f"{x+1:04}" for x in range(n)]
+    d = "fastq"
     if "fq" in ext:
         d = "fastq"
     elif "bam" in ext:
