@@ -116,13 +116,13 @@ def list_concat(wildcards, ext):
     if ext == "fastq":
         if config["seq_tech"] == "illumina":
             return expand(
-                "{outdir}/fastq/{{sample}}/{fasta}{{p}}.fq",
+                "{outdir}/fastq/{{sample}}/{fasta}{{p}}.fq.gz",
                 outdir=outdir,
                 fasta=fastas,
             )
         else:
             return expand(
-                "{outdir}/fastq/{{sample}}/{fasta}.fq",
+                "{outdir}/fastq/{{sample}}/{fasta}.fq.gz",
                 outdir=outdir,
                 fasta=fastas,
             )
@@ -135,18 +135,63 @@ def list_concat(wildcards, ext):
 
 
 ## PBSIM3 functions
+
+
 def get_header(fa):
-    return SeqIO.read(fa, "fasta").id
+    seqid = SeqIO.read(fa, "fasta").id
+    return seqid.replace(">", "")
 
 
-def list_mafs(wildcards, ext):
+# Distribute amount of passes on
+
+if config["passes"] <= 1:
+    passes_per_repeat = {1: 1}
+else:
+    min_passes = 2
+    total_passes = config["passes"]
+    repeats = list(range(1, total_passes // min_passes + 1))
+    passes_per_repeat = {}
+    count = total_passes
+    for i in repeats:
+        count = count - min_passes
+        passes_per_repeat[i] = min_passes
+        if (count <= min_passes) and (count > 0):
+            passes_per_repeat[i] = count
+        else:
+            passes_per_repeat[i] = min_passes
+
+
+def pbsim3_expand(wildcards, ext, file_type):
     table = checkpoints.calculate_coverage.get(**wildcards).output[0]
     df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
     n = int(df.loc[wildcards.sample].loc[wildcards.fasta]["contig_count"])
     contigs = [f"{x+1:04}" for x in range(n)]
-    return expand(
-        "{outdir}/fastq/{{sample}}/{{fasta}}_{contig}.{ext}",
-        outdir=outdir,
-        contig=contigs,
-        ext=ext,
-    )
+    if "fq" in ext:
+        d = "fastq"
+    elif "bam" in ext:
+        d = "bam"
+    if file_type == "passes":
+        return expand(
+            "{outdir}/{d}/{{sample}}/{{fasta}}-{passnum}_{{contig}}.{ext}",
+            outdir=outdir,
+            passnum=list(passes_per_repeat.keys()),
+            ext=ext,
+            d=d,
+        )
+    elif file_type == "contigs":
+        return expand(
+            "{outdir}/{d}/{{sample}}/{{fasta}}_{contig}.{ext}",
+            outdir=outdir,
+            contig=contigs,
+            ext=ext,
+            d=d,
+        )
+    elif file_type == "both":
+        return expand(
+            "{outdir}/{d}/{{sample}}/{{fasta}}-{passnum}_{contig}.{ext}",
+            outdir=outdir,
+            passnum=list(passes_per_repeat.keys()),
+            contig=contigs,
+            ext=ext,
+            d=d,
+        )
