@@ -68,7 +68,7 @@ if hifi:
         output:
             temp(f"{outdir}/fastq/{{sample}}/{{fasta}}_{{contig}}.sam"),
         shell:
-            "cat {input} {output}"
+            "cat {input} > {output}"
 
     rule ccs_sam_to_bam:
         input:
@@ -124,7 +124,7 @@ rule convert_maf_to_bam:
     shell:
         """
         bioconvert {input} {output.sam} 2>> {log}
-        samtools view -@ {threads} -bS {output.sam} \\
+        samtools view -@ {threads} -bS {output.sam} \
         | samtools sort -@ threads > {output.bam} 2>> {log}
         """
 
