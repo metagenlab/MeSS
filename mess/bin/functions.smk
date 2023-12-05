@@ -24,9 +24,18 @@ def get_fasta_dir():
     return fasta_dir
 
 
-def get_value(table, sample, fasta, value):
-    df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
-    return df.loc[sample].loc[fasta][value]
+def get_value(table, wildcards, value):
+    if config["seq_tech"] == "illumina":
+        df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
+        val = df.loc[wildcards.sample].loc[wildcards.fasta][value]
+    else:
+        df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta", "passnum"])
+        val = (
+            df.loc[wildcards.sample]
+            .loc[wildcards.fasta]
+            .loc[int(wildcards.passnum)][value]
+        )
+    return val
 
 
 def list_reads():
@@ -149,32 +158,29 @@ def split_in_parts(c, n):
 
 
 if config["passes"] <= 1:
-    passes_per_repeat = {1: 1}
+    pass_dict = {1: 1}
 else:
     min_passes = 2
     total_passes = config["passes"]
-    repeats = list(range(1, total_passes // min_passes + 1))
-    passes = split_in_parts(total_passes, len(repeats))
-    passes_per_repeat = dict(zip(repeats, passes))
+    pass_idx = list(range(1, total_passes // min_passes + 1))
+    pass_num = split_in_parts(total_passes, len(pass_idx))
+    pass_dict = dict(zip(pass_idx, pass_num))
+
+# TODO: create unique seeds for each passnum genome and sample combination
 
 
-def pbsim3_expand(wildcards, ext, file_type):
+def pbsim3_expand(wildcards, subdir, ext, file_type):
     table = checkpoints.calculate_coverage.get(**wildcards).output[0]
     df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
-    n = int(df.loc[wildcards.sample].loc[wildcards.fasta]["contig_count"])
+    n = int(df.loc[wildcards.sample].loc[wildcards.fasta]["contig_count"].iloc[0])
     contigs = [f"{x+1:04}" for x in range(n)]
-    d = "fastq"
-    if "fq" in ext:
-        d = "fastq"
-    elif "bam" in ext:
-        d = "bam"
     if file_type == "passes":
         return expand(
             "{outdir}/{d}/{{sample}}/{{fasta}}-{passnum}_{{contig}}.{ext}",
             outdir=outdir,
-            passnum=list(passes_per_repeat.keys()),
+            passnum=list(pass_dict.keys()),
             ext=ext,
-            d=d,
+            d=subdir,
         )
     elif file_type == "contigs":
         return expand(
@@ -182,14 +188,14 @@ def pbsim3_expand(wildcards, ext, file_type):
             outdir=outdir,
             contig=contigs,
             ext=ext,
-            d=d,
+            d=subdir,
         )
     elif file_type == "both":
         return expand(
             "{outdir}/{d}/{{sample}}/{{fasta}}-{passnum}_{contig}.{ext}",
             outdir=outdir,
-            passnum=list(passes_per_repeat.keys()),
+            passnum=list(pass_dict.keys()),
             contig=contigs,
             ext=ext,
-            d=d,
+            d=subdir,
         )
