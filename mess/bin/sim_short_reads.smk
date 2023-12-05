@@ -21,12 +21,8 @@ rule art_illumina:
         args=art_args,
         seq_system=config["profile"],
         read_len=config["read_len"],
-        cov=lambda wildcards, input: get_value(
-            input.df, wildcards.sample, wildcards.fasta, "cov_sim"
-        ),
-        seed=lambda wildcards, input: get_value(
-            input.df, wildcards.sample, wildcards.fasta, "seed"
-        ),
+        cov=lambda wildcards, input: get_value(input.df, wildcards, "cov_sim"),
+        seed=lambda wildcards, input: get_value(input.df, wildcards, "seed"),
         prefix=f"{outdir}/fastq/{{sample}}/{{fasta}}"
         if config["paired"]
         else f"{outdir}/fastq/{{sample}}/{{fasta}}1",
