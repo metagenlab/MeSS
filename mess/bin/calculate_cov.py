@@ -113,8 +113,9 @@ cols = [
     "reads",
     "proportion",
     "cov_sim",
+    "passnum",
     "seed",
 ]
-df = df.astype({"bases": int, "reads": int, "seed": int})
+df = df.astype({"bases": int, "reads": int, "seed": int, "passnum": int})
 df[cols].to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
 df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
