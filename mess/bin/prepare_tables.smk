@@ -13,6 +13,7 @@ rule get_samples_and_replicates:
         temp(f"{outdir}/samples.tsv"),
     params:
         rep=config["replicates"],
+        passes=pass_idx,
         rep_sd=config["rep_sd"],
         seed=config["seed"],
     script:
