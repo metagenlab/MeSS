@@ -37,6 +37,7 @@ dfs = pd.concat(dfs).reset_index(drop=True).sort_values("sample")
 # Duplicate each sample by the number of replicates
 replicates = list(range(1, snakemake.params.rep + 1))
 rep_df = dfs.reindex(dfs.index.repeat(len(replicates)))
+
 # add replicate column
 rep_df["rep"] = replicates * len(dfs)
 rep_df["samplename"] = [
@@ -51,5 +52,8 @@ for col in accepted_cols:
         ]
     except KeyError:
         continue
-
-rep_df.to_csv(snakemake.output[0], sep="\t", index=None)
+rep_df.reset_index(inplace=True, drop=True)
+passes = snakemake.params.passes
+pass_df = rep_df.reindex(rep_df.index.repeat(len(passes)))
+pass_df["passnum"] = passes * len(rep_df)
+pass_df.to_csv(snakemake.output[0], sep="\t", index=None)
