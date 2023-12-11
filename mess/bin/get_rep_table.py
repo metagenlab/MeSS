@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import random
 import pandas as pd
 import os
 import numpy as np
@@ -53,7 +52,7 @@ for col in accepted_cols:
     except KeyError:
         continue
 rep_df.reset_index(inplace=True, drop=True)
-passes = snakemake.params.passes
-pass_df = rep_df.reindex(rep_df.index.repeat(len(passes)))
-pass_df["passnum"] = passes * len(rep_df)
-pass_df.to_csv(snakemake.output[0], sep="\t", index=None)
+chunks = snakemake.params.chunks
+chunk_df = rep_df.reindex(rep_df.index.repeat(len(chunks)))
+chunk_df["chunk"] = chunks * len(rep_df)
+chunk_df.to_csv(snakemake.output[0], sep="\t", index=None)
