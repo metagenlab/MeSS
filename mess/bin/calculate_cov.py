@@ -104,6 +104,7 @@ else:
 
 df["fasta"] = [os.path.basename(fa).split(".fna.gz")[0] for fa in df["path"]]
 df["seed"] = random.sample(range(1, 1000000), len(df))
+
 cols = [
     "samplename",
     "fasta",
@@ -113,9 +114,9 @@ cols = [
     "reads",
     "proportion",
     "cov_sim",
-    "passnum",
+    "chunk",
     "seed",
 ]
-df = df.astype({"bases": int, "reads": int, "seed": int, "passnum": int})
+df = df.astype({"bases": int, "reads": int, "seed": int, "chunk": int})
 df[cols].to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
 df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
