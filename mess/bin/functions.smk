@@ -29,11 +29,11 @@ def get_value(table, wildcards, value):
         df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
         val = df.loc[wildcards.sample].loc[wildcards.fasta][value]
     else:
-        df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta", "passnum"])
+        df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta", "chunk"])
         val = (
             df.loc[wildcards.sample]
             .loc[wildcards.fasta]
-            .loc[int(wildcards.passnum)][value]
+            .loc[int(wildcards.chunk)][value]
         )
     return val
 
@@ -121,7 +121,7 @@ if config["bam"] == False:
 def list_concat(wildcards, ext):
     table = checkpoints.calculate_coverage.get(**wildcards).output[0]
     df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
-    fastas = list(df.loc[wildcards.sample].index)
+    fastas = list(set(df.loc[wildcards.sample].index))
     if ext == "fastq":
         if config["seq_tech"] == "illumina":
             return expand(
@@ -151,34 +151,28 @@ def get_header(fa):
     return seqid.replace(">", "")
 
 
-# Distribute amount of minimum passes until reaching total passes
+# Distribute amount of minimum coverage until reaching total coverage
 def split_in_parts(c, n):
     r = c % n
     return [c // n] * (n - r) + [c // n + 1] * r
 
 
-if config["passes"] <= 1:
-    pass_dict = {1: 1}
-else:
-    min_passes = 2
-    total_passes = config["passes"]
-    pass_idx = list(range(1, total_passes // min_passes + 1))
-    pass_num = split_in_parts(total_passes, len(pass_idx))
-    pass_dict = dict(zip(pass_idx, pass_num))
-
-# TODO: create unique seeds for each passnum genome and sample combination
+chunk_idx = list(range(1, config["chunks"] + 1))
 
 
 def pbsim3_expand(wildcards, subdir, ext, file_type):
     table = checkpoints.calculate_coverage.get(**wildcards).output[0]
     df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
-    n = int(df.loc[wildcards.sample].loc[wildcards.fasta]["contig_count"].iloc[0])
+    try:
+        n = int(df.loc[wildcards.sample].loc[wildcards.fasta]["contig_count"].iloc[0])
+    except AttributeError:
+        n = int(df.loc[wildcards.sample].loc[wildcards.fasta]["contig_count"])
     contigs = [f"{x+1:04}" for x in range(n)]
-    if file_type == "passes":
+    if file_type == "chunks":
         return expand(
-            "{outdir}/{d}/{{sample}}/{{fasta}}-{passnum}_{{contig}}.{ext}",
+            "{outdir}/{d}/{{sample}}/{{fasta}}-{chunk}_{{contig}}.{ext}",
             outdir=outdir,
-            passnum=list(pass_dict.keys()),
+            chunk=chunk_idx,
             ext=ext,
             d=subdir,
         )
@@ -192,9 +186,9 @@ def pbsim3_expand(wildcards, subdir, ext, file_type):
         )
     elif file_type == "both":
         return expand(
-            "{outdir}/{d}/{{sample}}/{{fasta}}-{passnum}_{contig}.{ext}",
+            "{outdir}/{d}/{{sample}}/{{fasta}}-{chunk}_{contig}.{ext}",
             outdir=outdir,
-            passnum=list(pass_dict.keys()),
+            chunk=chunk_idx,
             contig=contigs,
             ext=ext,
             d=subdir,
