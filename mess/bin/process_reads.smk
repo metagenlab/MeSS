@@ -70,7 +70,6 @@ rule concat_fastq:
         f"{outdir}/fastq/{{sample}}_R{{p}}.fq.gz"
         if config["seq_tech"] == "illumina"
         else f"{outdir}/fastq/{{sample}}.fq.gz",
-    threads: 3
     shell:
         """
         cat {input} > {output}
