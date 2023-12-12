@@ -100,11 +100,10 @@ if multipass:
             accuracy=config["accuracy"],
         resources:
             tmpdir=tmpdir,
-        threads: 2
         shell:
             """
             MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 \\
-            ccs -j {threads} --min-passes {params.passes} \\
+            ccs --min-passes {params.passes} \\
             --min-rq {params.accuracy} {input} {output.fq} --report-file {log}
             """
 
