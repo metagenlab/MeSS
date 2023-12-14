@@ -1,2 +1,2 @@
-.idea/
-.snakemake/
+mess/mess.egg-info/
+mess/mess/__pycache__

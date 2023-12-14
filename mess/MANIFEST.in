@@ -1,0 +1,4 @@
+include mess/mess.LICENSE
+include mess/mess.CITATION
+include mess/mess.VERSION
+recursive-include mess *

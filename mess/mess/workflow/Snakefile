@@ -1,0 +1,24 @@
+
+# Update default config with runtime config
+configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
+configfile: os.path.join(workflow.basedir, "../", "config", "system_config.yaml")
+config.update(config["mess"]) # convenience if using namespaced config
+
+
+# Rules files
+include: os.path.join(workflow.basedir, "rules", "preflight.smk")
+include: os.path.join(workflow.basedir, "rules", "example.smk")
+
+
+# Target rules
+@targetRule
+rule all:
+    input:
+        targets
+
+
+@targetRule
+rule print_targets:
+    run:
+        print("\nTop level rules are: \n", file=sys.stderr)
+        print("* " + "\n* ".join(target_rules) + "\n\n", file=sys.stderr)
