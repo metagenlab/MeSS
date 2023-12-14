@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import glob
+import random
 from itertools import chain
 from itertools import product
 from Bio import SeqIO
@@ -188,3 +189,9 @@ def pbsim3_expand(wildcards, subdir, ext, file_type):
             ext=ext,
             d=subdir,
         )
+
+
+# shuffle seed dict
+
+shuf_seeds_list = random.sample(range(1, 100000), len(renamed_samples))
+shuf_seed = dict(zip(renamed_samples, shuf_seeds_list))
