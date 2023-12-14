@@ -6,7 +6,7 @@ if config["seq_tech"] == "pacbio":
     ratio = "6:55:39"
     if config["profile"] == "sequel":
         ratio = "22:45:33"
-elif config["seq_tech"] == "ONT":
+elif config["seq_tech"] == "nanopore":
     ratio = "39:24:36"
     if config["profile"] == "R10.4":
         model = "QSHMM-ONT-HQ"
