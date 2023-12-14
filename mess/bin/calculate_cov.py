@@ -51,7 +51,9 @@ else:
 
 
 # Get table with assembly genomsizes and their taxonomy
-entry_df = pd.read_csv(snakemake.input.entry, sep="\t", dtype={"entry": object})
+entry_df = pd.read_csv(
+    snakemake.input.entry, sep="\t", dtype={"entry": object, "chunk": object}
+)
 asm_df = pd.read_csv(snakemake.input.asm, sep="\t", dtype={"entry": object})
 df = entry_df.merge(asm_df, on="entry")
 
@@ -117,6 +119,6 @@ cols = [
     "chunk",
     "seed",
 ]
-df = df.astype({"bases": int, "reads": int, "seed": int, "chunk": int})
+df = df.astype({"bases": int, "reads": int, "seed": int})
 df[cols].to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
 df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore

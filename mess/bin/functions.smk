@@ -29,12 +29,13 @@ def get_value(table, wildcards, value):
         df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
         val = df.loc[wildcards.sample].loc[wildcards.fasta][value]
     else:
-        df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta", "chunk"])
-        val = (
-            df.loc[wildcards.sample]
-            .loc[wildcards.fasta]
-            .loc[int(wildcards.chunk)][value]
+        df = pd.read_csv(
+            table,
+            sep="\t",
+            dtype={"chunk": object},
+            index_col=["samplename", "fasta", "chunk"],
         )
+        val = df.loc[wildcards.sample].loc[wildcards.fasta].loc[wildcards.chunk][value]
     return val
 
 
@@ -151,13 +152,7 @@ def get_header(fa):
     return seqid.replace(">", "")
 
 
-# Distribute amount of minimum coverage until reaching total coverage
-def split_in_parts(c, n):
-    r = c % n
-    return [c // n] * (n - r) + [c // n + 1] * r
-
-
-chunk_idx = list(range(1, config["chunks"] + 1))
+chunk_idx = [f"{x+1:03}" for x in range(config["chunks"])]
 
 
 def pbsim3_expand(wildcards, subdir, ext, file_type):
