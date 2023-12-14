@@ -1,6 +1,3 @@
-include: "./functions.smk"
-
-
 rule samples_table:
     input:
         f"{outdir}/cov.tsv",
