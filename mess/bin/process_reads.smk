@@ -12,7 +12,8 @@ if config["seq_tech"] == "illumina":
         threads: 3
         shell:
             """
-            samtools view -@ {threads} -bS {input} | samtools sort -@ {threads} > {output}
+            samtools view -@ {threads} -bS {input} | \
+            samtools sort -@ {threads} > {output} 2> {log}
             """
 
     rule compress_fastq:
