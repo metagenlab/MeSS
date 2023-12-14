@@ -64,14 +64,40 @@ rule index_bam:
         """
 
 
-rule concat_fastq:
+rule cat_fastqs:
     input:
         lambda wildcards: list_concat(wildcards, "fastq"),
+    output:
+        f"{outdir}/unshuffled/{{sample}}_R{{p}}.fq.gz"
+        if config["seq_tech"] == "illumina"
+        else f"{outdir}/unshuffled/{{sample}}.fq.gz",
+    shell:
+        """
+        cat {input} > {output}
+        """
+
+
+rule shuffle_fastqs:
+    input:
+        f"{outdir}/unshuffled/{{sample}}_R{{p}}.fq.gz"
+        if config["seq_tech"] == "illumina"
+        else f"{outdir}/unshuffled/{{sample}}.fq.gz",
     output:
         f"{outdir}/fastq/{{sample}}_R{{p}}.fq.gz"
         if config["seq_tech"] == "illumina"
         else f"{outdir}/fastq/{{sample}}.fq.gz",
+    log:
+        f"{outdir}/logs/seqkit/{{sample}}_R{{p}}.log"
+        if config["seq_tech"] == "illumina"
+        else f"{outdir}/logs/seqkit/{{sample}}.log",
+    params:
+        lambda wildcards: shuf_seed[wildcards.sample],
+    threads: 3
     shell:
         """
-        cat {input} > {output}
+        seqkit \\
+        shuffle {input} \\
+        -j {threads} \\
+        -s {params} \\
+        -o {output} 2> {log}
         """
