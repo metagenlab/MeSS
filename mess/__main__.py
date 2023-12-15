@@ -165,7 +165,9 @@ Available targets:
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option("--input", "_input", help="Input file/directory", type=str, required=True)
+@click.option(
+    "-i", "--input", "_input", help="Input file/directory", type=str, required=True
+)
 @common_options
 def run(**kwargs):
     """Run MeSS"""
@@ -176,6 +178,31 @@ def run(**kwargs):
     run_snakemake(
         # Full path to Snakefile
         snakefile_path=snake_base(os.path.join("workflow", "Snakefile")),
+        merge_config=merge_config,
+        **kwargs,
+    )
+
+
+@click.command()
+@click.option("-i", "--input", help="Input file/directory", type=str, required=True)
+@click.option("--ncbi_key", help="NCBI key", type=str, required=False)
+@click.option("--ncbi_email", help="NCBI email", type=str, required=False)
+@common_options
+def download(input, output, log, ncbi_email, ncbi_key, **kwargs):
+    """download assemblies"""
+    # Config to add or update in configfile
+    merge_config = {
+        "args": {
+            "input": input,
+            "output": output,
+            "log": log,
+            "ncbi_email": ncbi_email,
+            "ncbi_key": ncbi_key,
+        }
+    }
+    run_snakemake(
+        # Full path to Snakefile
+        snakefile_path=snake_base(os.path.join("workflow", "download.smk")),
         merge_config=merge_config,
         **kwargs,
     )
@@ -195,6 +222,7 @@ def citation(**kwargs):
 
 
 cli.add_command(run)
+cli.add_command(download)
 cli.add_command(config)
 cli.add_command(citation)
 
