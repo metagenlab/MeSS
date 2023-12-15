@@ -1,6 +1,14 @@
 # Namespaced config file example
-mess:
-    args: # Command line args will be (over)written here at runtime
-        input:
-        output:
-    # Add customisable config here
+resources:
+  big:
+    mem: 32000 # Memory for big  jobs in megabytes (e.g 64GB = 64000, recommend >= 64000)
+    cpu: 12 # Threads (recommend >= 16)
+    time: "23:59:00" # Max runtime  (allows to set max time for the scheduler via snakemake profiles)
+  med:
+    mem: 16000 # Memory for most jobs in megabytes
+    cpu: 6 # CPUs for most jobs in megabytes
+    time: "08:00:00" # Max runtime for medium jobs (relevant for scheduler)
+  sml:
+    mem: 4000
+    cpu: 1
+    time: "00:00:05" # Max runtime for small jobs (used for grouped jobs; relevant for scheduler)
