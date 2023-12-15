@@ -1,0 +1,5 @@
+name: assembly_finder
+channels:
+  - bioconda
+dependencies:
+  - assembly_finder >= 0.4.1
