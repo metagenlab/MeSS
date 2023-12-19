@@ -1,5 +1,5 @@
 """
-All target output files are declared here
+All target download files are declared here
 """
 
 
