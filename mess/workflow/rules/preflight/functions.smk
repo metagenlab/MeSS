@@ -40,32 +40,6 @@ def get_value(table, wildcards, value):
     return val
 
 
-def list_reads():
-    if config["seq_tech"] == "illumina":
-        reads = expand(
-            "{outdir}/fastq/{sample}_R{p}.fq.gz",
-            outdir=outdir,
-            sample=renamed_samples,
-            p=pairs,
-        )
-    else:
-        reads = expand(
-            "{outdir}/fastq/{sample}.fq.gz",
-            outdir=outdir,
-            sample=renamed_samples,
-        )
-
-    if config["bam"]:
-        bams = expand(
-            "{outdir}/bam/{sample}.{ext}",
-            outdir=outdir,
-            sample=renamed_samples,
-            ext=["bam", "bam.bai"],
-        )
-        reads.append(bams)
-    return reads
-
-
 def get_assembly_summary_path(wildcards):
     try:
         table = os.path.abspath(
@@ -76,23 +50,23 @@ def get_assembly_summary_path(wildcards):
     return table
 
 
-fasta_dir = get_fasta_dir()
-fasta_list = list_files(fasta_dir, "fasta.gz,fa.gz,fna.gz")
-fasta_names = [os.path.basename(fa).split(".fna.gz")[0] for fa in fasta_list]
+# fasta_dir = get_fasta_dir()
+# fasta_list = list_files(fasta_dir, "fasta.gz,fa.gz,fna.gz")
+# fasta_names = [os.path.basename(fa).split(".fna.gz")[0] for fa in fasta_list]
 
-if config["paired"]:
-    pairs = [1, 2]
-else:
-    pairs = [1]
+# if config["paired"]:
+#     pairs = [1, 2]
+# else:
+#     pairs = [1]
 
 
-sam_out = []
-if config["bam"] and config["paired"]:
-    sam_out = temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.sam")
-elif config["bam"] and config["paired"] == False:
-    sam_out = temp(f"{outdir}/fastq/{{sample}}/{{fasta}}1.sam")
-if config["bam"] == False:
-    sam_out = temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.txt")
+# sam_out = []
+# if config["bam"] and config["paired"]:
+#     sam_out = temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.sam")
+# elif config["bam"] and config["paired"] == False:
+#     sam_out = temp(f"{outdir}/fastq/{{sample}}/{{fasta}}1.sam")
+# if config["bam"] == False:
+#     sam_out = temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.txt")
 
 
 def list_concat(wildcards, ext):
@@ -128,9 +102,6 @@ def get_header(fa):
     return seqid.replace(">", "")
 
 
-chunk_idx = [f"{x+1:03}" for x in range(config["chunks"])]
-
-
 def pbsim3_expand(wildcards, subdir, ext, file_type):
     table = checkpoints.calculate_coverage.get(**wildcards).output[0]
     df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
@@ -143,7 +114,7 @@ def pbsim3_expand(wildcards, subdir, ext, file_type):
         return expand(
             "{outdir}/{d}/{{sample}}/{{fasta}}-{chunk}_{{contig}}.{ext}",
             outdir=outdir,
-            chunk=chunk_idx,
+            chunk=CHUNKS,
             ext=ext,
             d=subdir,
         )
@@ -159,14 +130,8 @@ def pbsim3_expand(wildcards, subdir, ext, file_type):
         return expand(
             "{outdir}/{d}/{{sample}}/{{fasta}}-{chunk}_{contig}.{ext}",
             outdir=outdir,
-            chunk=chunk_idx,
+            chunk=CHUNKS,
             contig=contigs,
             ext=ext,
             d=subdir,
         )
-
-
-# shuffle seed dict
-
-shuf_seeds_list = random.sample(range(1, 100000), len(renamed_samples))
-shuf_seed = dict(zip(renamed_samples, shuf_seeds_list))
