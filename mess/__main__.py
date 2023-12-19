@@ -117,13 +117,13 @@ version = get_version()
 
 def print_splash():
     click.echo(
-        f"""
+        """
         ___  ___     _____ _____ 
         |  \/  |    /  ___/  ___|
         | .  . | ___\ `--.\ `--. 
         | |\/| |/ _ \`--. \`--. \\
         | |  | |  __/\__/ /\__/ /
-        \_|  |_/\___\____/\____/ v{version}
+        \_|  |_/\___\____/\____/
         """
     )
 
@@ -208,6 +208,231 @@ def download(input, output, log, ncbi_email, ncbi_key, **kwargs):
     )
 
 
+profiles = {
+    "illumina": {
+        "art": [
+            "MSv3",
+            "GA1",
+            "GA2",
+            "HS10",
+            "HS20",
+            "HS25",
+            "HSXn",
+            "HSXt",
+            "MinS",
+            "MSv1",
+            "NS50",
+            "custom",
+        ]
+    },
+    "pacbio": {"pbsim3": ["clr", "hifi"]},
+    "nanopore": {"pbsim3": ["r10.4", "r10.3"]},
+}
+
+
+@click.command()
+@click.option("-i", "--input", help="Input file/directory", type=str, required=True)
+@click.option(
+    "--tech",
+    help="sequencing technology",
+    type=click.Choice(["illumina", "pacbio", "nanopore"], case_sensitive=False),
+    default="nanopore",
+    show_default=True,
+)
+@click.option(
+    "--paired",
+    help="illumina reads pairing",
+    type=bool,
+    default=False,
+    show_default=True,
+)
+@click.option(
+    "--tool",
+    help="choose simulator",
+    type=click.Choice(
+        ["art", "pbsim3"],
+        case_sensitive=False,
+    ),
+    default="pbsim3",
+    show_default=True,
+)
+@click.option(
+    "--profile",
+    help="choose simulator profile",
+    type=click.Choice(
+        profiles["nanopore"]["pbsim3"],
+        case_sensitive=False,
+    ),
+    default="r10.4",
+    show_default=True,
+)
+@click.option(
+    "--fasta",
+    help="path to fasta file/directory",
+    type=str,
+    required=True,
+)
+@click.option(
+    "--chunks",
+    help="split genome simulations into n chunks",
+    type=int,
+    default=1,
+    show_default=True,
+)
+@click.option(
+    "--replicates",
+    help="number of replicates per sample",
+    type=int,
+    default=1,
+    show_default=True,
+)
+@click.option(
+    "--rep-sd",
+    help="standard deviation between replicate coverages (0: no deviation)",
+    type=int,
+    default=0,
+    show_default=True,
+)
+@click.option(
+    "--dist",
+    help="sample genome coverage values from a distribution",
+    type=click.Choice(["none", "lognormal", "even"]),
+    default="none",
+    show_default=True,
+)
+@click.option(
+    "--mu",
+    help="mu of lognormal dist",
+    type=int,
+    default=1,
+)
+@click.option(
+    "--sigma",
+    help="sigma of lognormal dist",
+    type=int,
+    default=0,
+)
+@click.option(
+    "--total-bases",
+    help="total amount of bases to simulate (ignored when coverage is set)",
+    type=str,
+    default="1G",
+    show_default=True,
+)
+@click.option(
+    "--accuracy",
+    help="mean accuracy for long read sequencing",
+    type=float,
+    default=0.9,
+    show_default=True,
+)
+@click.option(
+    "--passes",
+    help="number of passes for pacbio multipass sequencing (2 or more for hifi)",
+    type=int,
+    default=1,
+    show_default=True,
+)
+@click.option(
+    "--min-len",
+    help="minimum read length for long read sequencing",
+    type=int,
+    default=100,
+    show_default=True,
+)
+@click.option(
+    "--max-len",
+    help="maximum read length for long read sequencing",
+    type=int,
+    default=1000000,
+    show_default=True,
+)
+@click.option(
+    "--mean-len",
+    help="mean read length for long and short read sequencing",
+    type=int,
+    default=9000,
+    show_default=True,
+)
+@click.option(
+    "--sd-len",
+    help="standard read length deviation for long read sequencing",
+    type=int,
+    default=7000,
+    show_default=True,
+)
+@click.option(
+    "--bam",
+    help="generate gold standard alignment bam files",
+    type=bool,
+    default=False,
+    show_default=True,
+)
+@click.option(
+    "--seed",
+    help="seed for pseudo random number generator",
+    type=int,
+    default=42,
+    show_default=True,
+)
+@common_options
+def simulate(
+    input,
+    output,
+    log,
+    fasta,
+    chunks,
+    replicates,
+    rep_sd,
+    dist,
+    mu,
+    sigma,
+    total_bases,
+    accuracy,
+    passes,
+    min_len,
+    max_len,
+    mean_len,
+    sd_len,
+    bam,
+    paired,
+    seed,
+    **kwargs
+):
+    """simulate reads"""
+    # Config to add or update in configfile
+    merge_config = {
+        "args": {
+            "input": input,
+            "output": output,
+            "log": log,
+            "fasta": fasta,
+            "chunks": chunks,
+            "replicates": replicates,
+            "rep_sd": rep_sd,
+            "dist": dist,
+            "mu": mu,
+            "sigma": sigma,
+            "total_bases": total_bases,
+            "accuracy": accuracy,
+            "passes": passes,
+            "min_len": min_len,
+            "max_len": max_len,
+            "mean_len": mean_len,
+            "sd_len": sd_len,
+            "bam": bam,
+            "paired": paired,
+            "seed": seed,
+        }
+    }
+    run_snakemake(
+        # Full path to Snakefile
+        snakefile_path=snake_base(os.path.join("workflow", "simulate.smk")),
+        merge_config=merge_config,
+        **kwargs,
+    )
+
+
 @click.command()
 @common_options
 def config(configfile, system_config, **kwargs):
@@ -223,6 +448,7 @@ def citation(**kwargs):
 
 cli.add_command(run)
 cli.add_command(download)
+cli.add_command(simulate)
 cli.add_command(config)
 cli.add_command(citation)
 
