@@ -6,7 +6,7 @@ resources:
     time: "23:59:00" # Max runtime  (allows to set max time for the scheduler via snakemake profiles)
   med:
     mem: 16000 # Memory for most jobs in megabytes
-    cpu: 6 # CPUs for most jobs in megabytes
+    cpu: 3 # CPUs for most jobs in megabytes
     time: "08:00:00" # Max runtime for medium jobs (relevant for scheduler)
   sml:
     mem: 4000
