@@ -11,6 +11,13 @@ configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
 config = ap.AttrMap(config)
 
 
+wildcard_constraints:
+    contig="[0-9]+",
+    sample="[^/]+",
+    fasta="[^/]+",
+    chunk="[0-9]+",
+
+
 # functions
 include: os.path.join("rules", "preflight", "functions.smk")
 # directories
@@ -23,24 +30,20 @@ OUTPUT = config.args.output
 LOG = os.path.join(OUTPUT, "mess.log")
 THREADS = config.args.threads
 
-
-# read sample table
-include: os.path.join("rules", "preflight", "read_samples.smk")
-
-
-# replicates options
+# samples and replicates options
 REPLICATES = list(range(1, config.args.replicates + 1))
+SAMPLES = parse_samples(INPUT, REPLICATES)
+SEED = config.args.seed
 REP_SD = config.args.rep_sd
 CHUNKS = [f"{x+1:03}" for x in range(config.args.chunks)]
 
 
-# make replicates table
-include: os.path.join("rules", "preflight", "get_replicates.smk")
-# process fasta
-include: os.path.join("rules", "processing", "fastas.smk")
+# aggregate samples tables and make replicates
+include: os.path.join("rules", "preflight", "samples.smk")
 
 
 # coverage options
+ASM_SUMMARY = config.args.asm_summary
 TOTAL_BASES = config.args.total_bases
 PAIRED = config.args.paired
 if PAIRED:
@@ -56,10 +59,13 @@ MEAN_LEN = config.args.mean_len
 
 # calculate coverages
 include: os.path.join("rules", "processing", "coverages.smk")
+# process fasta
+include: os.path.join("rules", "processing", "fastas.smk")
 
 
 # simulators options
-SEQ_TECH = config.args.seq_tech
+SEQ_TECH = config.args.tech
+PROFILE = config.args.error_profile
 BAM = config.args.bam
 PASSES = config.args.passes
 ACCURACY = config.args.accuracy
@@ -81,6 +87,7 @@ SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 
 
 include: os.path.join("rules", "processing", "reads.smk")
+include: os.path.join("rules", "preflight", "targets_simulate.smk")
 
 
 # define the rule all
