@@ -48,10 +48,11 @@ def common_options(func):
     """
     options = [
         click.option(
+            "-o",
             "--output",
             help="Output directory",
             type=click.Path(dir_okay=True, writable=True, readable=True),
-            default="mess.out",
+            default="mess_out",
             show_default=True,
         ),
         click.option(
@@ -231,19 +232,31 @@ profiles = {
 
 
 @click.command()
-@click.option("-i", "--input", help="Input file/directory", type=str, required=True)
+@click.option("-i", "--input", help="path to sample sheet(s)", type=str, required=True)
+@click.option(
+    "--fasta",
+    help="path to fasta file/directory",
+    type=str,
+    required=True,
+)
+@click.option(
+    "--asm-summary",
+    help="path to assembly summary table (contains taxid, genome_size and contig_counts)",
+    type=str,
+    required=True,
+)
 @click.option(
     "--tech",
     help="sequencing technology",
     type=click.Choice(["illumina", "pacbio", "nanopore"], case_sensitive=False),
-    default="nanopore",
+    default="illumina",
     show_default=True,
 )
 @click.option(
     "--paired",
     help="illumina reads pairing",
     type=bool,
-    default=False,
+    default=True,
     show_default=True,
 )
 @click.option(
@@ -253,25 +266,20 @@ profiles = {
         ["art", "pbsim3"],
         case_sensitive=False,
     ),
-    default="pbsim3",
+    default="art",
     show_default=True,
 )
 @click.option(
-    "--profile",
+    "--error-profile",
     help="choose simulator profile",
     type=click.Choice(
-        profiles["nanopore"]["pbsim3"],
+        profiles["illumina"]["art"],
         case_sensitive=False,
     ),
-    default="r10.4",
+    default=profiles["illumina"]["art"][0],
     show_default=True,
 )
-@click.option(
-    "--fasta",
-    help="path to fasta file/directory",
-    type=str,
-    required=True,
-)
+
 @click.option(
     "--chunks",
     help="split genome simulations into n chunks",
@@ -344,21 +352,21 @@ profiles = {
     "--max-len",
     help="maximum read length for long read sequencing",
     type=int,
-    default=1000000,
+    default=300,
     show_default=True,
 )
 @click.option(
     "--mean-len",
     help="mean read length for long and short read sequencing",
     type=int,
-    default=9000,
+    default=150,
     show_default=True,
 )
 @click.option(
     "--sd-len",
     help="standard read length deviation for long read sequencing",
     type=int,
-    default=7000,
+    default=50,
     show_default=True,
 )
 @click.option(
@@ -381,6 +389,9 @@ def simulate(
     output,
     log,
     fasta,
+    asm_summary,
+    tech,
+    error_profile,
     chunks,
     replicates,
     rep_sd,
@@ -407,6 +418,9 @@ def simulate(
             "output": output,
             "log": log,
             "fasta": fasta,
+            "tech": tech,
+            "error_profile": error_profile,
+            "asm_summary": asm_summary,
             "chunks": chunks,
             "replicates": replicates,
             "rep_sd": rep_sd,
