@@ -1,6 +1,7 @@
 checkpoint calculate_coverage:
     input:
-        get_assembly_summary_path,
+        df=os.path.join(dir.out.base, "samples.tsv"),
+        asm=get_assembly_summary_path,
     output:
         temp(
             os.path.join(dir.out.base, "cov.tsv"),
@@ -12,9 +13,7 @@ checkpoint calculate_coverage:
         total_bases=TOTAL_BASES,
         read_len=MEAN_LEN,
         pairing=PAIRED,
-        rep_sd=REP_SD,
         seed=SEED,
-        chunks=CHUNKS,
     log:
         os.path.join(dir.out.logs, "tables", "cov.tsv"),
     benchmark:
