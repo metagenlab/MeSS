@@ -21,6 +21,11 @@ try:
 except (KeyError, AssertionError):
     dir.out.base = "results"
 
+# Outdirs
+dir.out.fasta = os.path.join(dir.out.base, "fasta")
+dir.out.fastq = os.path.join(dir.out.base, "fastq")
+dir.out.bam = os.path.join(dir.out.base, "bam")
+
 # Logs versions and benchmarks
 dir.out.bench = os.path.join(dir.out.base, "benchmarks")
 dir.out.logs = os.path.join(dir.out.base, "logs")
