@@ -2,7 +2,6 @@
 
 import pandas as pd
 import numpy as np
-import logging
 import os
 from humanfriendly import parse_size
 import random
@@ -30,13 +29,6 @@ def get_even_dist(df, cols):
 """
 Main
 """
-# Set logging
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(message)s",
-    datefmt="%d %b %Y %H:%M:%S",
-    filename=snakemake.log[0],
-    level=logging.DEBUG,
-)
 # Set seed for distributions
 np.random.seed(snakemake.params.seed)
 
@@ -51,9 +43,7 @@ else:
 
 
 # Get table with assembly genomsizes and their taxonomy
-entry_df = pd.read_csv(
-    snakemake.input.entry, sep="\t", dtype={"entry": object, "chunk": object}
-)
+entry_df = pd.read_csv(snakemake.input.df, sep="\t",dtype={"entry": object})
 asm_df = pd.read_csv(snakemake.input.asm, sep="\t", dtype={"entry": object})
 df = entry_df.merge(asm_df, on="entry")
 
