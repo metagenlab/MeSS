@@ -1,0 +1,5 @@
+name: assembly_finder
+channels:
+  - bioconda
+dependencies:
+  - art >= 2016.06.05
