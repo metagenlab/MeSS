@@ -30,15 +30,19 @@ rule art_illumina:
     output:
         sam=sam_out,
         fastqs=fastq_out,
+    conda:
+        os.path.join(dir.env, "art.yml")
     params:
         args=art_args,
-        system=SEQ_TECH,
+        system=PROFILE,
         read_len=MEAN_LEN,
         cov=lambda wildcards, input: get_value(input.df, wildcards, "cov_sim"),
-        seed=lambda wildcards, input: get_value(input.df, wildcards, "seed"),
+        seed=lambda wildcards, input: int(get_value(input.df, wildcards, "seed")),
         prefix=fq_prefix,
+    benchmark:
+        os.path.join(dir.out.bench, "art", "{sample}", "{fasta}.txt")
     log:
-        f"{outdir}/logs/art_illumina/{{sample}}/{{fasta}}.log",
+        os.path.join(dir.out.logs, "art", "{sample}", "{fasta}.log"),
     shell:
         """
         art_illumina -ss {params.system} \\
