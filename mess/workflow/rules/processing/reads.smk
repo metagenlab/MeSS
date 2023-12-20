@@ -98,7 +98,7 @@ rule shuffle_fastqs:
     output:
         os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz")
         if SEQ_TECH == "illumina"
-        else os.path.join(dir.out.base, "{sample}.fq.gz"),
+        else os.path.join(dir.out.fastq, "{sample}.fq.gz"),
     conda:
         os.path.join(dir.env, "seqkit.yml")
     params:
