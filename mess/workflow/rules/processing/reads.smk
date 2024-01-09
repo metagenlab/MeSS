@@ -73,11 +73,11 @@ rule index_bam:
 
 rule cat_fastqs:
     input:
-        lambda wildcards: list_concat(wildcards, "fastq"),
+        lambda wildcards: list_cat(wildcards, "fastq"),
     output:
-        temp(os.path.join(dir.out.base, "unshuffled", "{sample}_R{p}.fq.gz"))
+        temp(os.path.join(dir.out.cat, "{sample}_R{p}.fq.gz"))
         if SEQ_TECH == "illumina"
-        else temp(os.path.join(dir.out.base, "unshuffled", "{sample}.fq.gz")),
+        else temp(os.path.join(dir.out.cat, "{sample}.fq.gz")),
     benchmark:
         os.path.join(
             dir.out.bench, "cat", "{sample}_R{p}.txt"
@@ -92,9 +92,9 @@ rule cat_fastqs:
 
 rule shuffle_fastqs:
     input:
-        os.path.join(dir.out.base, "unshuffled", "{sample}_R{p}.fq.gz")
+        os.path.join(dir.out.cat, "{sample}_R{p}.fq.gz")
         if SEQ_TECH == "illumina"
-        else os.path.join(dir.out.base, "unshuffled", "{sample}.fq.gz"),
+        else os.path.join(dir.out.cat, "{sample}.fq.gz"),
     output:
         os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz")
         if SEQ_TECH == "illumina"
