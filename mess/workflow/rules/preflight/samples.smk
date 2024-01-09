@@ -1,11 +1,7 @@
-rule samples_table:
+rule aggregate_samples:
     output:
         temp(os.path.join(dir.out.base, "samples.tsv")),
     params:
-        input=INPUT,
-        seed=SEED,
-        chunks=CHUNKS,
-        replicates=REPLICATES,
-        rep_sd=REP_SD,
+        INPUT,
     script:
         os.path.join(dir.scripts, "samples.py")
