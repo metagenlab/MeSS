@@ -106,7 +106,7 @@ def common_options(func):
             default=snake_base(os.path.join("config", "config.yaml")),
             hidden=True,
         ),
-        click.argument("snake_args", nargs=-1),
+        click.argument("snake_args", nargs=-1, type=click.UNPROCESSED),
     ]
     for option in reversed(options):
         func = option(func)
@@ -166,14 +166,12 @@ Available targets:
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option(
-    "-i", "--input", "_input", help="Input file/directory", type=str, required=True
-)
+@click.option("-i", "--input", help="Input file/directory", type=str, required=True)
 @common_options
 def run(**kwargs):
     """Run MeSS"""
     # Config to add or update in configfile
-    merge_config = {"mess": {"args": kwargs}}
+    merge_config = {"args": kwargs}
 
     # run!
     run_snakemake(
@@ -270,21 +268,10 @@ profiles = {
     show_default=True,
 )
 @click.option(
-    "--error-profile",
+    "--err-profile",
     help="choose simulator profile",
-    type=click.Choice(
-        profiles["illumina"]["art"],
-        case_sensitive=False,
-    ),
-    default=profiles["illumina"]["art"][0],
-    show_default=True,
-)
-
-@click.option(
-    "--chunks",
-    help="split genome simulations into n chunks",
-    type=int,
-    default=1,
+    type=str,
+    default="MSv3",
     show_default=True,
 )
 @click.option(
@@ -391,8 +378,7 @@ def simulate(
     fasta,
     asm_summary,
     tech,
-    error_profile,
-    chunks,
+    err_profile,
     replicates,
     rep_sd,
     dist,
@@ -419,9 +405,8 @@ def simulate(
             "log": log,
             "fasta": fasta,
             "tech": tech,
-            "error_profile": error_profile,
+            "err_profile": err_profile,
             "asm_summary": asm_summary,
-            "chunks": chunks,
             "replicates": replicates,
             "rep_sd": rep_sd,
             "dist": dist,
@@ -443,6 +428,7 @@ def simulate(
         # Full path to Snakefile
         snakefile_path=snake_base(os.path.join("workflow", "simulate.smk")),
         merge_config=merge_config,
+        log=log,
         **kwargs,
     )
 
