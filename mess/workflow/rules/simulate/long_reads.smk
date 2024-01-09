@@ -1,59 +1,33 @@
-multipass = False
-if config["passes"] > 1:
-    multipass = True
-if config["seq_tech"] == "pacbio":
-    model = "QSHMM-RSII"
-    ratio = "6:55:39"
-    if config["profile"] == "sequel":
-        ratio = "22:45:33"
-elif config["seq_tech"] == "nanopore":
-    ratio = "39:24:36"
-    if config["profile"] == "R10.4":
-        model = "QSHMM-ONT-HQ"
-    elif config["profile"] == "R10.3":
-        model = "QSHMM-ONT"
-
-
-wildcard_constraints:
-    contig="[0-9]+",
-    sample="[^/]+",
-    fasta="[^/-]+",
-    chunk="[0-9]+",
-
-
-rule chunk_fasta:
-    input:
-        f"{outdir}/fasta/{{fasta}}.renamed",
-    output:
-        temp(f"{outdir}/fasta/{{fasta}}-{{chunk}}.fa"),
-    shell:
-        "cp {input} {output}"
-
-
 rule pbsim3:
     input:
-        fa=f"{outdir}/fasta/{{fasta}}-{{chunk}}.fa",
-        df=f"{outdir}/cov.tsv",
+        fasta=os.path.join(dir.out.fasta, "{fasta}.renamed"),
+        flag=os.path.join(dir.out.fasta, "split", "split.tsv"),
+        fa=os.path.join(dir.out.fasta, "split", "{fasta}_{contig}.fa"),
+        df=os.path.join(dir.out.base, "cov.tsv"),
     output:
-        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.sam")
-        if multipass
-        else temp(f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.fastq"),
-        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.maf"),
-        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.ref"),
+        temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.sam"))
+        if PASSES > 1
+        else temp(
+            os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.fastq")
+        ),
+        temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.maf")),
+        temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.ref")),
     params:
-        model=model,
-        ratio=ratio,
-        meanlen=config["read_len"],
-        lensd=config["read_sd"],
-        minlen=config["min_len"],
-        maxlen=config["max_len"],
-        passes=config["passes"],
-        accuracy=config["accuracy"],
+        model=MODEL,
+        ratio=RATIO,
+        meanlen=MEAN_LEN,
+        lensd=SD_LEN,
+        minlen=MIN_LEN,
+        maxlen=MAX_LEN,
+        passes=PASSES,
+        accuracy=ACCURACY,
         cov=lambda wildcards, input: get_value(input.df, wildcards, "cov_sim"),
         seed=lambda wildcards, input: int(get_value(input.df, wildcards, "seed")),
-        prefix=f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}",
+        prefix=os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}"),
+    benchmark:
+        os.path.join(dir.out.bench, "pbsim3", "{sample}", "{fasta}", "{contig}.txt")
     log:
-        f"{outdir}/logs/pbsim3/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.log",
+        os.path.join(dir.out.logs, "pbsim3", "{sample}", "{fasta}", "{contig}.log"),
     shell:
         """
         pbsim --strategy wgs --method qshmm \\
@@ -71,35 +45,64 @@ rule pbsim3:
         """
 
 
-tmpdir = os.path.join(outdir, "tmp")
+tmpdir = os.path.join(OUTPUT, "tmp")
 
-if multipass:
+if PASSES > 1:
 
     rule ccs_sam_to_bam:
         input:
-            f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.sam",
+            os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.sam"),
         output:
-            temp(f"{outdir}/ccs/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.ccs.bam"),
+            temp(
+                os.path.join(
+                    dir.out.base,
+                    "ccs",
+                    "{sample}",
+                    "{fasta}_{contig}.ccs.bam",
+                )
+            ),
+        benchmark:
+            os.path.join(
+                dir.out.bench,
+                "samtools",
+                "sam2bam",
+                "{sample}",
+                "{fasta}_{contig}.txt",
+            )
         log:
-            f"{outdir}/logs/ccs/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.bam.log",
+            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
         shell:
             "samtools view -bS {input} | samtools sort > {output} 2> {log}"
 
     rule ccs_bam_to_fastq:
         input:
-            f"{outdir}/ccs/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.ccs.bam",
+            os.path.join(dir.out.base, "ccs", "{sample}", "{fasta}", "{contig}.ccs.bam"),
         output:
-            fq=temp(f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.fq.gz"),
-            json=temp(
-                f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.zmw_metrics.json.gz"
+            fq=temp(
+                os.path.join(
+                    dir.out.base,
+                    "ccs",
+                    "{sample}",
+                    "{fasta}_{contig}_0001.fq.gz",
+                )
             ),
-        log:
-            f"{outdir}/logs/ccs/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.log",
+            json=temp(
+                os.path.join(
+                    dir.out.base,
+                    "ccs",
+                    "{sample}",
+                    "{fasta}_{contig}_0001.zmw_metrics.json.gz",
+                )
+            ),
         params:
-            passes=config["passes"],
-            accuracy=config["accuracy"],
+            passes=PASSES,
+            accuracy=ACCURACY,
         resources:
             tmpdir=tmpdir,
+        benchmark:
+            os.path.join(dir.out.bench, "ccs", "{sample}", "{fasta}", "{contig}.txt")
+        log:
+            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
         shell:
             """
             MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 \\
@@ -108,16 +111,18 @@ if multipass:
             """
 
 
-if config["bam"]:
+if BAM:
 
     rule add_reference_name:
         input:
-            maf=f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.maf",
-            fa=f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.ref",
+            maf=os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.maf"),
+            fa=os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.ref"),
         output:
-            temp(f"{outdir}/bam/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.maf"),
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.maf")),
         params:
             seqname=lambda wildcards, input: get_header(input.fa),
+        benchmark:
+            os.path.join(dir.out.bench, "sed", "{sample}", "{fasta}", "{contig}.txt")
         shell:
             """
             sed 's/ref/{params.seqname}/g' {input.maf} > {output}
@@ -125,13 +130,27 @@ if config["bam"]:
 
     rule convert_maf_to_bam:
         input:
-            f"{outdir}/bam/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.maf",
+            os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.maf"),
         output:
-            sam=temp(f"{outdir}/bam/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.sam"),
-            bam=temp(f"{outdir}/bam/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.bam"),
+            sam=temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.sam")),
+            bam=temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.bam")),
+        benchmark:
+            os.path.join(
+                dir.out.logs,
+                "bioconvert",
+                "maf2bam",
+                "{sample}",
+                "{fasta}_{contig}.txt",
+            )
         log:
-            f"{outdir}/logs/bam/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.log",
-        threads: 2
+            os.path.join(
+                dir.out.logs,
+                "bioconvert",
+                "maf2bam",
+                "{sample}",
+                "{fasta}_{contig}.log",
+            ),
+        threads: config.resources.med.cpu
         shell:
             """
             bioconvert {input} {output.sam} 2>> {log}
@@ -141,26 +160,30 @@ if config["bam"]:
 
     rule merge_alignments_bam:
         input:
-            lambda wildcards: pbsim3_expand(wildcards, "bam", "bam", "both"),
+            lambda wildcards: pbsim3_expand(wildcards, dir.out.bam, "bam"),
         output:
-            temp(f"{outdir}/bam/{{sample}}/{{fasta}}.bam"),
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}.bam")),
+        benchmark:
+            os.path.join(dir.out.bench, "samtools", "merge", "{sample}", "{fasta}.txt")
         log:
-            f"{outdir}/logs/bam/{{sample}}/{{fasta}}.log",
-        threads: 2
+            os.path.join(dir.out.logs, "samtools", "merge", "{sample}", "{fasta}.log"),
+        threads: config.resources.med.cpu
         shell:
             "samtools merge -@ {threads} -o {output} {input} &>> {log}"
 
 
-if not multipass:
+if PASSES == 1:
 
     rule compress_single_pass_fastq:
         input:
-            f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.fastq",
+            os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.fastq"),
         output:
-            temp(f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.fq.gz"),
+            temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq.gz")),
         params:
-            f"{outdir}/fastq/{{sample}}/{{fasta}}-{{chunk}}_{{contig}}.fq",
-        threads: 2
+            os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq"),
+        threads: config.resources.med.cpu
+        benchmark:
+            os.path.join(dir.out.bench, "pigz", "{sample}", "{fasta}", "{contig}.txt")
         shell:
             """
             mv {input} {params}
@@ -168,10 +191,10 @@ if not multipass:
             """
 
 
-rule cat_fastq_per_sample:
+rule cat_contig_reads:
     input:
-        lambda wildcards: pbsim3_expand(wildcards, "fastq", "fq.gz", "both"),
+        lambda wildcards: pbsim3_expand(wildcards, dir.out.long, "fq.gz"),
     output:
-        temp(f"{outdir}/fastq/{{sample}}/{{fasta}}.fq.gz"),
+        temp(os.path.join(dir.out.long, "{sample}", "{fasta}.fq.gz")),
     shell:
         "cat {input} > {output}"
