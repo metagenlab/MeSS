@@ -43,7 +43,7 @@ else:
 
 
 # Get table with assembly genomsizes and their taxonomy
-entry_df = pd.read_csv(snakemake.input.df, sep="\t",dtype={"entry": object})
+entry_df = pd.read_csv(snakemake.input.df, sep="\t", dtype={"entry": object})
 asm_df = pd.read_csv(snakemake.input.asm, sep="\t", dtype={"entry": object})
 df = entry_df.merge(asm_df, on="entry")
 
@@ -106,7 +106,6 @@ cols = [
     "reads",
     "proportion",
     "cov_sim",
-    "chunk",
     "seed",
 ]
 df = df.astype({"bases": int, "reads": int, "seed": int})
