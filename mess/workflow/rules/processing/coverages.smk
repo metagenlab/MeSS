@@ -1,6 +1,19 @@
+rule replicates_table:
+    input:
+        os.path.join(dir.out.base, "samples.tsv"),
+    output:
+        temp(os.path.join(dir.out.base, "replicates.tsv")),
+    params:
+        seed=SEED,
+        replicates=REPLICATES,
+        rep_sd=REP_SD,
+    script:
+        os.path.join(dir.scripts, "replicates.py")
+
+
 checkpoint calculate_coverage:
     input:
-        df=os.path.join(dir.out.base, "samples.tsv"),
+        df=os.path.join(dir.out.base, "replicates.tsv"),
         asm=get_assembly_summary_path,
     output:
         temp(
