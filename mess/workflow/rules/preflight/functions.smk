@@ -37,31 +37,32 @@ def get_fasta(wildcards):
             checkpoints.download_assemblies.get(**wildcards).output[0]
         )
         fasta_dir = os.path.asbpath(os.path.join(checkpoint_dir, "assemblies"))
-        ext = "fna"
+    except AttributeError:
+        fasta_dir = os.path.abspath(config.args.fasta)
+    return os.path.join(fasta_dir, "{fasta}.fna.gz")
+
+
+def parse_fastas():
+    try:
+        checkpoint_dir = os.path.dirname(
+            checkpoints.download_assemblies.get(**wildcards).output[0]
+        )
+        fasta_dir = os.path.asbpath(os.path.join(checkpoint_dir, "assemblies"))
 
     except AttributeError:
         fasta_dir = os.path.abspath(config.args.fasta)
-        fastas = list_files(fasta_dir, "gz")
-        ext = list(set([os.path.basename(fa).split(".")[-2] for fa in fastas]))
-        if len(ext) > 1:
-            logging.error("Fastas do not have the same extensions")
-        else:
-            ext = ext[0]
-    return os.path.join(fasta_dir, f"{{fasta}}.{ext}.gz")
+    return [
+        os.path.basename(fa).split(".fna.gz")[0] for fa in list_files(fasta_dir, "gz")
+    ]
 
 
 def get_value(table, wildcards, value):
-    if SEQ_TECH == "illumina":
-        df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
-        val = df.loc[wildcards.sample].loc[wildcards.fasta][value]
-    else:
-        df = pd.read_csv(
-            table,
-            sep="\t",
-            dtype={"chunk": object},
-            index_col=["samplename", "fasta", "chunk"],
-        )
-        val = df.loc[wildcards.sample].loc[wildcards.fasta].loc[wildcards.chunk][value]
+    df = pd.read_csv(
+        table,
+        sep="\t",
+        index_col=["samplename", "fasta"],
+    )
+    val = df.loc[wildcards.sample].loc[wildcards.fasta][value]
     return val
 
 
@@ -75,19 +76,19 @@ def get_assembly_summary_path(wildcards):
     return table
 
 
-def list_concat(wildcards, ext):
+def list_cat(wildcards, ext):
     table = checkpoints.calculate_coverage.get(**wildcards).output[0]
     df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
     fastas = list(set(df.loc[wildcards.sample].index))
     if ext == "fastq":
         if SEQ_TECH == "illumina":
             return expand(
-                os.path.join(dir.out.fastq, "{{sample}}", "{fasta}{{p}}.fq.gz"),
+                os.path.join(dir.out.short, "{{sample}}", "{fasta}{{p}}.fq.gz"),
                 fasta=fastas,
             )
         else:
             return expand(
-                os.path.join(dir.out.fastq, "{{sample}}", "{fasta}.fq.gz"),
+                os.path.join(dir.out.long, "{{sample}}", "{fasta}.fq.gz"),
                 fasta=fastas,
             )
     elif ext == "bam":
@@ -98,27 +99,22 @@ def list_concat(wildcards, ext):
 
 
 ## PBSIM3 functions
+def pbsim3_expand(wildcards, outdir, ext):
+    table = checkpoints.split_contigs.get(**wildcards).output[0]
+    df = pd.read_csv(table, sep="\t", index_col="fasta")
+    contigs = df.loc[wildcards.fasta]["contig"]
+    if isinstance(contigs, str):
+        contigs = [contigs]
+    else:
+        contigs = list(contigs)
+    return expand(
+        os.path.join(outdir, "{{sample}}", "{{fasta}}", "{contig}.{ext}"),
+        outdir=outdir,
+        contig=contigs,
+        ext=ext,
+    )
 
 
 def get_header(fa):
     seqid = SeqIO.read(fa, "fasta").id
     return seqid.replace(">", "")
-
-
-def pbsim3_expand(wildcards, subdir, ext):
-    table = checkpoints.calculate_coverage.get(**wildcards).output[0]
-    df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
-    try:
-        n = int(df.loc[wildcards.sample].loc[wildcards.fasta]["contig_count"].iloc[0])
-    except AttributeError:
-        n = int(df.loc[wildcards.sample].loc[wildcards.fasta]["contig_count"])
-    contigs = [f"{x+1:04}" for x in range(n)]
-    return expand(
-        os.path.join(
-            dir.out.base, ext, "{{sample}}", "{{fasta}}-{chunk}_{contig}.{ext}"
-        ),
-        chunk=CHUNKS,
-        contig=contigs,
-        ext=ext,
-        subdir=subdir,
-    )
