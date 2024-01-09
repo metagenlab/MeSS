@@ -26,4 +26,9 @@ def list_reads(wildcards):
     return reads
 
 
-TargetSimreads = [list_reads, os.path.join(dir.out.base, "cov.tsv")]
+TargetSimreads = [
+    list_reads,
+    os.path.join(dir.out.base, "cov.tsv"),
+]
+if not SEQ_TECH == "illumina":
+    TargetSimreads.append(os.path.join(dir.out.base, "clean.txt"))
