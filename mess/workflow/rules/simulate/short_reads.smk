@@ -7,20 +7,20 @@ if BAM:
 
 sam_out = []
 if BAM and PAIRED:
-    sam_out = temp(os.path.join(dir.out.fastq, "{sample}", "{fasta}.sam"))
+    sam_out = temp(os.path.join(dir.out.short, "{sample}", "{fasta}.sam"))
 elif BAM and not PAIRED:
-    sam_out = temp(os.path.join(dir.out.fastq, "{sample}", "{fasta}1.sam"))
+    sam_out = temp(os.path.join(dir.out.short, "{sample}", "{fasta}1.sam"))
 if not BAM:
-    sam_out = temp(os.path.join(dir.out.fastq, "{sample}", "{fasta}.txt"))
+    sam_out = temp(os.path.join(dir.out.short, "{sample}", "{fasta}.txt"))
 
 fastq_out = [
-    temp(os.path.join(dir.out.fastq, "{sample}", "{fasta}1.fq")),
-    temp(os.path.join(dir.out.fastq, "{sample}", "{fasta}2.fq")),
+    temp(os.path.join(dir.out.short, "{sample}", "{fasta}1.fq")),
+    temp(os.path.join(dir.out.short, "{sample}", "{fasta}2.fq")),
 ]
-fq_prefix = os.path.join(dir.out.fastq, "{sample}", "{fasta}")
+fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}")
 if not PAIRED:
     fastq_out = fastq_out[0]
-    fq_prefix = os.path.join(dir.out.fastq, "{sample}", "{fasta}1")
+    fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}1")
 
 
 rule art_illumina:
@@ -34,7 +34,7 @@ rule art_illumina:
         os.path.join(dir.env, "art.yml")
     params:
         args=art_args,
-        system=PROFILE,
+        system=ERR_PROFILE,
         read_len=MEAN_LEN,
         cov=lambda wildcards, input: get_value(input.df, wildcards, "cov_sim"),
         seed=lambda wildcards, input: int(get_value(input.df, wildcards, "seed")),
