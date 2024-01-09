@@ -1,8 +1,11 @@
 rule get_unique_entries:
+    input:
+        os.path.join(dir.out.base, "samples.tsv"),
     output:
         temp(os.path.join(dir.out.base, "uniq_entries.tsv")),
     run:
-        DFS[["entry", "nb"]].drop_duplicates().to_csv(output[0], sep="\t", index=None)
+        df = pd.read_csv(input[0], sep="\t")
+        df[["entry", "nb"]].drop_duplicates().to_csv(output[0], sep="\t", index=None)
 
 
 checkpoint download_assemblies:
