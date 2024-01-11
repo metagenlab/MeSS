@@ -63,13 +63,13 @@ SEQ_TECH = config.args.tech
 ASM_SUMMARY = config.args.asm_summary
 TOTAL_BASES = config.args.total_bases
 PAIRED = config.args.paired
+
 if not SEQ_TECH == "illumina":
     PAIRED = False
 if PAIRED:
     PAIRS = [1, 2]
 else:
     PAIRS = [1]
-
 DIST = config.args.dist
 MU = config.args.mu
 SIGMA = config.args.sigma
@@ -82,12 +82,7 @@ include: os.path.join("rules", "preflight", "samples.smk")
 include: os.path.join("rules", "download", "assembly_finder.smk")
 # calculate coverages
 include: os.path.join("rules", "processing", "coverages.smk")
-
-
 # process fasta
-FASTAS = parse_fastas()
-
-
 include: os.path.join("rules", "processing", "fastas.smk")
 
 
@@ -130,10 +125,7 @@ include: os.path.join("rules", "preflight", "targets_download.smk")
 include: os.path.join("rules", "preflight", "targets_simulate.smk")
 
 
-targets = TargetDownloads.append(TargetSimreads)
-# define the rule all
-
-
 rule all:
     input:
-        targets,
+        TargetDownloads,
+        TargetSimreads,
