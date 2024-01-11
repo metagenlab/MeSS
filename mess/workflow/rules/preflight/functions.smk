@@ -31,29 +31,24 @@ def parse_samples(indir, replicates):
     return [prod[0] + "-" + str(prod[1]) for prod in products]
 
 
-def get_fasta(wildcards):
+def list_fastas(wildcards, out=None, ext=None, expand=True):
     try:
+        assert (ap.utils.to_dict(config.args)["fasta"]) is not None
+        fasta_dir = os.path.abspath(config.args.fasta)
+
+    except (KeyError, AssertionError):
         checkpoint_dir = os.path.dirname(
             checkpoints.download_assemblies.get(**wildcards).output[0]
         )
-        fasta_dir = os.path.asbpath(os.path.join(checkpoint_dir, "assemblies"))
-    except AttributeError:
-        fasta_dir = os.path.abspath(config.args.fasta)
-    return os.path.join(fasta_dir, "{fasta}.fna.gz")
+        fasta_dir = os.path.join(checkpoint_dir, "assemblies")
 
-
-def parse_fastas():
-    try:
-        checkpoint_dir = os.path.dirname(
-            checkpoints.download_assemblies.get(**wildcards).output[0]
-        )
-        fasta_dir = os.path.asbpath(os.path.join(checkpoint_dir, "assemblies"))
-
-    except AttributeError:
-        fasta_dir = os.path.abspath(config.args.fasta)
-    return [
-        os.path.basename(fa).split(".fna.gz")[0] for fa in list_files(fasta_dir, "gz")
-    ]
+    if expand:
+        return [
+            os.path.join(out, os.path.basename(fa).split(".fna.gz")[0] + ext)
+            for fa in list_files(fasta_dir, "gz")
+        ]
+    else:
+        return os.path.join(fasta_dir, f"{{fasta}}.{ext}")
 
 
 def get_value(table, wildcards, value):

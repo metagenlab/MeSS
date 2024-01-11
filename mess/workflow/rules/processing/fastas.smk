@@ -1,6 +1,8 @@
 rule unzip_fasta:
     input:
-        get_fasta,
+        lambda wildcards: list_fastas(
+            wildcards, out=dir.out.fasta, ext="fna.gz", expand=False
+        ),
     output:
         temp(os.path.join(dir.out.fasta, "{fasta}.fa")),
     benchmark:
@@ -35,7 +37,7 @@ rule merge_contigs:
 
 checkpoint split_contigs:
     input:
-        expand(os.path.join(dir.out.fasta, "{fasta}.renamed"), fasta=FASTAS),
+        lambda wildcards: list_fastas(wildcards, out=dir.out.fasta, ext="renamed"),
     output:
         temp(os.path.join(dir.out.fasta, "split", "split.tsv")),
     params:
