@@ -106,7 +106,7 @@ def common_options(func):
             default=snake_base(os.path.join("config", "config.yaml")),
             hidden=True,
         ),
-        click.argument("snake_args", nargs=-1, type=click.UNPROCESSED),
+        click.argument("snake_args", nargs=-1),
     ]
     for option in reversed(options):
         func = option(func)
@@ -159,6 +159,25 @@ Available targets:
     print_targets   List available targets
 """
 
+help_download = """
+\b
+downloads genomes from entries in input table(s)
+mess download ...
+\b
+EXAMPLES:
+mess download -i [input] -o [output]
+"""
+
+help_simulate = """
+\b
+simulate reads from input table(s) and genome(s)
+mess simulate ...
+\b
+EXAMPLES:
+mess simulate -i [input] -o [output] --fasta [fasta] \\
+    --asm-summary [asm_summary] --tech [tech] 
+"""
+
 
 @click.command(
     epilog=help_msg_extra,
@@ -166,7 +185,7 @@ Available targets:
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option("-i", "--input", help="Input file/directory", type=str, required=True)
+@click.option("-i", "--input", help="Input sample sheet(s)", type=str, required=True)
 @common_options
 def run(**kwargs):
     """Run MeSS"""
@@ -182,7 +201,12 @@ def run(**kwargs):
     )
 
 
-@click.command()
+@click.command(
+    epilog=help_download,
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    ),
+)
 @click.option("-i", "--input", help="Input file/directory", type=str, required=True)
 @click.option("--ncbi_key", help="NCBI key", type=str, required=False)
 @click.option("--ncbi_email", help="NCBI email", type=str, required=False)
@@ -203,6 +227,7 @@ def download(input, output, log, ncbi_email, ncbi_key, **kwargs):
         # Full path to Snakefile
         snakefile_path=snake_base(os.path.join("workflow", "download.smk")),
         merge_config=merge_config,
+        log=log,
         **kwargs,
     )
 
@@ -229,7 +254,12 @@ profiles = {
 }
 
 
-@click.command()
+@click.command(
+    epilog=help_simulate,
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    ),
+)
 @click.option("-i", "--input", help="path to sample sheet(s)", type=str, required=True)
 @click.option(
     "--fasta",
@@ -239,7 +269,7 @@ profiles = {
 )
 @click.option(
     "--asm-summary",
-    help="path to assembly summary table (contains taxid, genome_size and contig_counts)",
+    help="path to assembly summary table (contains taxid and genome_size)",
     type=str,
     required=True,
 )
@@ -268,10 +298,10 @@ profiles = {
     show_default=True,
 )
 @click.option(
-    "--err-profile",
-    help="choose simulator profile",
+    "--error",
+    help="choose simulator error profile",
     type=str,
-    default="MSv3",
+    default=profiles["illumina"]["art"][0],
     show_default=True,
 )
 @click.option(
@@ -378,7 +408,8 @@ def simulate(
     fasta,
     asm_summary,
     tech,
-    err_profile,
+    tool,
+    error,
     replicates,
     rep_sd,
     dist,
@@ -405,7 +436,8 @@ def simulate(
             "log": log,
             "fasta": fasta,
             "tech": tech,
-            "err_profile": err_profile,
+            "tool": tool,
+            "error": error,
             "asm_summary": asm_summary,
             "replicates": replicates,
             "rep_sd": rep_sd,
