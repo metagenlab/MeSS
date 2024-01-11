@@ -69,7 +69,7 @@ include: os.path.join("rules", "processing", "fastas.smk")
 
 
 # simulators options
-ERR_PROFILE = config.args.err_profile
+ERROR = config.args.error
 BAM = config.args.bam
 MIN_LEN = config.args.min_len
 MAX_LEN = config.args.max_len
@@ -80,6 +80,8 @@ if SEQ_TECH == "illumina":
     include: os.path.join("rules", "simulate", "short_reads.smk")
 
 else:
+    MODEL = ""
+    RATIO = ""
     PASSES = config.args.passes
     ACCURACY = config.args.accuracy
     if SEQ_TECH == "pacbio":
@@ -87,9 +89,9 @@ else:
         RATIO = "22:45:33"
     elif SEQ_TECH == "nanopore":
         RATIO = "39:24:36"
-        if ERR_PROFILE == "r10.4":
+        if ERROR == "r10.4":
             MODEL = "QSHMM-ONT-HQ"
-        elif ERR_PROFILE == "r10.3":
+        elif ERROR == "r10.3":
             MODEL = "QSHMM-ONT"
 
     include: os.path.join("rules", "simulate", "long_reads.smk")

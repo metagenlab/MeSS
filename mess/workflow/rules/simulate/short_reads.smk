@@ -34,7 +34,7 @@ rule art_illumina:
         os.path.join(dir.env, "art.yml")
     params:
         args=art_args,
-        system=ERR_PROFILE,
+        system=ERROR,
         read_len=MEAN_LEN,
         cov=lambda wildcards, input: get_value(input.df, wildcards, "cov_sim"),
         seed=lambda wildcards, input: int(get_value(input.df, wildcards, "seed")),
