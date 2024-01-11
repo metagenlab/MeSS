@@ -59,12 +59,7 @@ MEAN_LEN = config.args.mean_len
 
 # calculate coverages
 include: os.path.join("rules", "processing", "coverages.smk")
-
-
 # process fasta
-FASTAS = parse_fastas()
-
-
 include: os.path.join("rules", "processing", "fastas.smk")
 
 
