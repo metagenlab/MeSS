@@ -19,8 +19,8 @@ if SEQ_TECH == "illumina":
             """
 
     fastq_gz = [
-        temp(os.path.join(dir.out.fastq, "{sample}", "{fasta}1.fq.gz")),
-        temp(os.path.join(dir.out.fastq, "{sample}", "{fasta}2.fq.gz")),
+        temp(os.path.join(dir.out.short, "{sample}", "{fasta}1.fq.gz")),
+        temp(os.path.join(dir.out.short, "{sample}", "{fasta}2.fq.gz")),
     ]
 
     rule compress_fastq:
