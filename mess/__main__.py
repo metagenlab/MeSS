@@ -7,110 +7,18 @@ https://github.com/beardymcjohnface/Snaketool/wiki/Customising-your-Snaketool
 
 import os
 import click
-
 from snaketool_utils.cli_utils import (
     OrderedCommands,
     run_snakemake,
     copy_config,
-    echo_click,
 )
-
-
-def snake_base(rel_path):
-    """Get the filepath to a Snaketool system file (relative to __main__.py)"""
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), rel_path)
-
-
-def get_version():
-    """Read and print the version from the version file"""
-    with open(snake_base("mess.VERSION"), "r") as f:
-        version = f.readline()
-    return version
-
-
-def print_citation():
-    """Read and print the Citation information from the citation file"""
-    with open(snake_base("mess.CITATION"), "r") as f:
-        for line in f:
-            echo_click(line)
-
-
-def default_to_output(ctx, param, value):
-    """Callback for click options; places value in output directory unless specified"""
-    if param.default == value:
-        return os.path.join(ctx.params["output"], value)
-    return value
-
-
-def common_options(func):
-    """Common command line args
-    Define common command line args here, and include them with the @common_options decorator below.
-    """
-    options = [
-        click.option(
-            "-o",
-            "--output",
-            help="Output directory",
-            type=click.Path(dir_okay=True, writable=True, readable=True),
-            default="mess_out",
-            show_default=True,
-        ),
-        click.option(
-            "--configfile",
-            default="config.yaml",
-            show_default=False,
-            callback=default_to_output,
-            help="Custom config file [default: (outputDir)/config.yaml]",
-        ),
-        click.option(
-            "--threads", help="Number of threads to use", default=1, show_default=True
-        ),
-        click.option(
-            "--profile",
-            default=None,
-            help="Snakemake profile to use",
-            show_default=False,
-        ),
-        click.option(
-            "--use-conda/--no-use-conda",
-            default=True,
-            help="Use conda for Snakemake rules",
-            show_default=True,
-        ),
-        click.option(
-            "--conda-prefix",
-            default=snake_base(os.path.join("workflow", "conda")),
-            help="Custom conda env directory",
-            type=click.Path(),
-            show_default=False,
-        ),
-        click.option(
-            "--snake-default",
-            multiple=True,
-            default=[
-                "--printshellcmds",
-                "--nolock",
-                "--show-failed-logs",
-            ],
-            help="Customise Snakemake runtime args",
-            show_default=True,
-        ),
-        click.option(
-            "--log",
-            default="mess.log",
-            callback=default_to_output,
-            hidden=True,
-        ),
-        click.option(
-            "--system-config",
-            default=snake_base(os.path.join("config", "config.yaml")),
-            hidden=True,
-        ),
-        click.argument("snake_args", nargs=-1),
-    ]
-    for option in reversed(options):
-        func = option(func)
-    return func
+from .util import (
+    snake_base,
+    get_version,
+    print_citation,
+    common_options,
+    sim_options,
+)
 
 
 version = get_version()
@@ -186,11 +94,67 @@ mess simulate -i [input] -o [output] --fasta [fasta] \\
     ),
 )
 @click.option("-i", "--input", help="Input sample sheet(s)", type=str, required=True)
+@click.option("--ncbi_key", help="NCBI key", type=str, required=False, default="none")
+@click.option(
+    "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
+)
 @common_options
-def run(**kwargs):
+@sim_options
+def run(
+    input,
+    output,
+    log,
+    ncbi_email,
+    ncbi_key,
+    tech,
+    tool,
+    error,
+    replicates,
+    rep_sd,
+    dist,
+    mu,
+    sigma,
+    total_bases,
+    accuracy,
+    passes,
+    min_len,
+    max_len,
+    mean_len,
+    sd_len,
+    bam,
+    paired,
+    seed,
+    **kwargs
+):
     """Run MeSS"""
     # Config to add or update in configfile
-    merge_config = {"args": kwargs}
+    merge_config = {
+        "args": {
+            "input": input,
+            "output": output,
+            "log": log,
+            "ncbi_email": ncbi_email,
+            "ncbi_key": ncbi_key,
+            "tech": tech,
+            "tool": tool,
+            "error": error,
+            "replicates": replicates,
+            "rep_sd": rep_sd,
+            "dist": dist,
+            "mu": mu,
+            "sigma": sigma,
+            "total_bases": total_bases,
+            "accuracy": accuracy,
+            "passes": passes,
+            "min_len": min_len,
+            "max_len": max_len,
+            "mean_len": mean_len,
+            "sd_len": sd_len,
+            "bam": bam,
+            "paired": paired,
+            "seed": seed,
+        }
+    }
 
     # run!
     run_snakemake(
@@ -208,8 +172,10 @@ def run(**kwargs):
     ),
 )
 @click.option("-i", "--input", help="Input file/directory", type=str, required=True)
-@click.option("--ncbi_key", help="NCBI key", type=str, required=False)
-@click.option("--ncbi_email", help="NCBI email", type=str, required=False)
+@click.option("--ncbi_key", help="NCBI key", type=str, required=False, default="none")
+@click.option(
+    "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
+)
 @common_options
 def download(input, output, log, ncbi_email, ncbi_key, **kwargs):
     """download assemblies"""
@@ -232,28 +198,6 @@ def download(input, output, log, ncbi_email, ncbi_key, **kwargs):
     )
 
 
-profiles = {
-    "illumina": {
-        "art": [
-            "MSv3",
-            "GA1",
-            "GA2",
-            "HS10",
-            "HS20",
-            "HS25",
-            "HSXn",
-            "HSXt",
-            "MinS",
-            "MSv1",
-            "NS50",
-            "custom",
-        ]
-    },
-    "pacbio": {"pbsim3": ["clr", "hifi"]},
-    "nanopore": {"pbsim3": ["r10.4", "r10.3"]},
-}
-
-
 @click.command(
     epilog=help_simulate,
     context_settings=dict(
@@ -261,6 +205,7 @@ profiles = {
     ),
 )
 @click.option("-i", "--input", help="path to sample sheet(s)", type=str, required=True)
+@sim_options
 @click.option(
     "--fasta",
     help="path to fasta file/directory",
@@ -272,133 +217,6 @@ profiles = {
     help="path to assembly summary table (contains taxid and genome_size)",
     type=str,
     required=True,
-)
-@click.option(
-    "--tech",
-    help="sequencing technology",
-    type=click.Choice(["illumina", "pacbio", "nanopore"], case_sensitive=False),
-    default="illumina",
-    show_default=True,
-)
-@click.option(
-    "--paired",
-    help="illumina reads pairing",
-    type=bool,
-    default=True,
-    show_default=True,
-)
-@click.option(
-    "--tool",
-    help="choose simulator",
-    type=click.Choice(
-        ["art", "pbsim3"],
-        case_sensitive=False,
-    ),
-    default="art",
-    show_default=True,
-)
-@click.option(
-    "--error",
-    help="choose simulator error profile",
-    type=str,
-    default=profiles["illumina"]["art"][0],
-    show_default=True,
-)
-@click.option(
-    "--replicates",
-    help="number of replicates per sample",
-    type=int,
-    default=1,
-    show_default=True,
-)
-@click.option(
-    "--rep-sd",
-    help="standard deviation between replicate coverages (0: no deviation)",
-    type=int,
-    default=0,
-    show_default=True,
-)
-@click.option(
-    "--dist",
-    help="sample genome coverage values from a distribution",
-    type=click.Choice(["none", "lognormal", "even"]),
-    default="none",
-    show_default=True,
-)
-@click.option(
-    "--mu",
-    help="mu of lognormal dist",
-    type=int,
-    default=1,
-)
-@click.option(
-    "--sigma",
-    help="sigma of lognormal dist",
-    type=int,
-    default=0,
-)
-@click.option(
-    "--total-bases",
-    help="total amount of bases to simulate (ignored when coverage is set)",
-    type=str,
-    default="1G",
-    show_default=True,
-)
-@click.option(
-    "--accuracy",
-    help="mean accuracy for long read sequencing",
-    type=float,
-    default=0.9,
-    show_default=True,
-)
-@click.option(
-    "--passes",
-    help="number of passes for pacbio multipass sequencing (2 or more for hifi)",
-    type=int,
-    default=1,
-    show_default=True,
-)
-@click.option(
-    "--min-len",
-    help="minimum read length for long read sequencing",
-    type=int,
-    default=100,
-    show_default=True,
-)
-@click.option(
-    "--max-len",
-    help="maximum read length for long read sequencing",
-    type=int,
-    default=300,
-    show_default=True,
-)
-@click.option(
-    "--mean-len",
-    help="mean read length for long and short read sequencing",
-    type=int,
-    default=150,
-    show_default=True,
-)
-@click.option(
-    "--sd-len",
-    help="standard read length deviation for long read sequencing",
-    type=int,
-    default=50,
-    show_default=True,
-)
-@click.option(
-    "--bam",
-    help="generate gold standard alignment bam files",
-    type=bool,
-    default=False,
-    show_default=True,
-)
-@click.option(
-    "--seed",
-    help="seed for pseudo random number generator",
-    type=int,
-    default=42,
-    show_default=True,
 )
 @common_options
 def simulate(
