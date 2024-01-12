@@ -139,7 +139,7 @@ def run(
     bam,
     paired,
     seed,
-    **kwargs
+    **kwargs,
 ):
     """Run MeSS"""
     # Config to add or update in configfile
@@ -193,7 +193,7 @@ def run(
 )
 @common_options
 def download(input, output, log, ncbi_email, ncbi_key, **kwargs):
-    """download assemblies"""
+    """Download assemblies"""
     # Config to add or update in configfile
     merge_config = {
         "args": {
@@ -258,9 +258,9 @@ def simulate(
     bam,
     paired,
     seed,
-    **kwargs
+    **kwargs,
 ):
-    """simulate reads"""
+    """Simulate reads from local fastas"""
     # Config to add or update in configfile
     merge_config = {
         "args": {
@@ -329,16 +329,29 @@ def test(**kwargs):
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
+@click.option(
+    "--site",
+    help="choose microbiome site",
+    type=click.Choice(["gut", "buccal_mucosa", "vagina", "throat"]),
+    required=True,
+    default="gut",
+)
+@click.option(
+    "--sample", help="choose sample template", type=str, required=False, default=None
+)
 @click.option("--ncbi_key", help="NCBI key", type=str, required=False, default="none")
 @click.option(
     "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
 )
 @sim_options
 @common_options
-def hmp_template(**kwargs):
+def hmp_template(site, sample, **kwargs):
     """Download and simulate healthy human microbiome templates"""
     # Config to add or update in configfile
-    kwargs["input"] = snake_base(os.path.join("data", "minimal_test.tsv"))
+    if sample == None:
+        kwargs["input"] = snake_base(os.path.join("data", site))
+    else:
+        kwargs["input"] = snake_base(os.path.join("data", site, f"{sample}.tsv"))
     merge_config = {"args": kwargs}
     run_snakemake(
         # Full path to Snakefile
@@ -365,6 +378,7 @@ cli.add_command(run)
 cli.add_command(download)
 cli.add_command(simulate)
 cli.add_command(test)
+cli.add_command(hmp_template)
 cli.add_command(config)
 cli.add_command(citation)
 
