@@ -92,6 +92,14 @@ test command to run mess from assembly download to read simulation
 EXAMPLES:
 mess test -o [output]
 """
+help_hmp_templates = """
+\b
+command to download and simulate healthy human microbiome templates
+\b
+EXAMPLES:
+mess hmp_template --site gut -o gut
+mess hmp_template --site buccal_mucosa --sample SRS013506 -o SRS013506
+"""
 
 
 @click.command(
@@ -306,6 +314,31 @@ def test(**kwargs):
     """Run mess on test data"""
     # Config to add or update in configfile
     kwargs["input"] = snake_base(os.path.join("test_data", "minimal_test.tsv"))
+    merge_config = {"args": kwargs}
+    run_snakemake(
+        # Full path to Snakefile
+        snakefile_path=snake_base(os.path.join("workflow", "Snakefile")),
+        merge_config=merge_config,
+        **kwargs,
+    )
+
+
+@click.command(
+    epilog=help_hmp_templates,
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    ),
+)
+@click.option("--ncbi_key", help="NCBI key", type=str, required=False, default="none")
+@click.option(
+    "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
+)
+@sim_options
+@common_options
+def hmp_template(**kwargs):
+    """Download and simulate healthy human microbiome templates"""
+    # Config to add or update in configfile
+    kwargs["input"] = snake_base(os.path.join("data", "minimal_test.tsv"))
     merge_config = {"args": kwargs}
     run_snakemake(
         # Full path to Snakefile
