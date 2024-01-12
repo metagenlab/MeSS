@@ -3,7 +3,7 @@ import glob
 import pandas as pd
 
 if os.path.isfile(snakemake.params[0]):
-    files = snakemake.params[0]
+    files = [snakemake.params[0]]
 else:
     files = glob.glob(f"{snakemake.params[0]}/*.tsv")
 

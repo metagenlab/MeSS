@@ -15,7 +15,7 @@ def list_files(indir, extensions):
 
 def parse_samples(indir, replicates):
     if os.path.isfile(indir):
-        files = indir
+        files = [indir]
     else:
         files = glob.glob(f"{indir}/*.tsv")
 
@@ -27,6 +27,7 @@ def parse_samples(indir, replicates):
             )
         except KeyError:
             samples.append(os.path.basename(file).split(".")[0])
+    samples = list(chain.from_iterable(samples))
     products = list(product(samples, replicates))
     return [prod[0] + "-" + str(prod[1]) for prod in products]
 
