@@ -85,6 +85,13 @@ EXAMPLES:
 mess simulate -i [input] -o [output] --fasta [fasta] \\
     --asm-summary [asm_summary] --tech [tech] 
 """
+help_test = """
+\b
+test command to run mess from assembly download to read simulation
+\b
+EXAMPLES:
+mess test -o [output]
+"""
 
 
 @click.command(
@@ -283,6 +290,31 @@ def simulate(
     )
 
 
+@click.command(
+    epilog=help_test,
+    context_settings=dict(
+        help_option_names=["-h", "--help"], ignore_unknown_options=True
+    ),
+)
+@click.option("--ncbi_key", help="NCBI key", type=str, required=False, default="none")
+@click.option(
+    "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
+)
+@sim_options
+@common_options
+def test(**kwargs):
+    """Run mess on test data"""
+    # Config to add or update in configfile
+    kwargs["input"] = snake_base(os.path.join("test_data", "minimal_test.tsv"))
+    merge_config = {"args": kwargs}
+    run_snakemake(
+        # Full path to Snakefile
+        snakefile_path=snake_base(os.path.join("workflow", "Snakefile")),
+        merge_config=merge_config,
+        **kwargs,
+    )
+
+
 @click.command()
 @common_options
 def config(configfile, system_config, **kwargs):
@@ -299,6 +331,7 @@ def citation(**kwargs):
 cli.add_command(run)
 cli.add_command(download)
 cli.add_command(simulate)
+cli.add_command(test)
 cli.add_command(config)
 cli.add_command(citation)
 
