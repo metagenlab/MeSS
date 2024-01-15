@@ -19,6 +19,15 @@ checkpoint download_assemblies:
     params:
         ncbi_key=NCBI_KEY,
         ncbi_email=NCBI_EMAIL,
+        nb=NB,
+        db=DB,
+        uid=UID,
+        alvl=ASM_LVL,
+        annot=ANNOT,
+        excl=EXCLUDE,
+        rank=RANK,
+        nr=NB_RANK,
+        ete=ETE_DB,
         out=os.path.join(dir.out.base, "download"),
     threads: config.resources.med.cpu
     benchmark:
@@ -27,11 +36,20 @@ checkpoint download_assemblies:
         os.path.join(dir.out.logs, "download", "download.log"),
     shell:
         """
-        assembly_finder \\
-        -i {input} \\
-        -o {params.out} \\
-        -nk {params.ncbi_key} \\
-        -ne {params.ncbi_email} \\
+        assembly_finder \
+        -i {input} \
+        -nk {params.ncbi_key} \
+        -ne {params.ncbi_email} \
+        -nb {params.nb} \
+        -db {params.db} \
+        -id {params.uid} \
+        -al {params.alvl} \
+        -an {params.annot} \
+        -ex {params.excl} \
+        -r {params.rank} \
+        -nr {params.nr} \
+        -et {params.ete} \
+        -o {params.out} \
         --nolock 2> {log}
         assembly_finder -v > {output.version}
         """

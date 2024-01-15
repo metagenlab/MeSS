@@ -17,6 +17,7 @@ from .util import (
     get_version,
     print_citation,
     common_options,
+    download_options,
     sim_options,
 )
 
@@ -109,10 +110,7 @@ mess hmp_template --site buccal_mucosa --sample SRS013506 -o SRS013506
     ),
 )
 @click.option("-i", "--input", help="Input sample sheet(s)", type=str, required=True)
-@click.option("--ncbi_key", help="NCBI key", type=str, required=False, default="none")
-@click.option(
-    "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
-)
+@download_options
 @common_options
 @sim_options
 def run(
@@ -187,10 +185,7 @@ def run(
     ),
 )
 @click.option("-i", "--input", help="Input file/directory", type=str, required=True)
-@click.option("--ncbi_key", help="NCBI key", type=str, required=False, default="none")
-@click.option(
-    "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
-)
+@download_options
 @common_options
 def download(input, output, log, ncbi_email, ncbi_key, **kwargs):
     """Download assemblies"""
@@ -304,10 +299,7 @@ def simulate(
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option("--ncbi_key", help="NCBI key", type=str, required=False, default="none")
-@click.option(
-    "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
-)
+@download_options
 @sim_options
 @common_options
 def test(**kwargs):
@@ -339,10 +331,7 @@ def test(**kwargs):
 @click.option(
     "--sample", help="choose sample template", type=str, required=False, default=None
 )
-@click.option("--ncbi_key", help="NCBI key", type=str, required=False, default="none")
-@click.option(
-    "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
-)
+@download_options
 @sim_options
 @common_options
 def hmp_template(site, sample, **kwargs):

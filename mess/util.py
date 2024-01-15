@@ -31,7 +31,7 @@ def default_to_output(ctx, param, value):
 
 def common_options(func):
     """Common command line args
-    Define common command line args here, and include them with the common_options decorator below.
+    Define common command line args here, and include them with the common_options decorator.
     """
     options = [
         click.option(
@@ -102,7 +102,7 @@ def common_options(func):
 
 def sim_options(func):
     """Reads simulation command line args
-    include simulate args with the sim_options decorator below.
+    include simulate args with the sim_options decorator.
     """
     options = [
         click.option(
@@ -230,6 +230,113 @@ def sim_options(func):
             help="seed for pseudo random number generator",
             type=int,
             default=42,
+            show_default=True,
+        ),
+    ]
+
+    for option in reversed(options):
+        func = option(func)
+    return func
+
+
+def download_options(func):
+    """Assembly finder command line args
+    include download args with the download_options decorator.
+    """
+    options = [
+        click.option(
+            "--db",
+            type=click.Choice(["refseq", "genbank"], case_sensitive=False),
+            help="download from refseq or genbank",
+            default="refseq",
+            show_default=True,
+        ),
+        click.option(
+            "--uid",
+            help="are inputs UIDs or assembly names",
+            type=str,
+            default=False,
+            show_default=True,
+        ),
+        click.option(
+            "--rc",
+            type=str,
+            help="select reference, representative or all",
+            default="all",
+            show_default=True,
+        ),
+        click.option(
+            "--al",
+            type=str,
+            help="select complete, chromosome, scaffold, contig or all",
+            default="complete",
+            show_default=True,
+        ),
+        click.option(
+            "--an",
+            type=click.Choice(["False", "True"]),
+            help="select assemblies with annotation",
+            default="False",
+            show_default=True,
+        ),
+        click.option(
+            "--rank",
+            help="taxonomic rank to filter by assemblies ",
+            default="none",
+            type=click.Choice(
+                [
+                    "superkingdom",
+                    "phylum",
+                    "class",
+                    "order",
+                    "family",
+                    "genus",
+                    "species",
+                    "none",
+                ],
+                case_sensitive=False,
+            ),
+            show_default=True,
+        ),
+        click.option(
+            "--nr",
+            help="max number of genome by target rank (example: 1 per species)",
+            type=str,
+            default="none",
+            show_default=True,
+        ),
+        click.option(
+            "--ete_db",
+            type=str,
+            default=os.path.join(os.environ["HOME"], ".etetoolkit"),
+            help="path where to save/find ete taxa.sqlite file",
+            show_default=True,
+        ),
+        click.option(
+            "--ncbi_key", help="NCBI key", type=str, required=False, default="none"
+        ),
+        click.option(
+            "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
+        ),
+        click.option(
+            "--nb",
+            help="number of assemblies per entry",
+            type=str,
+            default="all",
+            show_default=True,
+        ),
+        click.option(
+            "--suffixes",
+            type=str,
+            help="suffix of files to download from NCBI's ftp",
+            default="assembly_report.txt,genomic.fna.gz",
+            show_default=True,
+        ),
+        click.option(
+            "--exclude",
+            type=str,
+            help="filter to exclude assemblies (example: exclude from metagenomes)",
+            default="metagenome",
             show_default=True,
         ),
     ]

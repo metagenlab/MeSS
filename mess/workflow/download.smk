@@ -37,6 +37,15 @@ LOG = os.path.join(OUTPUT, "mess.log")
 THREADS = config.args.threads
 NCBI_EMAIL = config.args.ncbi_email
 NCBI_KEY = config.args.ncbi_key
+DB = config.args.db
+UID = config.args.uid
+ASM_LVL = config.args.al
+ANNOT = config.args.an
+RANK = config.args.rank
+NB_RANK = config.args.nr
+ETE_DB = config.args.ete_db
+NB = config.args.nb
+EXCLUDE = config.args.exclude
 
 
 # functions
