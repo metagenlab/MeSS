@@ -1,6 +1,6 @@
 art_args = ""
 if PAIRED:
-    art_args += f"-p -m {MAX_LEN} -s {SD_LEN}"
+    art_args += f"-p -m {FRAG_LEN} -s {FRAG_SD}"
 if BAM:
     art_args += " -sam"
 

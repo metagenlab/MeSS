@@ -170,8 +170,8 @@ def sim_options(func):
             default=0,
         ),
         click.option(
-            "--total-bases",
-            help="total amount of bases to simulate (ignored when coverage is set)",
+            "--bases",
+            help="per sample base counts (ignored when coverage is set)",
             type=str,
             default="1G",
             show_default=True,
@@ -205,6 +205,13 @@ def sim_options(func):
             show_default=True,
         ),
         click.option(
+            "--sd-len",
+            help="standard read length deviation for long read sequencing",
+            type=int,
+            default=50,
+            show_default=True,
+        ),
+        click.option(
             "--mean-len",
             help="mean read length for long and short read sequencing",
             type=int,
@@ -212,10 +219,17 @@ def sim_options(func):
             show_default=True,
         ),
         click.option(
-            "--sd-len",
-            help="standard read length deviation for long read sequencing",
+            "--frag-len",
+            help="Fragment length for paird short read sequencing",
             type=int,
-            default=50,
+            default=170,
+            show_default=True,
+        ),
+        click.option(
+            "--frag-sd",
+            help="Fragment length standard deviation for paird short read sequencing",
+            type=int,
+            default=17,
             show_default=True,
         ),
         click.option(

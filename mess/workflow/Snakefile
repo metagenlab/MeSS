@@ -76,6 +76,8 @@ PAIRED = config.args.paired
 if not SEQ_TECH == "illumina":
     PAIRED = False
 if PAIRED:
+    FRAG_LEN = config.args.frag_len
+    FRAG_SD = config.args.frag_sd
     PAIRS = [1, 2]
 else:
     PAIRS = [1]
