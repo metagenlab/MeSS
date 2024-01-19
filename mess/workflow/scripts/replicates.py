@@ -16,7 +16,7 @@ samples_df["samplename"] = [
 ]
 
 samples_df.drop(["sample", "rep"], axis=1, inplace=True)
-accepted_cols = ["proportion", "reads", "bases", "cov_sim"]
+accepted_cols = ["abundance", "proportion", "reads", "bases", "cov_sim"]
 
 for col in accepted_cols:
     try:
