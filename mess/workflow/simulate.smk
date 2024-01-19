@@ -42,7 +42,7 @@ include: os.path.join("rules", "preflight", "samples.smk")
 # coverage options
 SEQ_TECH = config.args.tech
 ASM_SUMMARY = config.args.asm_summary
-TOTAL_BASES = config.args.total_bases
+BASES = config.args.bases
 PAIRED = config.args.paired
 if not SEQ_TECH == "illumina":
     PAIRED = False

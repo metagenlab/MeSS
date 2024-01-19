@@ -23,7 +23,7 @@ checkpoint calculate_coverage:
         dist=DIST,
         mu=MU,
         sigma=SIGMA,
-        total_bases=TOTAL_BASES,
+        bases=BASES,
         read_len=MEAN_LEN,
         pairing=PAIRED,
         seed=SEED,
