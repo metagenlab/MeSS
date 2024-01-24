@@ -5,9 +5,9 @@
 [![version](https://img.shields.io/conda/v/bioconda/mess?label=version&color=blue)](http://bioconda.github.io/recipes/mess/README.html)
 [![downloads](https://img.shields.io/conda/dn/bioconda/mess.svg)](https://anaconda.org/bioconda/mess)
 
-MeSS is a Snakemake pipeline, implemented using [Snaketool](https://github.com/beardymcjohnface/Snaketool), for simulating illumina, Oxford Nanopore (ONT) and Pacific Bioscience (PacBio) shotgun metagenomic samples.
+Metagenomic Sequence Simulator (MeSS) is a Snakemake pipeline, implemented using [Snaketool](https://github.com/beardymcjohnface/Snaketool), for simulating illumina, Oxford Nanopore (ONT) and Pacific Bioscience (PacBio) shotgun metagenomic samples.
 
-For more details check : http://metagenomic-sequence-simulator-mess.readthedocs.io/
+For more details check [metagenomic-sequence-simulator-mess.readthedocs.io](https://metagenomic-sequence-simulator-mess.readthedocs.io)
 
 ## Installation
 
