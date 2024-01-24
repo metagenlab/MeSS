@@ -27,29 +27,31 @@ def parse_samples(indir, replicates):
             )
         except KeyError:
             samples.append(os.path.basename(file).split(".")[0])
-    samples = list(chain.from_iterable(samples))
+    if any(isinstance(sample, list) for sample in samples):
+        samples = list(chain.from_iterable(samples))
     products = list(product(samples, replicates))
     return [prod[0] + "-" + str(prod[1]) for prod in products]
 
 
-def list_fastas(wildcards, out=None, ext=None, expand=True):
-    try:
-        assert (ap.utils.to_dict(config.args)["fasta"]) is not None
-        fasta_dir = os.path.abspath(config.args.fasta)
-
-    except (KeyError, AssertionError):
-        checkpoint_dir = os.path.dirname(
-            checkpoints.download_assemblies.get(**wildcards).output[0]
-        )
-        fasta_dir = os.path.join(checkpoint_dir, "assemblies")
-
-    if expand:
-        return [
-            os.path.join(out, os.path.basename(fa).split(".fna.gz")[0] + ext)
-            for fa in list_files(fasta_dir, "gz")
-        ]
+def fasta_input(wildcards):
+    table = checkpoints.calculate_coverage.get(**wildcards).output[0]
+    df = pd.read_csv(table, sep="\t")
+    basedir = os.path.dirname(df["path"][0])
+    if COMPRESSED:
+        return os.path.join(basedir, "{fasta}.fna.gz")
     else:
-        return os.path.join(fasta_dir, f"{{fasta}}.{ext}")
+        return os.path.join(basedir, "{fasta}.fna")
+
+
+def list_fastas(wildcards, contigs=False):
+    table = checkpoints.calculate_coverage.get(**wildcards).output[0]
+    df = pd.read_csv(table, sep="\t")
+    paths = list(set(df["path"]))
+    fastas = list(set(df["fasta"]))
+    if contigs:
+        return expand(os.path.join(dir.out.fasta, "{fasta}.renamed"), fasta=fastas)
+    else:
+        return paths
 
 
 def get_value(table, wildcards, value):
@@ -89,7 +91,7 @@ def list_cat(wildcards, ext):
             )
     elif ext == "bam":
         return expand(
-            os.path.join(dir.out.fastq, "{{sample}}", "{fasta}.bam"),
+            os.path.join(dir.out.bam, "{{sample}}", "{fasta}.bam"),
             fasta=fastas,
         )
 
