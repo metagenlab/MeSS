@@ -41,7 +41,7 @@ if SEQ_TECH == "illumina":
 
 rule merge_bams:
     input:
-        lambda wildcards: list_concat(wildcards, "bam"),
+        lambda wildcards: list_cat(wildcards, "bam"),
     output:
         os.path.join(dir.out.bam, "{sample}.bam"),
     conda:
