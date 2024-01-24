@@ -1,8 +1,22 @@
 art_args = ""
+if CUSTOM_ERR == None:
+    art_args += f"-ss {ERROR} "
+if CUSTOM_ERR:
+    custom_profile = [
+        os.path.abspath(file) for file in sorted(glob.glob(f"{CUSTOM_ERR}*"))
+    ]
+    if PAIRED:
+        art_args += f"-1 {custom_profile[0]} -2 {custom_profile[1]} "
+    else:
+        art_args += f"-1 {custom_profile[0]} "
+
+
 if PAIRED:
-    art_args += f"-p -m {FRAG_LEN} -s {FRAG_SD}"
+    art_args += f"-p -m {FRAG_LEN} -s {FRAG_SD} "
+
+
 if BAM:
-    art_args += " -sam"
+    art_args += "-sam"
 
 
 sam_out = []
@@ -34,7 +48,6 @@ rule art_illumina:
         os.path.join(dir.env, "art.yml")
     params:
         args=art_args,
-        system=ERROR,
         read_len=MEAN_LEN,
         cov=lambda wildcards, input: get_value(input.df, wildcards, "cov_sim"),
         seed=lambda wildcards, input: int(get_value(input.df, wildcards, "seed")),
@@ -45,9 +58,9 @@ rule art_illumina:
         os.path.join(dir.out.logs, "art", "{sample}", "{fasta}.log"),
     shell:
         """
-        art_illumina -ss {params.system} \\
-        -i {input.fasta} -rs {params.seed} \\
-        -l {params.read_len} -f {params.cov} \\
-        -na {params.args} -o {params.prefix} &> {log}
+        art_illumina -i {input.fasta}  \\
+        -rs {params.seed} -l {params.read_len} \\
+        -f {params.cov} -na {params.args} \\
+        -o {params.prefix} &> {log}
         touch {output.sam}
         """
