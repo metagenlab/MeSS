@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import os
 from humanfriendly import parse_size
 import random
 
@@ -49,9 +48,12 @@ else:
 
 
 # Get table with assembly genomsizes and their taxonomy
-entry_df = pd.read_csv(snakemake.input.df, sep="\t", dtype={"entry": object})
-asm_df = pd.read_csv(snakemake.input.asm, sep="\t", dtype={"entry": object})
-df = entry_df.merge(asm_df, on="entry")
+entry_df = pd.read_csv(snakemake.input.df, sep="\t")
+
+asm_df = pd.read_csv(snakemake.input.asm, sep="\t")
+same_cols = list(np.intersect1d(entry_df.columns, asm_df.columns))
+df = pd.merge(entry_df, asm_df, how="left", on=same_cols)
+
 
 # Get base count per sample
 bases = parse_size(snakemake.params.bases)
@@ -94,7 +96,7 @@ else:
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
         df["abundance"] = df["cov_sim"] / df["sum_cov"]
 
-    elif "reads" in entry_df.columns:
+    if "reads" in entry_df.columns:
         df["reads"] = df["reads"] / df["count"]
         df["bases"] = df["reads"] * (snakemake.params.read_len * p)
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
@@ -103,7 +105,7 @@ else:
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
         df["abundance"] = df["cov_sim"] / df["sum_cov"]
 
-    elif "bases" in entry_df.columns:
+    if "bases" in entry_df.columns:
         df["bases"] = df["bases"] / df["count"]
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
@@ -122,13 +124,14 @@ else:
         df["proportion"] = df["bases"] / df["sum_bases"]
 
 
-df["fasta"] = [os.path.basename(fa).split(".fna.gz")[0] for fa in df["path"]]
+df["fasta"] = [str(fa).split("/")[-1].split(".fna.gz")[0] for fa in df["path"]]
 df["seed"] = random.sample(range(1, 1000000), len(df))
 
 cols = [
     "samplename",
     "entry",
     "fasta",
+    "path",
     "taxid",
     "genome_size",
     "contig_count",
@@ -139,6 +142,6 @@ cols = [
     "abundance",
     "seed",
 ]
-df = df.astype({"bases": int, "reads": int, "seed": int})
+df = df.astype({"seed": int})
 df[cols].to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
 df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
