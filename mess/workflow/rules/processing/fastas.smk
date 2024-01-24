@@ -1,19 +1,19 @@
-rule unzip_fasta:
-    input:
-        lambda wildcards: list_fastas(
-            wildcards, out=dir.out.fasta, ext="fna.gz", expand=False
-        ),
-    output:
-        temp(os.path.join(dir.out.fasta, "{fasta}.fa")),
-    benchmark:
-        os.path.join(dir.out.bench, "fasta", "unzip", "{fasta}.txt")
-    shell:
-        "zcat {input} > {output}"
+if COMPRESSED:
+
+    rule unzip_fasta:
+        input:
+            fasta_input,
+        output:
+            temp(os.path.join(dir.out.fasta, "{fasta}.fa")),
+        benchmark:
+            os.path.join(dir.out.bench, "fasta", "unzip", "{fasta}.txt")
+        shell:
+            "zcat {input} > {output}"
 
 
 rule rename_headers:
     input:
-        os.path.join(dir.out.fasta, "{fasta}.fa"),
+        os.path.join(dir.out.fasta, "{fasta}.fa") if COMPRESSED else fasta_input,
     output:
         temp(os.path.join(dir.out.fasta, "{fasta}.renamed")),
     benchmark:
@@ -37,7 +37,7 @@ rule merge_contigs:
 
 checkpoint split_contigs:
     input:
-        lambda wildcards: list_fastas(wildcards, out=dir.out.fasta, ext="renamed"),
+        lambda wildcards: list_fastas(wildcards, contigs=True),
     output:
         temp(os.path.join(dir.out.fasta, "split", "split.tsv")),
     params:
