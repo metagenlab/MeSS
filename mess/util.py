@@ -106,6 +106,13 @@ def sim_options(func):
     """
     options = [
         click.option(
+            "--compressed",
+            help="if fastas are compressed",
+            type=bool,
+            default=True,
+            required=False,
+        ),
+        click.option(
             "--tech",
             help="sequencing technology",
             type=click.Choice(["illumina", "pacbio", "nanopore"], case_sensitive=False),
@@ -134,6 +141,13 @@ def sim_options(func):
             help="choose simulator error profile",
             type=str,
             default="MSv3",
+            show_default=True,
+        ),
+        click.option(
+            "--custom-err",
+            help="Path to art custom error profile basename",
+            type=str,
+            default=None,
             show_default=True,
         ),
         click.option(

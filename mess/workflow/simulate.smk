@@ -61,11 +61,17 @@ MEAN_LEN = config.args.mean_len
 
 # calculate coverages
 include: os.path.join("rules", "processing", "coverages.smk")
+
+
 # process fasta
+COMPRESSED = config.args.compressed
+
+
 include: os.path.join("rules", "processing", "fastas.smk")
 
 
 # simulators options
+CUSTOM_ERR = config.args.custom_err
 ERROR = config.args.error
 BAM = config.args.bam
 MIN_LEN = config.args.min_len
