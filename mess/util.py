@@ -334,17 +334,17 @@ def download_options(func):
             show_default=True,
         ),
         click.option(
-            "--ete_db",
+            "--ete-db",
             type=str,
             default=os.path.join(os.environ["HOME"], ".etetoolkit"),
             help="path where to save/find ete taxa.sqlite file",
             show_default=True,
         ),
         click.option(
-            "--ncbi_key", help="NCBI key", type=str, required=False, default="none"
+            "--ncbi-key", help="NCBI key", type=str, required=False, default="none"
         ),
         click.option(
-            "--ncbi_email", help="NCBI email", type=str, required=False, default="none"
+            "--ncbi-email", help="NCBI email", type=str, required=False, default="none"
         ),
         click.option(
             "--nb",
