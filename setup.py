@@ -42,7 +42,7 @@ setup(
     name="mess",
     packages=find_packages(),
     url="https://github.com/metagenlab/MeSS",
-    python_requires=">=3.11",
+    python_requires=">=3.9",
     description="Snakemake pipeline for simulating short and long read metagenomes",
     long_description=get_description(),
     long_description_content_type="text/markdown",
@@ -53,7 +53,7 @@ setup(
     py_modules=["mess"],
     install_requires=[
         "snaketool-utils>=0.0.4",
-        "snakemake>=8.2.3",
+        "snakemake>=7.32.4",
         "attrmap>=0.0.5",
         "pyyaml>=6.0",
         "Click>=8.1.3",
