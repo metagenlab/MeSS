@@ -54,7 +54,6 @@ asm_df = pd.read_csv(snakemake.input.asm, sep="\t")
 same_cols = list(np.intersect1d(entry_df.columns, asm_df.columns))
 df = pd.merge(entry_df, asm_df, how="left", on=same_cols)
 
-
 # Get base count per sample
 bases = parse_size(snakemake.params.bases)
 
@@ -124,7 +123,7 @@ else:
         df["proportion"] = df["bases"] / df["sum_bases"]
 
 
-df["fasta"] = [str(fa).split("/")[-1].split(".fna.gz")[0] for fa in df["path"]]
+df["fasta"] = [str(fa).split("/")[-1].split(".fna")[0] for fa in df["path"]]
 df["seed"] = random.sample(range(1, 1000000), len(df))
 
 cols = [
@@ -143,5 +142,6 @@ cols = [
     "seed",
 ]
 df = df.astype({"seed": int})
+df = df[df["fasta"] != "nan"]
 df[cols].to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
 df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
