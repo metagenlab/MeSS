@@ -83,8 +83,7 @@ simulate reads from input table(s) and genome(s)
 mess simulate ...
 \b
 EXAMPLES:
-mess simulate -i [input] -o [output] --fasta [fasta] \\
-    --asm-summary [asm_summary] --tech [tech] 
+mess simulate -i [input] -o [output] --asm-summary [asm_summary] --tech [tech] 
 """
 help_test = """
 \b
@@ -119,6 +118,16 @@ def run(
     log,
     ncbi_email,
     ncbi_key,
+    db,
+    uid,
+    rc,
+    al,
+    an,
+    rank,
+    nr,
+    ete_db,
+    nb,
+    exclude,
     tech,
     tool,
     error,
@@ -135,6 +144,8 @@ def run(
     max_len,
     mean_len,
     sd_len,
+    frag_len,
+    frag_sd,
     bam,
     paired,
     seed,
@@ -149,6 +160,16 @@ def run(
             "log": log,
             "ncbi_email": ncbi_email,
             "ncbi_key": ncbi_key,
+            "db": db,
+            "uid": uid,
+            "rc": rc,
+            "al": al,
+            "an": an,
+            "rank": rank,
+            "nr": nr,
+            "ete_db": ete_db,
+            "nb": nb,
+            "exclude": exclude,
             "tech": tech,
             "tool": tool,
             "error": error,
@@ -165,6 +186,8 @@ def run(
             "max_len": max_len,
             "mean_len": mean_len,
             "sd_len": sd_len,
+            "frag_len": frag_len,
+            "frag_sd": frag_sd,
             "bam": bam,
             "paired": paired,
             "seed": seed,
@@ -189,7 +212,24 @@ def run(
 @click.option("-i", "--input", help="Input file/directory", type=str, required=True)
 @download_options
 @common_options
-def download(input, output, log, ncbi_email, ncbi_key, **kwargs):
+def download(
+    input,
+    output,
+    log,
+    ncbi_email,
+    ncbi_key,
+    db,
+    uid,
+    rc,
+    al,
+    an,
+    rank,
+    nr,
+    ete_db,
+    nb,
+    exclude,
+    **kwargs,
+):
     """Download assemblies"""
     # Config to add or update in configfile
     merge_config = {
@@ -199,6 +239,16 @@ def download(input, output, log, ncbi_email, ncbi_key, **kwargs):
             "log": log,
             "ncbi_email": ncbi_email,
             "ncbi_key": ncbi_key,
+            "db": db,
+            "uid": uid,
+            "rc": rc,
+            "al": al,
+            "an": an,
+            "rank": rank,
+            "nr": nr,
+            "ete_db": ete_db,
+            "nb": nb,
+            "exclude": exclude,
         }
     }
     run_snakemake(
