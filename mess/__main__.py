@@ -79,7 +79,7 @@ mess download -i [input] -o [output]
 
 help_simulate = """
 \b
-simulate reads from input table(s) and genome(s)
+simulate reads from local fasta
 mess simulate ...
 \b
 EXAMPLES:
@@ -269,6 +269,13 @@ def download(
 @click.option("-i", "--input", help="path to sample sheet(s)", type=str, required=True)
 @sim_options
 @click.option(
+    "--skip-fa-proc",
+    help="skip fasta processing (decompressing, renaming headers, merge/split contigs)",
+    type=bool,
+    default=False,
+    required=False,
+)
+@click.option(
     "--asm-summary",
     help="path to assembly summary table (contains taxid, genome_size, path to fasta)",
     type=str,
@@ -279,6 +286,8 @@ def simulate(
     input,
     output,
     log,
+    skip_fa_proc,
+    skip_shuffle,
     compressed,
     asm_summary,
     tech,
@@ -311,6 +320,8 @@ def simulate(
             "input": input,
             "output": output,
             "log": log,
+            "skip_fa_proc": skip_fa_proc,
+            "skip_shuffle": skip_shuffle,
             "compressed": compressed,
             "tech": tech,
             "tool": tool,
