@@ -103,9 +103,9 @@ if not SKIP_SHUFFLE:
             if SEQ_TECH == "illumina"
             else os.path.join(dir.out.cat, "{sample}.fq.gz"),
         output:
-            os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz")
+            temp(os.path.join(dir.out.shuffle, "{sample}_R{p}.fq.gz"))
             if SEQ_TECH == "illumina"
-            else os.path.join(dir.out.fastq, "{sample}.fq.gz"),
+            else temp(os.path.join(dir.out.shuffle, "{sample}.fq.gz")),
         conda:
             os.path.join(dir.env, "seqkit.yml")
         params:
@@ -128,4 +128,31 @@ if not SKIP_SHUFFLE:
             -j {threads} \\
             -s {params} \\
             -o {output} 2> {log}
+            """
+
+    rule anonymize_reads:
+        input:
+            os.path.join(dir.out.shuffle, "{sample}_R{p}.fq.gz")
+            if SEQ_TECH == "illumina"
+            else os.path.join(dir.out.shuffle, "{sample}.fq.gz"),
+        output:
+            os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz")
+            if SEQ_TECH == "illumina"
+            else os.path.join(dir.out.fastq, "{sample}.fq.gz"),
+        conda:
+            os.path.join(dir.env, "seqkit.yml")
+        params:
+            lambda wildcards: f"{wildcards.sample}_{{nr}}/{wildcards.p}"
+            if SEQ_TECH == "illumina"
+            else lambda wildcards: f"{wildcards.sample}_{{nr}}",
+        log:
+            os.path.join(dir.out.logs, "seqkit", "replace", "{sample}_R{p}.log")
+            if SEQ_TECH == "illumina"
+            else os.path.join(dir.out.logs, "seqkit", "replace", "{sample}.log"),
+            os.path.join(dir.out.logs, "anonkeys", "{sample}_R{p}.tsv"),
+        shell:
+            """
+            zcat {input} | seqkit replace \\
+            -p .+ -r "{params}" -o {output} 2> {log[0]}
+            paste -d '\t' <(seqkit seq -n {output}) <(seqkit seq -n {input}) > {log[1]} 
             """
