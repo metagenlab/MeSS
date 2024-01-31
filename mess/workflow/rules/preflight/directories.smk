@@ -24,6 +24,7 @@ except (KeyError, AssertionError):
 # Outdirs
 dir.out.fasta = os.path.join(dir.out.base, "fasta")
 dir.out.cat = os.path.join(dir.out.base, "cat")
+dir.out.shuffle = os.path.join(dir.out.base, "shuffle")
 dir.out.short = os.path.join(dir.out.base, "short")
 dir.out.long = os.path.join(dir.out.base, "long")
 dir.out.fastq = os.path.join(dir.out.base, "fastq")
