@@ -71,54 +71,61 @@ rule index_bam:
         """
 
 
+sample_fastq_out = []
+if SKIP_SHUFFLE:
+    if SEQ_TECH == "illumina":
+        sample_fastq_out = os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz")
+    else:
+        sample_fastq_out = os.path.join(dir.out.fastq, "{sample}.fq.gz")
+else:
+    if SEQ_TECH == "illumina":
+        sample_fastq_out = temp(os.path.join(dir.out.cat, "{sample}_R{p}.fq.gz"))
+    else:
+        sample_fastq_out = temp(os.path.join(dir.out.cat, "{sample}.fq.gz"))
+
+
 rule cat_fastqs:
     input:
         lambda wildcards: list_cat(wildcards, "fastq"),
     output:
-        temp(os.path.join(dir.out.cat, "{sample}_R{p}.fq.gz"))
-        if SEQ_TECH == "illumina"
-        else temp(os.path.join(dir.out.cat, "{sample}.fq.gz")),
-    benchmark:
-        os.path.join(
-            dir.out.bench, "cat", "{sample}_R{p}.txt"
-        ) if SEQ_TECH == "illumina" else os.path.join(
-            dir.out.bench, "cat", "{sample}.txt"
-        )
+        sample_fastq_out,
     shell:
         """
         cat {input} > {output}
         """
 
 
-rule shuffle_fastqs:
-    input:
-        os.path.join(dir.out.cat, "{sample}_R{p}.fq.gz")
-        if SEQ_TECH == "illumina"
-        else os.path.join(dir.out.cat, "{sample}.fq.gz"),
-    output:
-        os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz")
-        if SEQ_TECH == "illumina"
-        else os.path.join(dir.out.fastq, "{sample}.fq.gz"),
-    conda:
-        os.path.join(dir.env, "seqkit.yml")
-    params:
-        lambda wildcards: SHUFFLE[wildcards.sample],
-    benchmark:
-        os.path.join(
-            dir.out.bench, "seqkit", "shuffle", "{sample}_R{p}.txt"
-        ) if SEQ_TECH == "illumina" else os.path.join(
-            dir.out.bench, "seqkit", "shuffle", "{sample}.txt"
-        )
-    log:
-        os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}_R{p}.log")
-        if SEQ_TECH == "illumina"
-        else os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}.log"),
-    threads: config.resources.med.cpu
-    shell:
-        """
-        seqkit \\
-        shuffle {input} \\
-        -j {threads} \\
-        -s {params} \\
-        -o {output} 2> {log}
-        """
+if not SKIP_SHUFFLE:
+
+    rule shuffle_fastqs:
+        input:
+            os.path.join(dir.out.cat, "{sample}_R{p}.fq.gz")
+            if SEQ_TECH == "illumina"
+            else os.path.join(dir.out.cat, "{sample}.fq.gz"),
+        output:
+            os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz")
+            if SEQ_TECH == "illumina"
+            else os.path.join(dir.out.fastq, "{sample}.fq.gz"),
+        conda:
+            os.path.join(dir.env, "seqkit.yml")
+        params:
+            lambda wildcards: SHUFFLE[wildcards.sample],
+        benchmark:
+            os.path.join(
+                dir.out.bench, "seqkit", "shuffle", "{sample}_R{p}.txt"
+            ) if SEQ_TECH == "illumina" else os.path.join(
+                dir.out.bench, "seqkit", "shuffle", "{sample}.txt"
+            )
+        log:
+            os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}_R{p}.log")
+            if SEQ_TECH == "illumina"
+            else os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}.log"),
+        threads: config.resources.med.cpu
+        shell:
+            """
+            seqkit \\
+            shuffle {input} \\
+            -j {threads} \\
+            -s {params} \\
+            -o {output} 2> {log}
+            """
