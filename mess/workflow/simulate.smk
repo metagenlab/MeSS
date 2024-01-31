@@ -63,11 +63,12 @@ MEAN_LEN = config.args.mean_len
 include: os.path.join("rules", "processing", "coverages.smk")
 
 
-# process fasta
+# process fasta options
 COMPRESSED = config.args.compressed
+SKIP_FA_PROC = config.args.skip_fa_proc
+if not SKIP_FA_PROC:
 
-
-include: os.path.join("rules", "processing", "fastas.smk")
+    include: os.path.join("rules", "processing", "fastas.smk")
 
 
 # simulators options
@@ -102,6 +103,10 @@ else:
 
 # process reads
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
+
+
+# reads post-processsing options
+SKIP_SHUFFLE = config.args.skip_shuffle
 
 
 include: os.path.join("rules", "processing", "reads.smk")
