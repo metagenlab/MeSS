@@ -64,7 +64,7 @@ rule art_illumina:
         os.path.join(dir.out.logs, "art", "{sample}", "{fasta}.log"),
     shell:
         """
-        art_illumina -i {input.fa}  \\
+        art_illumina -i {input.fa} \\
         -rs {params.seed} -l {params.read_len} \\
         -f {params.cov} -na {params.args} \\
         -o {params.prefix} &> {log}
