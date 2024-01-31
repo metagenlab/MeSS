@@ -106,6 +106,13 @@ def sim_options(func):
     """
     options = [
         click.option(
+            "--skip-shuffle",
+            help="skip fastq shuffling",
+            type=bool,
+            default=False,
+            required=False,
+        ),
+        click.option(
             "--compressed",
             help="if fastas are compressed",
             type=bool,
@@ -297,7 +304,7 @@ def download_options(func):
             "--al",
             type=str,
             help="select complete, chromosome, scaffold, contig or all",
-            default="complete",
+            default="all",
             show_default=True,
         ),
         click.option(
@@ -364,7 +371,7 @@ def download_options(func):
             "--exclude",
             type=str,
             help="filter to exclude assemblies (example: exclude from metagenomes)",
-            default="metagenome",
+            default="anomalous",
             show_default=True,
         ),
     ]
