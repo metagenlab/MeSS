@@ -39,8 +39,10 @@ def fasta_input(wildcards):
     basedir = os.path.dirname(df["path"][0])
     if COMPRESSED:
         return os.path.join(basedir, "{fasta}.fna.gz")
-    else:
+    elif COMPRESSED == False:
         return os.path.join(basedir, "{fasta}.fna")
+    if SKIP_FA_PROC and SEQ_TECH != "illumina":
+        return os.path.join(basedir, "{fasta}_{contig}.fna")
 
 
 def list_fastas(wildcards, contigs=False):
