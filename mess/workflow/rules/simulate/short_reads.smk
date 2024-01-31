@@ -36,10 +36,16 @@ if not PAIRED:
     fastq_out = fastq_out[0]
     fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}1")
 
+fa = []
+if not SKIP_FA_PROC:
+    fa = os.path.join(dir.out.fasta, "{fasta}.merged")
+else:
+    fa = fasta_input
+
 
 rule art_illumina:
     input:
-        fasta=os.path.join(dir.out.fasta, "{fasta}.merged"),
+        fa=fa,
         df=os.path.join(dir.out.base, "cov.tsv"),
     output:
         sam=sam_out,
@@ -58,7 +64,7 @@ rule art_illumina:
         os.path.join(dir.out.logs, "art", "{sample}", "{fasta}.log"),
     shell:
         """
-        art_illumina -i {input.fasta}  \\
+        art_illumina -i {input.fa}  \\
         -rs {params.seed} -l {params.read_len} \\
         -f {params.cov} -na {params.args} \\
         -o {params.prefix} &> {log}
