@@ -37,6 +37,7 @@ rule pbsim3:
     shell:
         """
         pbsim --strategy wgs --method qshmm \\
+        --id-prefix {wildcards.contig} \\
         --difference-ratio {params.ratio} \\
         --length-min {params.minlen} \\
         --length-max {params.maxlen} \\
