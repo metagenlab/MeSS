@@ -9,13 +9,15 @@ np.random.seed(snakemake.params.seed)
 df = pd.read_csv(snakemake.input[0], sep="\t")
 samples_df = df.reindex(df.index.repeat(len(snakemake.params.replicates)))
 # add replicate column
-samples_df["rep"] = snakemake.params.replicates * len(samples_df)
-samples_df["samplename"] = [
-    sample + "-" + str(rep)
-    for sample, rep in zip(samples_df["sample"], samples_df["rep"])
-]
-
-samples_df.drop(["sample", "rep"], axis=1, inplace=True)
+if len(snakemake.params.replicates) < 2:
+    samples_df.rename(columns={"sample": "samplename"}, inplace=True)
+else:
+    samples_df["rep"] = snakemake.params.replicates * len(samples_df)
+    samples_df["samplename"] = [
+        sample + "-" + str(rep)
+        for sample, rep in zip(samples_df["sample"], samples_df["rep"])
+    ]
+    samples_df.drop(["sample", "rep"], axis=1, inplace=True)
 accepted_cols = ["abundance", "proportion", "reads", "bases", "cov_sim"]
 
 for col in accepted_cols:

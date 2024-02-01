@@ -29,8 +29,11 @@ def parse_samples(indir, replicates):
             samples.append(os.path.basename(file).split(".")[0])
     if any(isinstance(sample, list) for sample in samples):
         samples = list(chain.from_iterable(samples))
-    products = list(product(samples, replicates))
-    return [prod[0] + "-" + str(prod[1]) for prod in products]
+    if len(replicates) < 2:
+        return samples
+    else:
+        products = list(product(samples, replicates))
+        return [prod[0] + "-" + str(prod[1]) for prod in products]
 
 
 def fasta_input(wildcards):
