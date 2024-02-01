@@ -3,9 +3,19 @@ rule get_unique_entries:
         os.path.join(dir.out.base, "samples.tsv"),
     output:
         temp(os.path.join(dir.out.base, "uniq_entries.tsv")),
+    params:
+        nb=NB,
     run:
         df = pd.read_csv(input[0], sep="\t")
-        df[["entry", "nb"]].drop_duplicates().to_csv(output[0], sep="\t", index=None)
+        try:
+            df[["entry", "nb"]].drop_duplicates().to_csv(
+                output[0], sep="\t", index=None
+            )
+        except KeyError:
+            df["nb"] = [params.nb] * len(df)
+            df[["entry", "nb"]].drop_duplicates().to_csv(
+                output[0], sep="\t", index=None
+            )
 
 
 checkpoint download_assemblies:
@@ -19,7 +29,6 @@ checkpoint download_assemblies:
     params:
         ncbi_key=NCBI_KEY,
         ncbi_email=NCBI_EMAIL,
-        nb=NB,
         db=DB,
         uid=UID,
         alvl=ASM_LVL,
@@ -40,7 +49,6 @@ checkpoint download_assemblies:
         -i {input} \
         -nk {params.ncbi_key} \
         -ne {params.ncbi_email} \
-        -nb {params.nb} \
         -db {params.db} \
         -id {params.uid} \
         -al {params.alvl} \
