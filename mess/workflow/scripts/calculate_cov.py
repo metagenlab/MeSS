@@ -54,11 +54,8 @@ asm_df = pd.read_csv(snakemake.input.asm, sep="\t")
 same_cols = list(np.intersect1d(entry_df.columns, asm_df.columns))
 df = pd.merge(entry_df, asm_df, how="left", on=same_cols)
 
-# Get base count per sample
+# Get total bases
 bases = parse_size(snakemake.params.bases)
-
-# Count number of entries
-df["count"] = df.groupby(["samplename", "entry"])["entry"].transform("count")
 
 # Calculate prportion with dist
 if snakemake.params.dist == "even":
@@ -88,7 +85,6 @@ else:
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
 
     if "proportion" in entry_df.columns:
-        df["proportion"] = df["proportion"] / df["count"]
         df["bases"] = df["proportion"] * bases
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["cov_sim"] = df["bases"] / df["genome_size"]
@@ -96,7 +92,6 @@ else:
         df["abundance"] = df["cov_sim"] / df["sum_cov"]
 
     if "reads" in entry_df.columns:
-        df["reads"] = df["reads"] / df["count"]
         df["bases"] = df["reads"] * (snakemake.params.read_len * p)
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
         df["proportion"] = df["bases"] / df["sum_bases"]
@@ -105,7 +100,6 @@ else:
         df["abundance"] = df["cov_sim"] / df["sum_cov"]
 
     if "bases" in entry_df.columns:
-        df["bases"] = df["bases"] / df["count"]
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
         df["proportion"] = df["bases"] / df["sum_bases"]
@@ -114,7 +108,6 @@ else:
         df["abundance"] = df["cov_sim"] / df["sum_cov"]
 
     elif "cov_sim" in entry_df.columns:
-        df["cov_sim"] = df["cov_sim"] / df["count"]
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
         df["abundance"] = df["cov_sim"] / df["sum_cov"]
         df["bases"] = df["cov_sim"] * df["genome_size"]
