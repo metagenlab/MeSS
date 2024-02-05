@@ -50,8 +50,6 @@ rule art_illumina:
     output:
         sam=sam_out,
         fastqs=fastq_out,
-    conda:
-        os.path.join(dir.env, "art.yml")
     params:
         args=art_args,
         read_len=MEAN_LEN,
@@ -62,6 +60,12 @@ rule art_illumina:
         os.path.join(dir.out.bench, "art", "{sample}", "{fasta}.txt")
     log:
         os.path.join(dir.out.logs, "art", "{sample}", "{fasta}.log"),
+    resources:
+        mem_mb=config.resources.norm.mem,
+        mem=str(config.resources.norm.mem) + "MB",
+        time=config.resources.norm.time,
+    conda:
+        os.path.join(dir.env, "art.yml")
     shell:
         """
         art_illumina -i {input.fa} \\

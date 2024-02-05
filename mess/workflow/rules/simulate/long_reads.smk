@@ -34,6 +34,12 @@ rule pbsim3:
         os.path.join(dir.out.bench, "pbsim3", "{sample}", "{fasta}", "{contig}.txt")
     log:
         os.path.join(dir.out.logs, "pbsim3", "{sample}", "{fasta}", "{contig}.log"),
+    resources:
+        mem_mb=config.resources.norm.mem,
+        mem=str(config.resources.norm.mem) + "MB",
+        time=config.resources.norm.time,
+    conda:
+        os.path.join(dir.env, "pbsim3.yml")
     shell:
         """
         pbsim --strategy wgs --method qshmm \\
@@ -78,8 +84,18 @@ if PASSES > 1:
             )
         log:
             os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
+        resources:
+            mem_mb=config.resources.norm.mem,
+            mem=str(config.resources.norm.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.env, "bioconvert.yml")
         shell:
-            "samtools view -bS {input} | samtools sort > {output} 2> {log}"
+            """
+            samtools view -@ {threads} -bS {input} | \
+            samtools sort -@ {threads} > {output} 2> {log}
+            """
 
     rule ccs_bam_to_fastq:
         input:
@@ -105,15 +121,20 @@ if PASSES > 1:
             passes=PASSES,
             accuracy=ACCURACY,
         resources:
+            mem_mb=config.resources.med.mem,
+            mem=str(config.resources.med.mem) + "MB",
+            time=config.resources.med.time,
             tmpdir=tmpdir,
         benchmark:
             os.path.join(dir.out.bench, "ccs", "{sample}", "{fasta}", "{contig}.txt")
         log:
             os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
+        conda:
+            os.path.join(dir.env, "pbccs.yml")
         shell:
             """
             MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 \\
-            ccs --min-passes {params.passes} \\
+            ccs -j {threads} --min-passes {params.passes} \\
             --min-rq {params.accuracy} {input} {output.fq} --report-file {log}
             """
 
@@ -130,6 +151,10 @@ if BAM:
             seqname=lambda wildcards, input: get_header(input.fa),
         benchmark:
             os.path.join(dir.out.bench, "sed", "{sample}", "{fasta}", "{contig}.txt")
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
         shell:
             """
             sed 's/ref/{params.seqname}/g' {input.maf} > {output}
@@ -157,7 +182,13 @@ if BAM:
                 "{sample}",
                 "{fasta}_{contig}.log",
             ),
-        threads: config.resources.med.cpu
+        resources:
+            mem_mb=config.resources.norm.mem,
+            mem=str(config.resources.norm.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.env, "bioconvert.yml")
         shell:
             """
             bioconvert {input} {output.sam} 2>> {log}
@@ -174,9 +205,15 @@ if BAM:
             os.path.join(dir.out.bench, "samtools", "merge", "{sample}", "{fasta}.txt")
         log:
             os.path.join(dir.out.logs, "samtools", "merge", "{sample}", "{fasta}.log"),
-        threads: config.resources.med.cpu
+        resources:
+            mem_mb=config.resources.norm.mem,
+            mem=str(config.resources.norm.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.env, "bioconvert.yml")
         shell:
-            "samtools merge -@ {threads} -o {output} {input} &>> {log}"
+            "samtools merge -@ {threads} -o {output} {input} 2> {log}"
 
 
 if PASSES == 1:
@@ -188,9 +225,13 @@ if PASSES == 1:
             temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq.gz")),
         params:
             os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq"),
-        threads: config.resources.med.cpu
         benchmark:
             os.path.join(dir.out.bench, "pigz", "{sample}", "{fasta}", "{contig}.txt")
+        resources:
+            mem_mb=config.resources.norm.mem,
+            mem=str(config.resources.norm.mem) + "MB",
+            time=config.resources.med.time,
+        threads: config.resources.norm.cpu
         shell:
             """
             mv {input} {params}
@@ -203,5 +244,9 @@ rule cat_contig_reads:
         lambda wildcards: pbsim3_expand(wildcards, dir.out.long, "fq.gz"),
     output:
         temp(os.path.join(dir.out.long, "{sample}", "{fasta}.fq.gz")),
+    resources:
+        mem_mb=config.resources.norm.mem,
+        mem=str(config.resources.norm.mem) + "MB",
+        time=config.resources.norm.time,
     shell:
         "cat {input} > {output}"
