@@ -1,4 +1,4 @@
-name: assembly_finder
+name: art
 channels:
   - bioconda
 dependencies:
