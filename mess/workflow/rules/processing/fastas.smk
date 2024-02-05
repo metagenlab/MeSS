@@ -5,8 +5,10 @@ if COMPRESSED:
             fasta_input,
         output:
             temp(os.path.join(dir.out.fasta, "{fasta}.fa")),
-        benchmark:
-            os.path.join(dir.out.bench, "fasta", "unzip", "{fasta}.txt")
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
         shell:
             "zcat {input} > {output}"
 
@@ -16,8 +18,10 @@ rule rename_headers:
         os.path.join(dir.out.fasta, "{fasta}.fa") if COMPRESSED else fasta_input,
     output:
         temp(os.path.join(dir.out.fasta, "{fasta}.renamed")),
-    benchmark:
-        os.path.join(dir.out.bench, "fasta", "rename", "{fasta}.txt")
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
     shell:
         """
         cut -f 1 -d" " {input} > {output}
@@ -29,8 +33,12 @@ rule merge_contigs:
         os.path.join(dir.out.fasta, "{fasta}.renamed"),
     output:
         temp(os.path.join(dir.out.fasta, "{fasta}.merged")),
-    benchmark:
-        os.path.join(dir.out.bench, "fasta", "merge", "{fasta}.txt")
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
+    conda:
+        os.path.join(dir.env, "fasta.yml")
     script:
         os.path.join(dir.scripts, "merge_contigs.py")
 
@@ -42,6 +50,12 @@ checkpoint split_contigs:
         temp(os.path.join(dir.out.fasta, "split", "split.tsv")),
     params:
         os.path.join(dir.out.fasta, "split"),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
+    conda:
+        os.path.join(dir.env, "fasta.yml")
     script:
         os.path.join(dir.scripts, "split_contigs.py")
 
@@ -53,6 +67,10 @@ rule remove_split_fasta:
         temp(os.path.join(dir.out.base, "clean.txt")),
     params:
         os.path.join(dir.out.fasta, "split"),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
     shell:
         """
         rm -r {params}
