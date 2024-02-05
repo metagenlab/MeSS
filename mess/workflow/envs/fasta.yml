@@ -1,0 +1,6 @@
+name: fasta
+channels:
+  - bioconda
+dependencies:
+  - biopython >= 1.83
+  - pandas >= 2.2.0
