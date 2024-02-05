@@ -1,0 +1,5 @@
+name: pbsim3
+channels:
+  - bioconda
+dependencies:
+  - pbsim3 >= 3.0.1
