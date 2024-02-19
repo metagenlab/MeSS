@@ -1,5 +1,5 @@
-name: samtools
+name: pbsim3
 channels:
   - bioconda
 dependencies:
-  - samtools >= 1.18
+  - pbsim3 >= 3.0.1

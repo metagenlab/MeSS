@@ -1,0 +1,5 @@
+name: bioconvert
+channels:
+  - bioconda
+dependencies:
+  - bioconvert >= 1.0.0

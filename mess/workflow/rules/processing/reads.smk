@@ -5,13 +5,17 @@ if SEQ_TECH == "illumina":
             sam_out,
         output:
             temp(os.path.join(dir.out.bam, "{sample}", "{fasta}.bam")),
-        conda:
-            os.path.join(dir.env, "samtools.yml")
-        threads: config.resources.med.cpu
         benchmark:
             os.path.join(dir.out.bench, "samtools", "sam2bam", "{sample}-{fasta}.txt")
         log:
             os.path.join(dir.out.logs, "samtools", "sam2bam", "{sample}-{fasta}.log"),
+        resources:
+            mem_mb=config.resources.norm.mem,
+            mem=str(config.resources.norm.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.env, "bioconvert.yml")
         shell:
             """
             samtools view -@ {threads} -bS {input} | \
@@ -30,9 +34,13 @@ if SEQ_TECH == "illumina":
             fastq_gz if PAIRED else fastq_gz[0],
         params:
             prefix=fq_prefix,
-        threads: config.resources.med.cpu
         benchmark:
             os.path.join(dir.out.bench, "pigz", "{sample}-{fasta}.txt")
+        resources:
+            mem_mb=config.resources.norm.mem,
+            mem=str(config.resources.norm.mem) + "MB",
+            time=config.resources.med.time,
+        threads: config.resources.norm.cpu
         shell:
             """
             pigz -p {threads} {params.prefix}*.fq
@@ -44,13 +52,17 @@ rule merge_bams:
         lambda wildcards: list_cat(wildcards, "bam"),
     output:
         os.path.join(dir.out.bam, "{sample}.bam"),
-    conda:
-        os.path.join(dir.env, "samtools.yml")
-    threads: config.resources.med.cpu
-    log:
-        os.path.join(dir.out.logs, "samtools", "merge", "{sample}.log"),
     benchmark:
         os.path.join(dir.out.bench, "samtools", "merge", "{sample}.txt")
+    log:
+        os.path.join(dir.out.logs, "samtools", "merge", "{sample}.log"),
+    resources:
+        mem_mb=config.resources.norm.mem,
+        mem=str(config.resources.norm.mem) + "MB",
+        time=config.resources.norm.time,
+    threads: config.resources.norm.cpu
+    conda:
+        os.path.join(dir.env, "bioconvert.yml")
     shell:
         """
         samtools merge -@ {threads} -o {output} {input} 2> {log}
@@ -62,9 +74,15 @@ rule index_bam:
         os.path.join(dir.out.bam, "{sample}.bam"),
     output:
         os.path.join(dir.out.bam, "{sample}.bam.bai"),
-    threads: config.resources.med.cpu
     benchmark:
         os.path.join(dir.out.bench, "samtools", "index", "{sample}.txt")
+    resources:
+        mem_mb=config.resources.norm.mem,
+        mem=str(config.resources.norm.mem) + "MB",
+        time=config.resources.norm.time,
+    threads: config.resources.norm.cpu
+    conda:
+        os.path.join(dir.env, "bioconvert.yml")
     shell:
         """
         samtools index -@ {threads} {input}
@@ -89,6 +107,10 @@ rule cat_fastqs:
         lambda wildcards: list_cat(wildcards, "fastq"),
     output:
         sample_fastq_out,
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.norm.time,
     shell:
         """
         cat {input} > {output}
@@ -106,8 +128,6 @@ if not SKIP_SHUFFLE:
             temp(os.path.join(dir.out.shuffle, "{sample}_R{p}.fq.gz"))
             if SEQ_TECH == "illumina"
             else temp(os.path.join(dir.out.shuffle, "{sample}.fq.gz")),
-        conda:
-            os.path.join(dir.env, "seqkit.yml")
         params:
             lambda wildcards: SHUFFLE[wildcards.sample],
         benchmark:
@@ -120,7 +140,13 @@ if not SKIP_SHUFFLE:
             os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}_R{p}.log")
             if SEQ_TECH == "illumina"
             else os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}.log"),
-        threads: config.resources.med.cpu
+        resources:
+            mem_mb=config.resources.med.mem,
+            mem=str(config.resources.med.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.env, "seqkit.yml")
         shell:
             """
             seqkit \\
@@ -141,6 +167,12 @@ if not SKIP_SHUFFLE:
             else os.path.join(dir.out.fastq, "{sample}.fq.gz"),
         conda:
             os.path.join(dir.env, "seqkit.yml")
+        benchmark:
+            os.path.join(
+                dir.out.bench, "seqkit", "anonymize", "{sample}_R{p}.txt"
+            ) if SEQ_TECH == "illumina" else os.path.join(
+                dir.out.bench, "seqkit", "anonymize", "{sample}.txt"
+            )
         params:
             lambda wildcards: f"{wildcards.sample}_{{nr}}/{wildcards.p}"
             if SEQ_TECH == "illumina"
@@ -150,6 +182,10 @@ if not SKIP_SHUFFLE:
             if SEQ_TECH == "illumina"
             else os.path.join(dir.out.logs, "seqkit", "replace", "{sample}.log"),
             os.path.join(dir.out.logs, "anonkeys", "{sample}_R{p}.tsv"),
+        resources:
+            mem_mb=config.resources.norm.mem,
+            mem=str(config.resources.norm.mem) + "MB",
+            time=config.resources.norm.time,
         shell:
             """
             zcat {input} | seqkit replace \\

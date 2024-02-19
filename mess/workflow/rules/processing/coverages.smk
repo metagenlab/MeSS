@@ -7,6 +7,10 @@ rule replicates_table:
         seed=SEED,
         replicates=REPLICATES,
         rep_sd=REP_SD,
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
     script:
         os.path.join(dir.scripts, "replicates.py")
 
@@ -29,7 +33,9 @@ checkpoint calculate_coverage:
         seed=SEED,
     log:
         os.path.join(dir.out.logs, "tables", "cov.tsv"),
-    benchmark:
-        os.path.join(dir.out.bench, "tables", "cov.txt")
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
     script:
         os.path.join(dir.scripts, "calculate_cov.py")

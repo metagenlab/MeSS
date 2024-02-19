@@ -6,15 +6,15 @@ rule get_unique_entries:
     params:
         nb=NB,
     run:
-        df = pd.read_csv(input[0], sep="\t")
+        df = pd.read_csv(input[0], sep="\\\\t")
         try:
             df[["entry", "nb"]].drop_duplicates().to_csv(
-                output[0], sep="\t", index=None
+                output[0], sep="\\\\t", index=None
             )
         except KeyError:
             df["nb"] = [params.nb] * len(df)
             df[["entry", "nb"]].drop_duplicates().to_csv(
-                output[0], sep="\t", index=None
+                output[0], sep="\\\\t", index=None
             )
 
 
@@ -24,8 +24,6 @@ checkpoint download_assemblies:
     output:
         asm=os.path.join(dir.out.base, "download/assembly_summary.tsv"),
         version=os.path.join(dir.out.versions, "assembly_finder.version"),
-    conda:
-        os.path.join(dir.env, "assembly_finder.yml")
     params:
         ncbi_key=NCBI_KEY,
         ncbi_email=NCBI_EMAIL,
@@ -39,27 +37,34 @@ checkpoint download_assemblies:
         nr=NB_RANK,
         ete=ETE_DB,
         out=os.path.join(dir.out.base, "download"),
-    threads: config.resources.med.cpu
     benchmark:
         os.path.join(dir.out.bench, "download", "download.txt")
     log:
         os.path.join(dir.out.logs, "download", "download.log"),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.med.time,
+    threads: config.resources.med.cpu
+    conda:
+        os.path.join(dir.env, "assembly_finder.yml")
     shell:
         """
-        assembly_finder \
-        -i {input} \
-        -nk {params.ncbi_key} \
-        -ne {params.ncbi_email} \
-        -db {params.db} \
-        -id {params.uid} \
-        -al {params.alvl} \
-        -rc {params.refc} \
-        -an {params.annot} \
-        -ex {params.excl} \
-        -r {params.rank} \
-        -nr {params.nr} \
-        -et {params.ete} \
-        -o {params.out} \
+        assembly_finder \\
+        -i {input} \\
+        -t {threads} \\
+        -nk {params.ncbi_key} \\
+        -ne {params.ncbi_email} \\
+        -db {params.db} \\
+        -id {params.uid} \\
+        -al {params.alvl} \\
+        -rc {params.refc} \\
+        -an {params.annot} \\
+        -ex {params.excl} \\
+        -r {params.rank} \\
+        -nr {params.nr} \\
+        -et {params.ete} \\
+        -o {params.out} \\
         --nolock 2> {log}
         assembly_finder -v > {output.version}
         """
