@@ -54,6 +54,7 @@ NCBI_KEY = config.args.ncbi_key
 DB = config.args.db
 UID = config.args.uid
 ASM_LVL = config.args.al
+REF_CAT = config.args.rc
 ANNOT = config.args.an
 RANK = config.args.rank
 NB_RANK = config.args.nr
