@@ -134,7 +134,7 @@ cols = [
     "abundance",
     "seed",
 ]
-df = df.astype({"seed": int})
+df = df.astype({"seed": int, "taxid": int, "genome_size": int, "contig_count": int})
 df = df[df["fasta"] != "nan"]
-df[cols].to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
+df.to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
 df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
