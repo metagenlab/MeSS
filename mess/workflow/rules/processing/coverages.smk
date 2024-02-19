@@ -11,6 +11,8 @@ rule replicates_table:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
+    log:
+        os.path.join(dir.out.logs, "tables", "replicates.tsv"),
     script:
         os.path.join(dir.scripts, "replicates.py")
 
