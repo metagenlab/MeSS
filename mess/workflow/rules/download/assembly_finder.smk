@@ -6,15 +6,15 @@ rule get_unique_entries:
     params:
         nb=NB,
     run:
-        df = pd.read_csv(input[0], sep="\\t")
+        df = pd.read_csv(input[0], sep="\t")
         try:
             df[["entry", "nb"]].drop_duplicates().to_csv(
-                output[0], sep="\\t", index=None
+                output[0], sep="\t", index=None
             )
         except KeyError:
             df["nb"] = [params.nb] * len(df)
             df[["entry", "nb"]].drop_duplicates().to_csv(
-                output[0], sep="\\t", index=None
+                output[0], sep="\t", index=None
             )
 
 
