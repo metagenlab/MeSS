@@ -81,6 +81,7 @@ else:
         df["sum_cov"] = bases / df["sum_genome_size"]
         df["cov_sim"] = df["sum_cov"] * df["abundance"]
         df["bases"] = df["cov_sim"] * df["genome_size"]
+        df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
         df["proportion"] = df["bases"] / df["sum_bases"]
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
 

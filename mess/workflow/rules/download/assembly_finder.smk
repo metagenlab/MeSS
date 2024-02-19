@@ -30,6 +30,7 @@ checkpoint download_assemblies:
         db=DB,
         uid=UID,
         alvl=ASM_LVL,
+        refc=REF_CAT,
         annot=ANNOT,
         excl=EXCLUDE,
         rank=RANK,
@@ -57,6 +58,7 @@ checkpoint download_assemblies:
         -db {params.db} \\
         -id {params.uid} \\
         -al {params.alvl} \\
+        -rc {params.refc} \\
         -an {params.annot} \\
         -ex {params.excl} \\
         -r {params.rank} \\
