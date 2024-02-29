@@ -1,7 +1,5 @@
-fa = []
-if not SKIP_FA_PROC:
-    fa = os.path.join(dir.out.fasta, "split", "{fasta}_{contig}.fa")
-else:
+fa = os.path.join(dir.out.fasta, "split", "{fasta}", "{contig}.fa")
+if SKIP_FA_PROC:
     fa = fasta_input
 
 
@@ -71,7 +69,8 @@ if PASSES > 1:
                     dir.out.base,
                     "ccs",
                     "{sample}",
-                    "{fasta}_{contig}.ccs.bam",
+                    "{fasta}",
+                    "{contig}.ccs.bam",
                 )
             ),
         benchmark:
@@ -103,18 +102,18 @@ if PASSES > 1:
         output:
             fq=temp(
                 os.path.join(
-                    dir.out.base,
-                    "ccs",
+                    dir.out.long,
                     "{sample}",
-                    "{fasta}_{contig}_0001.fq.gz",
+                    "{fasta}",
+                    "{contig}.fq.gz",
                 )
             ),
             json=temp(
                 os.path.join(
-                    dir.out.base,
-                    "ccs",
+                    dir.out.long,
                     "{sample}",
-                    "{fasta}_{contig}_0001.zmw_metrics.json.gz",
+                    "{fasta}",
+                    "{contig}.zmw_metrics.json.gz",
                 )
             ),
         params:
@@ -149,8 +148,6 @@ if BAM:
             temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.maf")),
         params:
             seqname=lambda wildcards, input: get_header(input.fa),
-        benchmark:
-            os.path.join(dir.out.bench, "sed", "{sample}", "{fasta}", "{contig}.txt")
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
@@ -160,17 +157,16 @@ if BAM:
             sed 's/ref/{params.seqname}/g' {input.maf} > {output}
             """
 
-    rule convert_maf_to_bam:
+    rule convert_maf_to_sam:
         input:
             os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.maf"),
         output:
-            sam=temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.sam")),
-            bam=temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.bam")),
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.sam")),
         benchmark:
             os.path.join(
                 dir.out.logs,
                 "bioconvert",
-                "maf2bam",
+                "maf2sam",
                 "{sample}",
                 "{fasta}_{contig}.txt",
             )
@@ -178,7 +174,7 @@ if BAM:
             os.path.join(
                 dir.out.logs,
                 "bioconvert",
-                "maf2bam",
+                "maf2sam",
                 "{sample}",
                 "{fasta}_{contig}.log",
             ),
@@ -186,67 +182,28 @@ if BAM:
             mem_mb=config.resources.norm.mem,
             mem=str(config.resources.norm.mem) + "MB",
             time=config.resources.norm.time,
-        threads: config.resources.norm.cpu
+        threads: config.resources.sml.cpu
         conda:
             os.path.join(dir.env, "bioconvert.yml")
         shell:
             """
-            bioconvert {input} {output.sam} 2>> {log}
-            samtools view -@ {threads} -bS {output.sam} | \\
-            samtools sort -@ threads > {output.bam} 2>> {log}
+            bioconvert {input} {output} 2>> {log}
             """
-
-    rule merge_alignments_bam:
-        input:
-            lambda wildcards: pbsim3_expand(wildcards, dir.out.bam, "bam"),
-        output:
-            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}.bam")),
-        benchmark:
-            os.path.join(dir.out.bench, "samtools", "merge", "{sample}", "{fasta}.txt")
-        log:
-            os.path.join(dir.out.logs, "samtools", "merge", "{sample}", "{fasta}.log"),
-        resources:
-            mem_mb=config.resources.norm.mem,
-            mem=str(config.resources.norm.mem) + "MB",
-            time=config.resources.norm.time,
-        threads: config.resources.norm.cpu
-        conda:
-            os.path.join(dir.env, "bioconvert.yml")
-        shell:
-            "samtools merge -@ {threads} -o {output} {input} 2> {log}"
 
 
 if PASSES == 1:
 
-    rule compress_single_pass_fastq:
+    rule rename_single_pass_fastq:
         input:
             os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.fastq"),
         output:
-            temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq.gz")),
-        params:
-            os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq"),
-        benchmark:
-            os.path.join(dir.out.bench, "pigz", "{sample}", "{fasta}", "{contig}.txt")
+            temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq")),
         resources:
-            mem_mb=config.resources.norm.mem,
-            mem=str(config.resources.norm.mem) + "MB",
-            time=config.resources.med.time,
-        threads: config.resources.norm.cpu
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.sml.cpu
         shell:
             """
-            mv {input} {params}
-            pigz -p {threads} {params}
+            mv {input} {output}
             """
-
-
-rule cat_contig_reads:
-    input:
-        lambda wildcards: pbsim3_expand(wildcards, dir.out.long, "fq.gz"),
-    output:
-        temp(os.path.join(dir.out.long, "{sample}", "{fasta}.fq.gz")),
-    resources:
-        mem_mb=config.resources.norm.mem,
-        mem=str(config.resources.norm.mem) + "MB",
-        time=config.resources.norm.time,
-    shell:
-        "cat {input} > {output}"
