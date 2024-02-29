@@ -6,11 +6,10 @@ from itertools import chain
 
 def split_fasta(fa, outdir):
     record_ids = []
-    name = os.path.basename(fa).split(".renamed")[0]
+    name = os.path.basename(fa).split(".fasta")[0]
+    os.mkdir(os.path.join(outdir, name))
     for record in SeqIO.parse(fa, "fasta"):
-        SeqIO.write(
-            record, os.path.join(outdir, name + "_" + record.id) + ".fa", "fasta"
-        )
+        SeqIO.write(record, os.path.join(outdir, name, record.id) + ".fa", "fasta")
         record_ids.append({"contig": record.id, "fasta": name})
     return record_ids
 
