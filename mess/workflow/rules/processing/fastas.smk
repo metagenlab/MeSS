@@ -4,7 +4,7 @@ if COMPRESSED:
         input:
             fasta_input,
         output:
-            temp(os.path.join(dir.out.fasta, "{fasta}.fa")),
+            temp(os.path.join(dir.out.fasta, "{fasta}.fna")),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
@@ -15,9 +15,9 @@ if COMPRESSED:
 
 rule rename_headers:
     input:
-        os.path.join(dir.out.fasta, "{fasta}.fa") if COMPRESSED else fasta_input,
+        os.path.join(dir.out.fasta, "{fasta}.fna") if COMPRESSED else fasta_input,
     output:
-        temp(os.path.join(dir.out.fasta, "{fasta}.renamed")),
+        temp(os.path.join(dir.out.fasta, "{fasta}.fasta")),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -28,24 +28,9 @@ rule rename_headers:
         """
 
 
-rule merge_contigs:
-    input:
-        os.path.join(dir.out.fasta, "{fasta}.renamed"),
-    output:
-        temp(os.path.join(dir.out.fasta, "{fasta}.merged")),
-    resources:
-        mem_mb=config.resources.sml.mem,
-        mem=str(config.resources.sml.mem) + "MB",
-        time=config.resources.sml.time,
-    conda:
-        os.path.join(dir.env, "fasta.yml")
-    script:
-        os.path.join(dir.scripts, "merge_contigs.py")
-
-
 checkpoint split_contigs:
     input:
-        lambda wildcards: list_fastas(wildcards, contigs=True),
+        list_fastas,
     output:
         temp(os.path.join(dir.out.fasta, "split", "split.tsv")),
     params:
@@ -60,24 +45,22 @@ checkpoint split_contigs:
         os.path.join(dir.scripts, "split_contigs.py")
 
 
-rule remove_split_fasta:
-    input:
-        os.path.join(dir.out.fasta, "split", "split.tsv"),
-    output:
-        temp(os.path.join(dir.out.base, "clean.txt")),
-    params:
-        os.path.join(dir.out.fasta, "split"),
-    resources:
-        mem_mb=config.resources.sml.mem,
-        mem=str(config.resources.sml.mem) + "MB",
-        time=config.resources.sml.time,
-    shell:
-        """
-        rm -r {params}
-        touch {output}
-        """
-
-
+# rule remove_split_fasta:
+#     input:
+#         os.path.join(dir.out.fasta, "split", "split.tsv"),
+#     output:
+#         temp(os.path.join(dir.out.base, "clean.txt")),
+#     params:
+#         os.path.join(dir.out.fasta, "split"),
+#     resources:
+#         mem_mb=config.resources.sml.mem,
+#         mem=str(config.resources.sml.mem) + "MB",
+#         time=config.resources.sml.time,
+#     shell:
+#         """
+#         rm -r {params}
+#         touch {output}
+#         """
 # rule chunk_contigs:
 #     input:
 #         get_contigs,
