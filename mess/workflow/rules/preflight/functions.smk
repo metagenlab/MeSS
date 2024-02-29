@@ -7,6 +7,29 @@ from itertools import product
 from Bio import SeqIO
 
 
+def list_reads(wildcards):
+    if PAIRED:
+        reads = expand(
+            os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz"),
+            sample=SAMPLES,
+            p=PAIRS,
+        )
+    else:
+        reads = expand(
+            os.path.join(dir.out.fastq, "{sample}.fq.gz"),
+            sample=SAMPLES,
+        )
+
+    if BAM:
+        bams = expand(
+            os.path.join(dir.out.bam, "{sample}.{bam}"),
+            sample=SAMPLES,
+            bam=["bam", "bam.bai"],
+        )
+        reads = reads + bams
+    return reads
+
+
 def list_files(indir, extensions):
     extensions = extensions.split(",")
     files = [glob.glob(f"{indir}/*.{e}") for e in extensions]
@@ -44,19 +67,15 @@ def fasta_input(wildcards):
         return os.path.join(basedir, "{fasta}.fna.gz")
     elif COMPRESSED == False:
         return os.path.join(basedir, "{fasta}.fna")
-    if SKIP_FA_PROC and SEQ_TECH != "illumina":
-        return os.path.join(basedir, "{fasta}_{contig}.fna")
+    if SKIP_FA_PROC:
+        return os.path.join(basedir, "{fasta}", "{contig}.fna")
 
 
-def list_fastas(wildcards, contigs=False):
+def list_fastas(wildcards):
     table = checkpoints.calculate_coverage.get(**wildcards).output[0]
     df = pd.read_csv(table, sep="\t")
-    paths = list(set(df["path"]))
     fastas = list(set(df["fasta"]))
-    if contigs:
-        return expand(os.path.join(dir.out.fasta, "{fasta}.renamed"), fasta=fastas)
-    else:
-        return paths
+    return expand(os.path.join(dir.out.fasta, "{fasta}.fasta"), fasta=fastas)
 
 
 def get_value(table, wildcards, value):
@@ -79,30 +98,7 @@ def get_assembly_summary_path(wildcards):
     return table
 
 
-def list_cat(wildcards, ext):
-    table = checkpoints.calculate_coverage.get(**wildcards).output[0]
-    df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
-    fastas = list(set(df.loc[wildcards.sample].index))
-    if ext == "fastq":
-        if SEQ_TECH == "illumina":
-            return expand(
-                os.path.join(dir.out.short, "{{sample}}", "{fasta}{{p}}.fq.gz"),
-                fasta=fastas,
-            )
-        else:
-            return expand(
-                os.path.join(dir.out.long, "{{sample}}", "{fasta}.fq.gz"),
-                fasta=fastas,
-            )
-    elif ext == "bam":
-        return expand(
-            os.path.join(dir.out.bam, "{{sample}}", "{fasta}.bam"),
-            fasta=fastas,
-        )
-
-
-## PBSIM3 functions
-def pbsim3_expand(wildcards, outdir, ext):
+def collect_contigs(wildcards, outdir, ext):
     table = checkpoints.split_contigs.get(**wildcards).output[0]
     df = pd.read_csv(table, sep="\t", index_col="fasta")
     contigs = df.loc[wildcards.fasta]["contig"]
@@ -110,14 +106,45 @@ def pbsim3_expand(wildcards, outdir, ext):
         contigs = [contigs]
     else:
         contigs = list(contigs)
-    return expand(
-        os.path.join(outdir, "{{sample}}", "{{fasta}}", "{contig}.{ext}"),
-        outdir=outdir,
-        contig=contigs,
-        ext=ext,
-    )
+    if PAIRED and ext != "bam":
+        return expand(
+            os.path.join(outdir, "{{sample}}", "{{fasta}}", "{contig}{{p}}.{ext}"),
+            contig=contigs,
+            ext=ext,
+        )
+    else:
+        return expand(
+            os.path.join(outdir, "{{sample}}", "{{fasta}}", "{contig}.{ext}"),
+            contig=contigs,
+            ext=ext,
+        )
+
+
+def collect_samples(wildcards, outdir, ext):
+    table = checkpoints.calculate_coverage.get(**wildcards).output[0]
+    df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
+    fastas = list(set(df.loc[wildcards.sample].index))
+    if PAIRED and ext != "bam":
+        return expand(
+            os.path.join(outdir, "{{sample}}", "{fasta}{{p}}.{ext}"),
+            fasta=fastas,
+            ext=ext,
+        )
+    else:
+        return expand(
+            os.path.join(outdir, "{{sample}}", "{fasta}.{ext}"),
+            fasta=fastas,
+            ext=ext,
+        )
 
 
 def get_header(fa):
     seqid = SeqIO.read(fa, "fasta").id
     return seqid.replace(">", "")
+
+
+def seqkit_replace(wildcards):
+    if PAIRED:
+        return f"{wildcards.sample}_{{nr}}/{wildcards.p}"
+    else:
+        return f"{wildcards.sample}_{{nr}}"
