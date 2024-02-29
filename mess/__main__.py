@@ -138,6 +138,8 @@ def run(
     mu,
     sigma,
     bases,
+    model,
+    ratio,
     accuracy,
     passes,
     min_len,
@@ -180,6 +182,8 @@ def run(
             "mu": mu,
             "sigma": sigma,
             "bases": bases,
+            "model": model,
+            "ratio": ratio,
             "accuracy": accuracy,
             "passes": passes,
             "min_len": min_len,
@@ -293,6 +297,8 @@ def simulate(
     tech,
     tool,
     error,
+    model,
+    ratio,
     custom_err,
     replicates,
     rep_sd,
@@ -313,6 +319,23 @@ def simulate(
     seed,
     **kwargs,
 ):
+    if tech != "illumina" and error:
+        if tech == "pacbio":
+            ratio = "22:45:33"
+            model = "QSHMM-RSII"
+            if error == "hifi":
+                accuracy = 0.99
+                passes = 10
+
+        if tech == "nanopore":
+            ratio = "39:24:36"
+            if error == "r10.4":
+                accuracy = 0.99
+                model = "QSHMM-ONT-HQ"
+            if error == "r10.3":
+                accuracy = 0.95
+                model = "QSHMM-ONT"
+
     """Simulate reads from local fastas"""
     # Config to add or update in configfile
     merge_config = {
@@ -326,6 +349,8 @@ def simulate(
             "tech": tech,
             "tool": tool,
             "error": error,
+            "model": model,
+            "ratio": ratio,
             "custom_err": custom_err,
             "asm_summary": asm_summary,
             "replicates": replicates,
