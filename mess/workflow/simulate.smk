@@ -15,6 +15,7 @@ wildcard_constraints:
     sample="[^/]+",
     fasta="[^/]+",
     contig="[^/]+",
+    p="[1-2]+",
 
 
 # functions
@@ -50,8 +51,6 @@ if PAIRED:
     FRAG_LEN = config.args.frag_len
     FRAG_SD = config.args.frag_sd
     PAIRS = [1, 2]
-else:
-    PAIRS = [1]
 
 DIST = config.args.dist
 MU = config.args.mu
@@ -78,34 +77,22 @@ BAM = config.args.bam
 MIN_LEN = config.args.min_len
 MAX_LEN = config.args.max_len
 SD_LEN = config.args.sd_len
-# simulate reads
+PASSES = config.args.passes
+ACCURACY = config.args.accuracy
+MODEL = config.args.model
+RATIO = config.args.ratio
+
 if SEQ_TECH == "illumina":
 
     include: os.path.join("rules", "simulate", "short_reads.smk")
 
 else:
-    MODEL = ""
-    RATIO = ""
-    PASSES = config.args.passes
-    ACCURACY = config.args.accuracy
-    if SEQ_TECH == "pacbio":
-        MODEL = "QSHMM-RSII"
-        RATIO = "22:45:33"
-    elif SEQ_TECH == "nanopore":
-        RATIO = "39:24:36"
-        if ERROR == "r10.4":
-            MODEL = "QSHMM-ONT-HQ"
-        elif ERROR == "r10.3":
-            MODEL = "QSHMM-ONT"
 
     include: os.path.join("rules", "simulate", "long_reads.smk")
 
 
-# process reads
-SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
-
-
 # reads post-processsing options
+SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
 
 
