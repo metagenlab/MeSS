@@ -9,9 +9,9 @@ resources:
     cpu: 8
     time: "08:00:00"
   norm:
-    mem: 5000
+    mem: 6000
     cpu: 3
-    time: "01:00:00"
+    time: "00:30:00"
   sml:
     mem: 2000
     cpu: 1
