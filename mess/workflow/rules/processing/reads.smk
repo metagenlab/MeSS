@@ -33,7 +33,7 @@ rule convert_sam_to_bam:
         """
 
 
-rule merge_fasta_bam:
+rule merge_fasta_bams:
     input:
         lambda wildcards: collect_contigs(wildcards, dir.out.bam, "bam"),
     output:
@@ -55,7 +55,7 @@ rule merge_fasta_bam:
         """
 
 
-rule merge_samples_bam:
+rule merge_sample_bams:
     input:
         lambda wildcards: collect_samples(wildcards, dir.out.bam, "bam"),
     output:
@@ -99,7 +99,7 @@ rule sort_bams:
         """
 
 
-rule index_bam:
+rule index_bams:
     input:
         os.path.join(dir.out.bam, "{sample}.bam"),
     output:
@@ -242,9 +242,9 @@ if not SKIP_SHUFFLE:
             os.path.join(dir.out.logs, "seqkit", "replace", "{sample}_R{p}.log")
             if PAIRED
             else os.path.join(dir.out.logs, "seqkit", "replace", "{sample}.log"),
-            os.path.join(dir.out.logs, "anonkeys", "{sample}_R{p}.tsv")
+            os.path.join(dir.out.logs, "anonymized_reads", "{sample}_R{p}.tsv")
             if PAIRED
-            else os.path.join(dir.out.logs, "anonkeys", "{sample}.tsv"),
+            else os.path.join(dir.out.logs, "anonymized_reads", "{sample}.tsv"),
         resources:
             mem_mb=config.resources.norm.mem,
             mem=str(config.resources.norm.mem) + "MB",
