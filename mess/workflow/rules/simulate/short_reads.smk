@@ -34,7 +34,7 @@ fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}")
 if not PAIRED:
     fastq_out = temp(os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}.fq"))
 
-fa = os.path.join(dir.out.fasta, "split", "{fasta}", "{contig}.fa")
+fa = os.path.join(dir.out.base, "split", "{fasta}", "{contig}.fa")
 if SKIP_FA_PROC:
     fa = fasta_input
 
@@ -43,7 +43,7 @@ rule art_illumina:
     input:
         fa=fa,
         df=os.path.join(dir.out.base, "cov.tsv"),
-        flag=os.path.join(dir.out.fasta, "split", "split.tsv"),
+        flag=os.path.join(dir.out.base, "split.tsv"),
     output:
         sam=sam_out,
         fastqs=fastq_out,

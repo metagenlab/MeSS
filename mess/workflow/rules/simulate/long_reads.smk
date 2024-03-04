@@ -1,4 +1,4 @@
-fa = os.path.join(dir.out.fasta, "split", "{fasta}", "{contig}.fa")
+fa = os.path.join(dir.out.base, "split", "{fasta}", "{contig}.fa")
 if SKIP_FA_PROC:
     fa = fasta_input
 
@@ -6,7 +6,7 @@ if SKIP_FA_PROC:
 rule pbsim3:
     input:
         fa=fa,
-        flag=os.path.join(dir.out.fasta, "split", "split.tsv"),
+        flag=os.path.join(dir.out.base, "split.tsv"),
         df=os.path.join(dir.out.base, "cov.tsv"),
     output:
         temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.sam"))
