@@ -29,6 +29,7 @@ dir.out.short = os.path.join(dir.out.base, "short")
 dir.out.long = os.path.join(dir.out.base, "long")
 dir.out.fastq = os.path.join(dir.out.base, "fastq")
 dir.out.bam = os.path.join(dir.out.base, "bam")
+dir.out.tax = os.path.join(dir.out.base, "tax")
 
 
 # Logs versions and benchmarks
