@@ -26,7 +26,9 @@ def list_reads(wildcards):
             sample=SAMPLES,
             bam=["bam", "bam.bai"],
         )
-        reads = reads + bams
+        tax = expand(os.path.join(dir.out.tax, "{sample}_profile.txt"), sample=SAMPLES)
+        reads = reads + bams + tax
+
     return reads
 
 
@@ -98,44 +100,43 @@ def get_assembly_summary_path(wildcards):
     return table
 
 
-def collect_contigs(wildcards, outdir, ext):
-    table = checkpoints.split_contigs.get(**wildcards).output[0]
-    df = pd.read_csv(table, sep="\t", index_col="fasta")
-    contigs = df.loc[wildcards.fasta]["contig"]
-    if isinstance(contigs, str):
-        contigs = [contigs]
-    else:
-        contigs = list(contigs)
-    if PAIRED and ext != "bam":
-        return expand(
-            os.path.join(outdir, "{{sample}}", "{{fasta}}", "{contig}{{p}}.{ext}"),
-            contig=contigs,
-            ext=ext,
-        )
-    else:
-        return expand(
-            os.path.join(outdir, "{{sample}}", "{{fasta}}", "{contig}.{ext}"),
-            contig=contigs,
-            ext=ext,
-        )
-
-
-def collect_samples(wildcards, outdir, ext):
-    table = checkpoints.calculate_coverage.get(**wildcards).output[0]
-    df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
-    fastas = list(set(df.loc[wildcards.sample].index))
-    if PAIRED and ext != "bam":
-        return expand(
-            os.path.join(outdir, "{{sample}}", "{fasta}{{p}}.{ext}"),
-            fasta=fastas,
-            ext=ext,
-        )
-    else:
-        return expand(
-            os.path.join(outdir, "{{sample}}", "{fasta}.{ext}"),
-            fasta=fastas,
-            ext=ext,
-        )
+def aggregate(wildcards, outdir, level, ext):
+    if level == "contig":
+        table = checkpoints.split_contigs.get(**wildcards).output[0]
+        df = pd.read_csv(table, sep="\t", index_col="fasta")
+        contigs = df.loc[wildcards.fasta]["contig"]
+        if isinstance(contigs, str):
+            contigs = [contigs]
+        else:
+            contigs = list(contigs)
+        if PAIRED and ext != "bam":
+            return expand(
+                os.path.join(outdir, "{{sample}}", "{{fasta}}", "{contig}{{p}}.{ext}"),
+                contig=contigs,
+                ext=ext,
+            )
+        else:
+            return expand(
+                os.path.join(outdir, "{{sample}}", "{{fasta}}", "{contig}.{ext}"),
+                contig=contigs,
+                ext=ext,
+            )
+    if level == "fasta":
+        table = checkpoints.calculate_coverage.get(**wildcards).output[0]
+        df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
+        fastas = list(set(df.loc[wildcards.sample].index))
+        if PAIRED and ext != "bam":
+            return expand(
+                os.path.join(outdir, "{{sample}}", "{fasta}{{p}}.{ext}"),
+                fasta=fastas,
+                ext=ext,
+            )
+        else:
+            return expand(
+                os.path.join(outdir, "{{sample}}", "{fasta}.{ext}"),
+                fasta=fastas,
+                ext=ext,
+            )
 
 
 def get_header(fa):
