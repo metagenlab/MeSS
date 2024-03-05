@@ -33,9 +33,9 @@ rule convert_sam_to_bam:
         """
 
 
-rule merge_fasta_bams:
+rule merge_contig_bams:
     input:
-        lambda wildcards: collect_contigs(wildcards, dir.out.bam, "bam"),
+        lambda wildcards: aggregate(wildcards, dir.out.bam, "contig", "bam"),
     output:
         temp(os.path.join(dir.out.bam, "{sample}", "{fasta}.bam")),
     benchmark:
@@ -55,9 +55,9 @@ rule merge_fasta_bams:
         """
 
 
-rule merge_sample_bams:
+rule merge_fasta_bams:
     input:
-        lambda wildcards: collect_samples(wildcards, dir.out.bam, "bam"),
+        lambda wildcards: aggregate(wildcards, dir.out.bam, "fasta", "bam"),
     output:
         temp(os.path.join(dir.out.bam, "{sample}.unsorted")),
     benchmark:
@@ -99,6 +99,69 @@ rule sort_bams:
         """
 
 
+rule get_bam_coverage:
+    input:
+        os.path.join(dir.out.bam, "{sample}.bam"),
+    output:
+        temp(os.path.join(dir.out.bam, "{sample}.txt")),
+    log:
+        os.path.join(dir.out.logs, "samtools", "coverage", "{sample}.log"),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
+    threads: config.resources.sml.cpu
+    conda:
+        os.path.join(dir.env, "bioconvert.yml")
+    shell:
+        """
+        samtools coverage {input} > {output}
+        """
+
+
+rule get_tax_profile:
+    input:
+        cov=os.path.join(dir.out.bam, "{sample}.txt"),
+        tax=os.path.join(dir.out.base, "split.tsv"),
+    output:
+        temp(os.path.join(dir.out.tax, "{sample}.tsv")),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
+    threads: config.resources.sml.cpu
+    run:
+        tax_df = pd.read_csv(input.tax, sep="\t")
+        cov_df = pd.read_csv(input.cov, sep="\t")
+        cov_df.rename(columns={"#rname": "contig"}, inplace=True)
+        merge_df = tax_df.merge(cov_df)
+        df = merge_df.groupby("taxid")["meandepth"].mean().reset_index()
+        df["abundance"] = df["meandepth"] / df["meandepth"].sum()
+        df[["taxid", "abundance"]].to_csv(
+            output[0], sep="\t", header=False, index=False
+        )
+
+
+rule convert_to_biobox_format:
+    input:
+        os.path.join(dir.out.tax, "{sample}.tsv"),
+    output:
+        os.path.join(dir.out.tax, "{sample}_profile.txt"),
+    log:
+        os.path.join(dir.out.logs, "taxonkit", "profile2cami", "{sample}.log"),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
+    threads: config.resources.sml.cpu
+    conda:
+        os.path.join(dir.env, "taxonkit.yml")
+    shell:
+        """
+        taxonkit profile2cami -s {wildcards.sample} {input} > {output}
+        """
+
+
 rule index_bams:
     input:
         os.path.join(dir.out.bam, "{sample}.bam"),
@@ -137,7 +200,7 @@ rule compress_contig_fastqs:
 
 rule cat_contig_fastqs:
     input:
-        lambda wildcards: collect_contigs(wildcards, fastq_dir, "fq.gz"),
+        lambda wildcards: aggregate(wildcards, fastq_dir, "contig", "fq.gz"),
     output:
         temp(os.path.join(fastq_dir, "{sample}", "{fasta}{p}.fq.gz"))
         if PAIRED
@@ -165,9 +228,9 @@ else:
         sample_fastq_out = temp(os.path.join(dir.out.cat, "{sample}.fq.gz"))
 
 
-rule cat_sample_fastqs:
+rule cat_fasta_fastqs:
     input:
-        lambda wildcards: collect_samples(wildcards, fastq_dir, "fq.gz"),
+        lambda wildcards: aggregate(wildcards, fastq_dir, "fasta", "fq.gz"),
     output:
         sample_fastq_out,
     resources:
