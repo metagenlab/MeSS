@@ -2,7 +2,7 @@ site_name: MeSS
 site_url: "https://github.com/metagenlab/MeSS"
 site_author: Farid Chaabane
 theme:
-  name: readthedocs
+  name: material
   highlightjs: true
   hljs_languages:
     - yaml
