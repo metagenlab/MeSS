@@ -6,11 +6,7 @@ The intrinsic complexity of the microbiota combined with technical variability r
 
 At the time, [`CAMISIM`](https://github.com/CAMI-challenge/CAMISIM) was slow and it's dependencies had to be installed by hand, so I decided to write my own tool !
 
-<div class="admonition attention">
-    <p class="first admonition-title">Attention</p>
-    <p class="last">
-        CAMISIM will have an upcoming faster version written in nextflow ! 
-        Go check it out at <a href="https://github.com/CAMI-challenge/CAMISIM/tree/dev">CAMISIM</a>
-    </p>
+???+ warning
 
-</div>
+     CAMISIM will have an upcoming faster version written in nextflow !
+     Go check it out at [`CAMISIM`](https://github.com/CAMI-challenge/CAMISIM)
