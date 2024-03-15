@@ -25,27 +25,24 @@ from .util import (
 version = get_version()
 
 
-def print_splash():
-    click.echo(
-        """
-        ___  ___     _____ _____ 
-        |  \/  |    /  ___/  ___|
-        | .  . | ___\ `--.\ `--. 
-        | |\/| |/ _ \`--. \`--. \\
-        | |  | |  __/\__/ /\__/ /
-        \_|  |_/\___\____/\____/
-        """
-    )
-
-
 @click.group(
-    cls=OrderedCommands, context_settings=dict(help_option_names=["-h", "--help"])
+    cls=OrderedCommands,
+    context_settings=dict(help_option_names=["-h", "--help"]),
 )
 @click.version_option(version, "-v", "--version", is_flag=True)
 def cli():
     """
-    For more options, run:
-    mess command --help"""
+    \b
+    ___  ___     _____ _____ 
+    |  \/  |    /  ___/  ___|
+    | .  . | ___\ `--.\ `--. 
+    | |\/| |/ _ \`--. \`--. \\
+    | |  | |  __/\__/ /\__/ /
+    \_|  |_/\___\____/\____/
+
+    \b
+    For more options, run:mess command --help
+    """
     pass
 
 
@@ -461,7 +458,6 @@ cli.add_command(citation)
 
 
 def main():
-    print_splash()
     cli()
 
 
