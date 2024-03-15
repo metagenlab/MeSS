@@ -80,12 +80,18 @@ def list_fastas(wildcards):
     return expand(os.path.join(dir.out.fasta, "{fasta}.fasta"), fasta=fastas)
 
 
+table_cache = {}
+
+
 def get_value(table, wildcards, value):
-    df = pd.read_csv(
-        table,
-        sep="\t",
-        index_col=["samplename", "fasta"],
-    )
+    if table not in table_cache:
+        df = pd.read_csv(
+            table,
+            sep="\t",
+            index_col=["samplename", "fasta"],
+        )
+        table_cache[table] = df
+    df = table_cache[table]
     val = df.loc[wildcards.sample].loc[wildcards.fasta][value]
     return val
 
