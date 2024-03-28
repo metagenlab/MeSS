@@ -6,9 +6,10 @@ https://github.com/beardymcjohnface/Snaketool/wiki/Customising-your-Snaketool
 """
 
 import os
-import click
+import rich_click as click
+
+
 from snaketool_utils.cli_utils import (
-    OrderedCommands,
     run_snakemake,
     copy_config,
 )
@@ -21,12 +22,177 @@ from .util import (
     sim_options,
 )
 
+click.rich_click.STYLE_COMMANDS_TABLE_COLUMN_WIDTH_RATIO = (1, 2)
+click.rich_click.SHOW_METAVARS_COLUMN = False
+click.rich_click.APPEND_METAVARS_HELP = True
+
+mess_common_options = (
+    {
+        "name": "Common options",
+        "options": ["--input", "--output", "--threads", "--help"],
+    },
+)
+mess_download_options = (
+    {
+        "name": "Download options",
+        "options": [
+            "--api-key",
+            "--limit",
+            "--compressed",
+            "--include",
+            "--source",
+            "--taxon",
+            "--reference",
+            "--assembly-level",
+            "--annotated",
+            "--atypical",
+            "--mag",
+            "--rank",
+            "--nrank",
+        ],
+    },
+)
+mess_simulate_options = (
+    {
+        "name": "Simulators options",
+        "options": [
+            "--gzip",
+            "--tech",
+            "--bases",
+            "--tool",
+            "--error",
+            "--mean-len",
+            "--bam",
+            "--seed",
+        ],
+    },
+    {
+        "name": "ART illumina options",
+        "options": ["--custom-err", "--paired", "--frag-len", "--frag-sd"],
+    },
+    {
+        "name": "PBSIM3 options",
+        "options": [
+            "--model",
+            "--ratio",
+            "--accuracy",
+            "--passes",
+            "--min-len",
+            "--max-len",
+            "--sd-len",
+        ],
+    },
+    {
+        "name": "Replicates options",
+        "options": [
+            "--replicates",
+            "--rep-sd",
+        ],
+    },
+    {
+        "name": "Abundance distribution options",
+        "options": [
+            "--dist",
+            "--mu",
+            "--sigma",
+        ],
+    },
+)
+mess_local_sim_options = (
+    {
+        "name": "Mess simulate options",
+        "options": ["--asm-summary", "--skip-fa-proc"],
+    },
+)
+
+skip_options = (
+    {
+        "name": "Skip options",
+        "options": [
+            "--skip-shuffle",
+        ],
+    },
+)
+
+snakemake_options = (
+    {
+        "name": "Snakemake options",
+        "options": [
+            "--configfile",
+            "--threads",
+            "--profile",
+            "--use-conda",
+            "--conda-prefix",
+            "--snake-default",
+        ],
+    },
+)
+
+mess_run = [
+    options
+    for options in mess_common_options
+    + mess_download_options
+    + mess_simulate_options
+    + skip_options
+    + snakemake_options
+]
+
+mess_download = [
+    options
+    for options in mess_common_options + mess_download_options + snakemake_options
+]
+
+mess_simulate = [
+    options
+    for options in mess_common_options
+    + mess_local_sim_options
+    + mess_simulate_options
+    + skip_options
+    + snakemake_options
+]
+
+
+click.rich_click.OPTION_GROUPS = {
+    "mess": [
+        {
+            "name": "Help",
+            "options": ["--help", "--version"],
+        }
+    ],
+    "mess run": mess_run,
+    "mess download": mess_download,
+    "mess simulate": mess_simulate,
+    "mess hmp-template": [
+        {"name": "Hmp-template options", "options": ["--site", "--sample"]}
+    ],
+}
+
+click.rich_click.COMMAND_GROUPS = {
+    "mess": [
+        {
+            "name": "Main usage",
+            "commands": ["run", "download", "simulate", "hmp-template"],
+        },
+        {
+            "name": "Config/Test",
+            "commands": [
+                "config",
+                "test",
+            ],
+        },
+        {
+            "name": "Cite",
+            "commands": [
+                "citation",
+            ],
+        },
+    ]
+}
 
 version = get_version()
 
 
 @click.group(
-    cls=OrderedCommands,
     context_settings=dict(help_option_names=["-h", "--help"]),
 )
 @click.version_option(version, "-v", "--version", is_flag=True)
@@ -39,9 +205,10 @@ def cli():
     | |\/| |/ _ \`--. \`--. \\
     | |  | |  __/\__/ /\__/ /
     \_|  |_/\___\____/\____/
-
     \b
-    For more options, run:mess command --help
+    For more options: 
+
+    mess [command] --help
     """
     pass
 
@@ -150,7 +317,7 @@ def run(
     seed,
     **kwargs,
 ):
-    """Run MeSS"""
+    """Run MeSS workflow: download and simulate commands"""
     # Config to add or update in configfile
     merge_config = {
         "args": {
@@ -217,39 +384,42 @@ def download(
     input,
     output,
     log,
-    ncbi_email,
-    ncbi_key,
-    db,
-    uid,
-    rc,
-    al,
-    an,
+    limit,
+    api_key,
+    compressed,
+    include,
+    source,
+    taxon,
+    reference,
+    assembly_level,
+    annotated,
+    atypical,
+    mag,
     rank,
-    nr,
-    ete_db,
-    nb,
-    exclude,
+    nrank,
     **kwargs,
 ):
-    """Download assemblies"""
+    """Download genomes"""
+    [print(arg) for arg in kwargs]
     # Config to add or update in configfile
     merge_config = {
         "args": {
             "input": input,
             "output": output,
             "log": log,
-            "ncbi_email": ncbi_email,
-            "ncbi_key": ncbi_key,
-            "db": db,
-            "uid": uid,
-            "rc": rc,
-            "al": al,
-            "an": an,
+            "limit": limit,
+            "api_key": api_key,
+            "compressed": compressed,
+            "include": include,
+            "source": source,
+            "taxon": taxon,
+            "reference": reference,
+            "assembly_level": assembly_level,
+            "annotated": annotated,
+            "atypical": atypical,
+            "mag": mag,
             "rank": rank,
-            "nr": nr,
-            "ete_db": ete_db,
-            "nb": nb,
-            "exclude": exclude,
+            "nrank": nrank,
         }
     }
     run_snakemake(
@@ -270,17 +440,17 @@ def download(
 @click.option("-i", "--input", help="path to sample sheet(s)", type=str, required=True)
 @sim_options
 @click.option(
+    "--asm-summary",
+    help="Path to assembly summary table (contains taxid, genome_size, path to fasta)",
+    type=str,
+    required=True,
+)
+@click.option(
     "--skip-fa-proc",
     help="skip fasta processing (decompressing, renaming headers, merge/split contigs)",
     type=bool,
     default=False,
     required=False,
-)
-@click.option(
-    "--asm-summary",
-    help="path to assembly summary table (contains taxid, genome_size, path to fasta)",
-    type=str,
-    required=True,
 )
 @common_options
 def simulate(
@@ -316,6 +486,7 @@ def simulate(
     seed,
     **kwargs,
 ):
+    """Simulate reads from local genomes"""
     if tech != "illumina" and error:
         if tech == "pacbio":
             ratio = "22:45:33"
@@ -408,7 +579,7 @@ def test(**kwargs):
 )
 @click.option(
     "--site",
-    help="choose microbiome site",
+    help="Choose microbiome site",
     type=click.Choice(["gut", "buccal_mucosa", "vagina", "throat"]),
     required=True,
     default="gut",
