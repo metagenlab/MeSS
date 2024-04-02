@@ -1,4 +1,4 @@
-if COMPRESSED:
+if GZIP:
 
     rule unzip_fasta:
         input:
@@ -15,7 +15,7 @@ if COMPRESSED:
 
 rule rename_headers:
     input:
-        os.path.join(dir.out.fasta, "{fasta}.fna") if COMPRESSED else fasta_input,
+        os.path.join(dir.out.fasta, "{fasta}.fna") if GZIP else fasta_input,
     output:
         temp(os.path.join(dir.out.fasta, "{fasta}.fasta")),
     resources:
