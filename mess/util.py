@@ -101,7 +101,7 @@ def common_options(func):
 
 
 def sim_options(func):
-    """Reads simulation command line args
+    """Read simulation command line args
     include simulate args with the sim_options decorator.
     """
     options = [
@@ -290,8 +290,8 @@ def download_options(func):
         click.option(
             "--limit",
             help="Limit number of genomes per query",
-            type=str,
-            default="None",
+            type=int,
+            default=None,
         ),
         click.option("--api-key", type=str, help="NCBI api-key", default=None),
         click.option(
@@ -332,7 +332,7 @@ def download_options(func):
         click.option(
             "--assembly-level",
             help="Comma seperated list of assembly level: complete,chromosome,scaffold,contig",
-            default="None",
+            default=None,
             show_default=True,
         ),
         click.option(
@@ -359,7 +359,7 @@ def download_options(func):
         click.option(
             "--rank",
             help="taxonomic rank to filter by assemblies ",
-            default="None",
+            default=None,
             type=click.Choice(
                 [
                     "superkingdom",
@@ -369,7 +369,6 @@ def download_options(func):
                     "family",
                     "genus",
                     "species",
-                    "None",
                 ],
                 case_sensitive=False,
             ),
@@ -378,8 +377,8 @@ def download_options(func):
         click.option(
             "--nrank",
             help="Number of genomes per taxonomic rank",
-            type=str,
-            default="None",
+            type=int,
+            default=None,
             show_default=True,
         ),
     ]
