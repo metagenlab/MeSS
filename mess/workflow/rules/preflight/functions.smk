@@ -61,16 +61,16 @@ def parse_samples(indir, replicates):
         return [prod[0] + "-" + str(prod[1]) for prod in products]
 
 
+fasta_cache = {}
+
+
 def fasta_input(wildcards):
     table = checkpoints.calculate_coverage.get(**wildcards).output[0]
-    df = pd.read_csv(table, sep="\t")
-    basedir = os.path.dirname(df["path"][0])
-    if COMPRESSED:
-        return os.path.join(basedir, "{fasta}.fna.gz")
-    elif COMPRESSED == False:
-        return os.path.join(basedir, "{fasta}.fna")
-    if SKIP_FA_PROC:
-        return os.path.join(basedir, "{fasta}", "{contig}.fna")
+    if table not in fasta_cache:
+        df = pd.read_csv(table, sep="\t", index_col="fasta")
+        fasta_cache[table] = df
+    df = fasta_cache[table]
+    return df.loc[wildcards.fasta]["path"]
 
 
 def list_fastas(wildcards):
