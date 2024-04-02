@@ -135,9 +135,9 @@ rule get_tax_profile:
         cov_df = pd.read_csv(input.cov, sep="\t")
         cov_df.rename(columns={"#rname": "contig"}, inplace=True)
         merge_df = tax_df.merge(cov_df)
-        df = merge_df.groupby("taxid")["meandepth"].mean().reset_index()
+        df = merge_df.groupby("tax_id")["meandepth"].mean().reset_index()
         df["abundance"] = df["meandepth"] / df["meandepth"].sum()
-        df[["taxid", "abundance"]].to_csv(
+        df[["tax_id", "abundance"]].to_csv(
             output[0], sep="\t", header=False, index=False
         )
 
@@ -200,7 +200,7 @@ rule compress_contig_fastqs:
 
 rule cat_contig_fastqs:
     input:
-        lambda wildcards: aggregate(wildcards, fastq_dir, "contig", "fq.gz"),
+        fq=lambda wildcards: aggregate(wildcards, fastq_dir, "contig", "fq.gz"),
     output:
         temp(os.path.join(fastq_dir, "{sample}", "{fasta}{p}.fq.gz"))
         if PAIRED
@@ -211,7 +211,7 @@ rule cat_contig_fastqs:
         time=config.resources.norm.time,
     shell:
         """
-        cat {input} > {output}
+        cat {input.fq} > {output}
         """
 
 
