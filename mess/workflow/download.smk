@@ -35,18 +35,19 @@ INPUT = os.path.abspath(str(config.args.input))
 OUTPUT = config.args.output
 LOG = os.path.join(OUTPUT, "mess.log")
 THREADS = config.args.threads
-NCBI_EMAIL = config.args.ncbi_email
-NCBI_KEY = config.args.ncbi_key
-DB = config.args.db
-UID = config.args.uid
-ASM_LVL = config.args.al
-REF_CAT = config.args.rc
-ANNOT = config.args.an
+API_KEY = config.args.api_key
+LIMIT = config.args.limit
+COMPRESSED = config.args.compressed
+SOURCE = config.args.source
+INCLUDE = config.args.include
+TAXON = config.args.taxon
+REFERENCE = config.args.reference
+ASM_LVL = config.args.assembly_level
+ANNOTATED = config.args.annotated
+ATYPICAL = config.args.atypical
+MAG = config.args.mag
 RANK = config.args.rank
-NB_RANK = config.args.nr
-ETE_DB = config.args.ete_db
-NB = config.args.nb
-EXCLUDE = config.args.exclude
+NRANK = config.args.nrank
 
 
 # functions
