@@ -11,13 +11,6 @@ configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
 config = ap.AttrMap(config)
 
 
-wildcard_constraints:
-    sample="[^/]+",
-    fasta="[^/]+",
-    contig="[^/]+",
-    p="[1-2]+",
-
-
 # functions
 include: os.path.join("rules", "preflight", "functions.smk")
 # directories
@@ -63,11 +56,10 @@ include: os.path.join("rules", "processing", "coverages.smk")
 
 
 # process fasta options
-COMPRESSED = config.args.compressed
-SKIP_FA_PROC = config.args.skip_fa_proc
-if not SKIP_FA_PROC:
+GZIP = config.args.gzip
 
-    include: os.path.join("rules", "processing", "fastas.smk")
+
+include: os.path.join("rules", "processing", "fastas.smk")
 
 
 # simulators options
