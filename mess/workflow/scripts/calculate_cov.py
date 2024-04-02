@@ -14,7 +14,7 @@ def get_lognormal_dist(df, mu, sigma):
     function for simulating lognormal sequence distribution
     """
     df["lognormal"] = np.random.lognormal(mean=mu, sigma=sigma, size=len(df))
-    df["proportion"] = df["lognormal"] / df["lognormal"].sum()
+    df["abundance"] = df["lognormal"] / df["lognormal"].sum()
     return df
 
 
@@ -59,9 +59,11 @@ bases = parse_size(snakemake.params.bases)
 
 # Calculate prportion with dist
 if snakemake.params.dist == "even":
-    df = get_even_dist(df, ["taxid"])
-    df["sum_genome_size"] = df.groupby("samplename")["genome_size"].transform("sum")
-    df["sum_cov"] = bases / df["sum_genome_size"]
+    df = get_even_dist(df, ["tax_id"])
+    df["sum_seq_length"] = df.groupby("samplename")["total_sequence_length"].transform(
+        "sum"
+    )
+    df["sum_cov"] = bases / df["sum_seq_length"]
     df["cov_sim"] = df["sum_cov"] * df["abundance"]
 
 
@@ -69,7 +71,7 @@ elif snakemake.params.dist == "lognormal":
     df = get_lognormal_dist(df, snakemake.params.mu, snakemake.params.sigma)
     df["bases"] = df["proportion"] * bases
     df["reads"] = df["bases"] / (snakemake.params.read_len * p)
-    df["cov_sim"] = df["bases"] / df["genome_size"]
+    df["cov_sim"] = df["bases"] / df["total_sequence_length"]
     df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
     df["abundance"] = df["cov_sim"] / df["sum_cov"]
     df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
@@ -77,10 +79,12 @@ elif snakemake.params.dist == "lognormal":
     df["proportion"] = df["bases"] / df["sum_bases"]
 else:
     if "abundance" in entry_df.columns:
-        df["sum_genome_size"] = df.groupby("samplename")["genome_size"].transform("sum")
-        df["sum_cov"] = bases / df["sum_genome_size"]
+        df["sum_seq_length"] = df.groupby("samplename")[
+            "total_sequence_length"
+        ].transform("sum")
+        df["sum_cov"] = bases / df["sum_seq_length"]
         df["cov_sim"] = df["sum_cov"] * df["abundance"]
-        df["bases"] = df["cov_sim"] * df["genome_size"]
+        df["bases"] = df["cov_sim"] * df["total_sequence_length"]
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
         df["proportion"] = df["bases"] / df["sum_bases"]
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
@@ -88,7 +92,7 @@ else:
     if "proportion" in entry_df.columns:
         df["bases"] = df["proportion"] * bases
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
-        df["cov_sim"] = df["bases"] / df["genome_size"]
+        df["cov_sim"] = df["bases"] / df["total_sequence_length"]
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
         df["abundance"] = df["cov_sim"] / df["sum_cov"]
 
@@ -96,7 +100,7 @@ else:
         df["bases"] = df["reads"] * (snakemake.params.read_len * p)
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
         df["proportion"] = df["bases"] / df["sum_bases"]
-        df["cov_sim"] = df["bases"] / df["genome_size"]
+        df["cov_sim"] = df["bases"] / df["total_sequence_length"]
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
         df["abundance"] = df["cov_sim"] / df["sum_cov"]
 
@@ -104,14 +108,14 @@ else:
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
         df["proportion"] = df["bases"] / df["sum_bases"]
-        df["cov_sim"] = df["bases"] / df["genome_size"]
+        df["cov_sim"] = df["bases"] / df["total_sequence_length"]
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
         df["abundance"] = df["cov_sim"] / df["sum_cov"]
 
     elif "cov_sim" in entry_df.columns:
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
         df["abundance"] = df["cov_sim"] / df["sum_cov"]
-        df["bases"] = df["cov_sim"] * df["genome_size"]
+        df["bases"] = df["cov_sim"] * df["total_sequence_length"]
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["proportion"] = df["bases"] / df["sum_bases"]
@@ -122,12 +126,11 @@ df["seed"] = random.sample(range(1, 1000000), len(df))
 
 cols = [
     "samplename",
-    "entry",
     "fasta",
     "path",
-    "taxid",
-    "genome_size",
-    "contig_count",
+    "tax_id",
+    "total_sequence_length",
+    "number_of_contigs",
     "reads",
     "bases",
     "proportion",
@@ -135,7 +138,9 @@ cols = [
     "abundance",
     "seed",
 ]
-df = df.astype({"seed": int, "taxid": int, "genome_size": int, "contig_count": int})
+df = df.astype(
+    {"seed": int, "tax_id": int, "total_sequence_length": int, "number_of_contigs": int}
+)
 df = df[df["fasta"] != "nan"]
 df.to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
 df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
