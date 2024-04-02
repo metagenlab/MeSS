@@ -35,8 +35,6 @@ if not PAIRED:
     fastq_out = temp(os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}.fq"))
 
 fa = os.path.join(dir.out.base, "split", "{fasta}", "{contig}.fa")
-if SKIP_FA_PROC:
-    fa = fasta_input
 
 
 rule art_illumina:

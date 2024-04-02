@@ -1,6 +1,4 @@
 fa = os.path.join(dir.out.base, "split", "{fasta}", "{contig}.fa")
-if SKIP_FA_PROC:
-    fa = fasta_input
 
 
 rule pbsim3:
