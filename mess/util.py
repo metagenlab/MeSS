@@ -147,7 +147,7 @@ def sim_options(func):
             "--error",
             help="Simulator error profile",
             type=str,
-            default=None,
+            default="HS25",
         ),
         click.option(
             "--custom-err",
@@ -246,6 +246,7 @@ def sim_options(func):
             "--mean-len",
             help="Mean read length for long and short read sequencing",
             type=int,
+            default=150,
         ),
         click.option(
             "--frag-len",
