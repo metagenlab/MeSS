@@ -4,43 +4,63 @@ rule get_unique_entries:
     output:
         temp(os.path.join(dir.out.base, "uniq_entries.tsv")),
     params:
-        nb=NB,
+        nb=LIMIT,
+        taxon=TAXON,
     run:
         df = pd.read_csv(input[0], sep="\t")
-        try:
-            df[["entry", "nb"]].drop_duplicates().to_csv(
+        if params.taxon:
+            if "nb" not in df.columns:
+                df["nb"] = [params.nb] * len(df)
+            df[["taxon", "nb"]].drop_duplicates().to_csv(
                 output[0], sep="\t", index=None
             )
-        except KeyError:
-            df["nb"] = [params.nb] * len(df)
-            df[["entry", "nb"]].drop_duplicates().to_csv(
-                output[0], sep="\t", index=None
+        else:
+            df[["accession"]].drop_duplicates().to_csv(
+                output[0], sep="\t", index=None, header=False
             )
+
+
+af_args = ""
+if TAXON:
+    af_args += "--taxon "
+else:
+    af_args = "--accession "
+
+if LIMIT:
+    af_args += f"--limit {LIMIT} "
+
+if RANK and NRANK:
+    af_args = f"--rank {RANK} --nrank {NRANK}"
+
+if ASM_LVL:
+    af_args = f"--assembly-level {ASM_LVL} "
+
+if API_KEY:
+    af_args += f"--api-key {API_KEY} "
 
 
 checkpoint download_assemblies:
     input:
         os.path.join(dir.out.base, "uniq_entries.tsv"),
     output:
-        asm=os.path.join(dir.out.base, "download/assembly_summary.tsv"),
+        asm=os.path.join(dir.out.base, "assembly_finder/assembly_summary.tsv"),
+        seq=os.path.join(dir.out.base, "assembly_finder/sequence_report.tsv"),
+        tax=os.path.join(dir.out.base, "assembly_finder/taxonomy.tsv"),
         version=os.path.join(dir.out.versions, "assembly_finder.version"),
     params:
-        ncbi_key=NCBI_KEY,
-        ncbi_email=NCBI_EMAIL,
-        db=DB,
-        uid=UID,
-        alvl=ASM_LVL,
-        refc=REF_CAT,
-        annot=ANNOT,
-        excl=EXCLUDE,
-        rank=RANK,
-        nr=NB_RANK,
-        ete=ETE_DB,
-        out=os.path.join(dir.out.base, "download"),
+        args=af_args,
+        comp=COMPRESSED,
+        source=SOURCE,
+        incl=INCLUDE,
+        ref=REFERENCE,
+        annot=ANNOTATED,
+        atyp=ATYPICAL,
+        mag=MAG,
+        out=os.path.join(dir.out.base, "assembly_finder"),
     benchmark:
-        os.path.join(dir.out.bench, "download", "download.txt")
+        os.path.join(dir.out.bench, "assembly_finder", "download.txt")
     log:
-        os.path.join(dir.out.logs, "download", "download.log"),
+        os.path.join(dir.out.logs, "assembly_finder", "download.log"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -53,18 +73,14 @@ checkpoint download_assemblies:
         assembly_finder \\
         -i {input} \\
         -t {threads} \\
-        -nk {params.ncbi_key} \\
-        -ne {params.ncbi_email} \\
-        -db {params.db} \\
-        -id {params.uid} \\
-        -al {params.alvl} \\
-        -rc {params.refc} \\
-        -an {params.annot} \\
-        -ex {params.excl} \\
-        -r {params.rank} \\
-        -nr {params.nr} \\
-        -et {params.ete} \\
-        -o {params.out} \\
-        --nolock 2> {log}
+        {params.args} \\
+        --compressed {params.comp} \\
+        --include {params.incl} \\
+        --source {params.source} \\
+        --reference {params.ref} \\
+        --annotated {params.annot} \\
+        --atypical {params.atyp} \\
+        --mag {params.mag} \\
+        -o {params.out} 2> {log}
         assembly_finder -v > {output.version}
         """
