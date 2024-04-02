@@ -36,12 +36,6 @@ include: os.path.join("rules", "preflight", "functions.smk")
 include: os.path.join("rules", "preflight", "directories.smk")
 
 
-wildcard_constraints:
-    sample="[^/]+",
-    fasta="[^/]+",
-    contig="[^/]+",
-
-
 # common options
 INPUT = os.path.abspath(str(config.args.input))
 OUTPUT = config.args.output
@@ -49,18 +43,19 @@ LOG = os.path.join(OUTPUT, "mess.log")
 THREADS = config.args.threads
 
 # download options
-NCBI_EMAIL = config.args.ncbi_email
-NCBI_KEY = config.args.ncbi_key
-DB = config.args.db
-UID = config.args.uid
-ASM_LVL = config.args.al
-REF_CAT = config.args.rc
-ANNOT = config.args.an
+API_KEY = config.args.api_key
+LIMIT = config.args.limit
+COMPRESSED = config.args.compressed
+SOURCE = config.args.source
+INCLUDE = config.args.include
+TAXON = config.args.taxon
+REFERENCE = config.args.reference
+ASM_LVL = config.args.assembly_level
+ANNOTATED = config.args.annotated
+ATYPICAL = config.args.atypical
+MAG = config.args.mag
 RANK = config.args.rank
-NB_RANK = config.args.nr
-ETE_DB = config.args.ete_db
-NB = config.args.nb
-EXCLUDE = config.args.exclude
+NRANK = config.args.nrank
 
 # samples and replicates options
 REPLICATES = list(range(1, config.args.replicates + 1))
@@ -97,11 +92,11 @@ include: os.path.join("rules", "processing", "coverages.smk")
 
 
 # process fasta options
-COMPRESSED = config.args.compressed
-SKIP_FA_PROC = config.args.skip_fa_proc
-if not SKIP_FA_PROC:
+GZIP = config.args.gzip
 
-    include: os.path.join("rules", "processing", "fastas.smk")
+
+# fasta processing rules
+include: os.path.join("rules", "processing", "fastas.smk")
 
 
 # simulators options
