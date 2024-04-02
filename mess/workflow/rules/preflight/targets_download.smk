@@ -12,6 +12,8 @@ def list_assembly_downloads(wildcards):
 
 
 TargetDownloads = [
-    os.path.join(dir.out.base, "download/assembly_summary.tsv"),
+    os.path.join(dir.out.base, "assembly_finder/assembly_summary.tsv"),
+    os.path.join(dir.out.base, "assembly_finder/sequence_report.tsv"),
+    os.path.join(dir.out.base, "assembly_finder/taxonomy.tsv"),
     list_assembly_downloads,
 ]
