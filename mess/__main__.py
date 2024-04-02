@@ -101,7 +101,7 @@ mess_simulate_options = (
 mess_local_sim_options = (
     {
         "name": "Mess simulate options",
-        "options": ["--asm-summary", "--skip-fa-proc"],
+        "options": ["--asm-summary"],
     },
 )
 
@@ -441,23 +441,15 @@ def download(
 @sim_options
 @click.option(
     "--asm-summary",
-    help="Path to assembly summary table (contains taxid, genome_size, path to fasta)",
+    help="Path to assembly summary table (contains tax_id, genome_size, path to fasta)",
     type=str,
     required=True,
-)
-@click.option(
-    "--skip-fa-proc",
-    help="skip fasta processing (decompressing, renaming headers, merge/split contigs)",
-    type=bool,
-    default=False,
-    required=False,
 )
 @common_options
 def simulate(
     input,
     output,
     log,
-    skip_fa_proc,
     skip_shuffle,
     compressed,
     asm_summary,
@@ -511,7 +503,6 @@ def simulate(
             "input": input,
             "output": output,
             "log": log,
-            "skip_fa_proc": skip_fa_proc,
             "skip_shuffle": skip_shuffle,
             "compressed": compressed,
             "tech": tech,
