@@ -1,5 +1,7 @@
 name: pbccs
 channels:
   - bioconda
+  - conda-forge
+  - defaults
 dependencies:
   - pbccs >= 6.4.0

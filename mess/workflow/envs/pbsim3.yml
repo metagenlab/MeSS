@@ -1,5 +1,7 @@
 name: pbsim3
 channels:
   - bioconda
+  - conda-forge
+  - defaults
 dependencies:
   - pbsim3 >= 3.0.1

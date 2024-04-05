@@ -1,5 +1,7 @@
 name: assembly_finder
 channels:
   - bioconda
+  - conda-forge
+  - defaults
 dependencies:
   - assembly_finder >= 0.6.2
