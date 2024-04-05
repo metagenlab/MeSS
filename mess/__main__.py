@@ -277,90 +277,11 @@ mess hmp_template --site buccal_mucosa --sample SRS013506 -o SRS013506
 @common_options
 @sim_options
 def run(
-    input,
-    output,
-    log,
-    ncbi_email,
-    ncbi_key,
-    db,
-    uid,
-    rc,
-    al,
-    an,
-    rank,
-    nr,
-    ete_db,
-    nb,
-    exclude,
-    tech,
-    tool,
-    error,
-    custom_err,
-    replicates,
-    rep_sd,
-    dist,
-    mu,
-    sigma,
-    bases,
-    model,
-    ratio,
-    accuracy,
-    passes,
-    min_len,
-    max_len,
-    mean_len,
-    sd_len,
-    frag_len,
-    frag_sd,
-    bam,
-    paired,
-    seed,
     **kwargs,
 ):
     """Run MeSS workflow: download and simulate commands"""
     # Config to add or update in configfile
-    merge_config = {
-        "args": {
-            "input": input,
-            "output": output,
-            "log": log,
-            "ncbi_email": ncbi_email,
-            "ncbi_key": ncbi_key,
-            "db": db,
-            "uid": uid,
-            "rc": rc,
-            "al": al,
-            "an": an,
-            "rank": rank,
-            "nr": nr,
-            "ete_db": ete_db,
-            "nb": nb,
-            "exclude": exclude,
-            "tech": tech,
-            "tool": tool,
-            "error": error,
-            "custom_err": custom_err,
-            "replicates": replicates,
-            "rep_sd": rep_sd,
-            "dist": dist,
-            "mu": mu,
-            "sigma": sigma,
-            "bases": bases,
-            "model": model,
-            "ratio": ratio,
-            "accuracy": accuracy,
-            "passes": passes,
-            "min_len": min_len,
-            "max_len": max_len,
-            "mean_len": mean_len,
-            "sd_len": sd_len,
-            "frag_len": frag_len,
-            "frag_sd": frag_sd,
-            "bam": bam,
-            "paired": paired,
-            "seed": seed,
-        }
-    }
+    merge_config = {"args": kwargs}
 
     # run!
     run_snakemake(
@@ -381,52 +302,16 @@ def run(
 @download_options
 @common_options
 def download(
-    input,
-    output,
-    log,
-    limit,
-    api_key,
-    compressed,
-    include,
-    source,
-    taxon,
-    reference,
-    assembly_level,
-    annotated,
-    atypical,
-    mag,
-    rank,
-    nrank,
     **kwargs,
 ):
     """Download genomes"""
-    [print(arg) for arg in kwargs]
     # Config to add or update in configfile
-    merge_config = {
-        "args": {
-            "input": input,
-            "output": output,
-            "log": log,
-            "limit": limit,
-            "api_key": api_key,
-            "compressed": compressed,
-            "include": include,
-            "source": source,
-            "taxon": taxon,
-            "reference": reference,
-            "assembly_level": assembly_level,
-            "annotated": annotated,
-            "atypical": atypical,
-            "mag": mag,
-            "rank": rank,
-            "nrank": nrank,
-        }
-    }
+    merge_config = {"args": kwargs}
+
     run_snakemake(
         # Full path to Snakefile
         snakefile_path=snake_base(os.path.join("workflow", "download.smk")),
         merge_config=merge_config,
-        log=log,
         **kwargs,
     )
 
@@ -447,95 +332,33 @@ def download(
 )
 @common_options
 def simulate(
-    input,
-    output,
-    log,
-    skip_shuffle,
-    compressed,
-    asm_summary,
-    tech,
-    tool,
-    error,
-    model,
-    ratio,
-    custom_err,
-    replicates,
-    rep_sd,
-    dist,
-    mu,
-    sigma,
-    bases,
-    accuracy,
-    passes,
-    min_len,
-    max_len,
-    sd_len,
-    mean_len,
-    frag_len,
-    frag_sd,
-    bam,
-    paired,
-    seed,
     **kwargs,
 ):
-    """Simulate reads from local genomes"""
-    if tech != "illumina" and error:
-        if tech == "pacbio":
-            ratio = "22:45:33"
-            model = "QSHMM-RSII"
-            if error == "hifi":
-                accuracy = 0.99
-                passes = 10
+    """Simulate fastq from local genomes"""
+    if kwargs["tech"] != "illumina" and kwargs["error"]:
+        if kwargs["tech"] == "pacbio":
+            kwargs["ratio"] = "22:45:33"
+            kwargs["model"] = "QSHMM-RSII"
+            if kwargs["error"] == "hifi":
+                kwargs["accuracy"] = 0.99
+                kwargs["passes"] = 10
 
-        if tech == "nanopore":
-            ratio = "39:24:36"
-            if error == "r10.4":
-                accuracy = 0.99
-                model = "QSHMM-ONT-HQ"
-            if error == "r10.3":
-                accuracy = 0.95
-                model = "QSHMM-ONT"
+        if kwargs["tech"] == "nanopore":
+            kwargs["ratio"] = "39:24:36"
+            if kwargs["error"] == "r10.4":
+                kwargs["accuracy"] = 0.99
+                kwargs["model"] = "QSHMM-ONT-HQ"
+            if kwargs["error"] == "r10.3":
+                kwargs["accuracy"] = 0.95
+                kwargs["model"] = "QSHMM-ONT"
 
     """Simulate reads from local fastas"""
     # Config to add or update in configfile
-    merge_config = {
-        "args": {
-            "input": input,
-            "output": output,
-            "log": log,
-            "skip_shuffle": skip_shuffle,
-            "compressed": compressed,
-            "tech": tech,
-            "tool": tool,
-            "error": error,
-            "model": model,
-            "ratio": ratio,
-            "custom_err": custom_err,
-            "asm_summary": asm_summary,
-            "replicates": replicates,
-            "rep_sd": rep_sd,
-            "dist": dist,
-            "mu": mu,
-            "sigma": sigma,
-            "bases": bases,
-            "accuracy": accuracy,
-            "passes": passes,
-            "min_len": min_len,
-            "max_len": max_len,
-            "sd_len": sd_len,
-            "mean_len": mean_len,
-            "frag_len": frag_len,
-            "frag_sd": frag_sd,
-            "bam": bam,
-            "paired": paired,
-            "seed": seed,
-        }
-    }
+    merge_config = {"args": kwargs}
     run_snakemake(
         # Full path to Snakefile
         snakefile_path=snake_base(os.path.join("workflow", "simulate.smk")),
         merge_config=merge_config,
-        log=log,
         **kwargs,
     )
 
