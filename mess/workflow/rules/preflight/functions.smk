@@ -1,10 +1,10 @@
 import os
 import pandas as pd
 import glob
-import random
 from itertools import chain
 from itertools import product
 from Bio import SeqIO
+import random
 
 
 def list_reads(wildcards):
@@ -77,7 +77,7 @@ def list_fastas(wildcards):
     table = checkpoints.calculate_coverage.get(**wildcards).output[0]
     df = pd.read_csv(table, sep="\t")
     fastas = list(set(df["fasta"]))
-    return expand(os.path.join(dir.out.fasta, "{fasta}.fasta"), fasta=fastas)
+    return expand(os.path.join(dir.out.processing, "{fasta}.fasta"), fasta=fastas)
 
 
 table_cache = {}
@@ -96,7 +96,7 @@ def get_value(table, wildcards, value):
     return val
 
 
-def get_assembly_summary_path(wildcards):
+def get_asm_summary(wildcards):
     try:
         table = os.path.abspath(
             checkpoints.download_assemblies.get(**wildcards).output[0]
@@ -106,9 +106,13 @@ def get_assembly_summary_path(wildcards):
     return table
 
 
+def get_cov_table(wildcards):
+    return checkpoints.split_contigs.get(**wildcards).output[0]
+
+
 def aggregate(wildcards, outdir, level, ext):
+    table = checkpoints.split_contigs.get(**wildcards).output[0]
     if level == "contig":
-        table = checkpoints.split_contigs.get(**wildcards).output[0]
         df = pd.read_csv(table, sep="\t", index_col="fasta")
         contigs = df.loc[wildcards.fasta]["contig"]
         if isinstance(contigs, str):
@@ -117,29 +121,36 @@ def aggregate(wildcards, outdir, level, ext):
             contigs = list(contigs)
         if PAIRED and ext != "bam":
             return expand(
-                os.path.join(outdir, "{{sample}}", "{{fasta}}", "{contig}{{p}}.{ext}"),
+                os.path.join(outdir, "{sample}", "{fasta}", "{contig}{p}.{ext}"),
+                sample=wildcards.sample,
+                fasta=wildcards.fasta,
+                p=wildcards.p,
                 contig=contigs,
                 ext=ext,
             )
         else:
             return expand(
-                os.path.join(outdir, "{{sample}}", "{{fasta}}", "{contig}.{ext}"),
+                os.path.join(outdir, "{sample}", "{fasta}", "{contig}.{ext}"),
+                sample=wildcards.sample,
+                fasta=wildcards.fasta,
                 contig=contigs,
                 ext=ext,
             )
     if level == "fasta":
-        table = checkpoints.calculate_coverage.get(**wildcards).output[0]
         df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
         fastas = list(set(df.loc[wildcards.sample].index))
         if PAIRED and ext != "bam":
             return expand(
-                os.path.join(outdir, "{{sample}}", "{fasta}{{p}}.{ext}"),
+                os.path.join(outdir, "{sample}", "{fasta}{p}.{ext}"),
+                sample=wildcards.sample,
                 fasta=fastas,
+                p=wildcards.p,
                 ext=ext,
             )
         else:
             return expand(
-                os.path.join(outdir, "{{sample}}", "{fasta}.{ext}"),
+                os.path.join(outdir, "{sample}", "{fasta}.{ext}"),
+                sample=wildcards.sample,
                 fasta=fastas,
                 ext=ext,
             )
@@ -152,6 +163,11 @@ def get_header(fa):
 
 def seqkit_replace(wildcards):
     if PAIRED:
-        return f"{wildcards.sample}_{{nr}}/{wildcards.p}"
+        return "{sample}_{nr}/{p}".format(
+            sample=wildcards.sample, nr="{nr}", p=wildcards.p
+        )
     else:
-        return f"{wildcards.sample}_{{nr}}"
+        return "{sample}_{nr}".format(
+            sample=wildcards.sample,
+            nr="{nr}",
+        )
