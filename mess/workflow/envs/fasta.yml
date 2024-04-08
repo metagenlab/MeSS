@@ -1,8 +1,0 @@
-name: fasta
-channels:
-  - bioconda
-  - conda-forge
-  - defaults
-dependencies:
-  - biopython >= 1.83
-  - pandas >= 2.2.0
