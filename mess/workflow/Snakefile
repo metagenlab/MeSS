@@ -100,25 +100,16 @@ BAM = config.args.bam
 MIN_LEN = config.args.min_len
 MAX_LEN = config.args.max_len
 SD_LEN = config.args.sd_len
+PASSES = config.args.passes
+ACCURACY = config.args.accuracy
+MODEL = config.args.model
+RATIO = config.args.ratio
 # simulate reads
 if SEQ_TECH == "illumina":
 
     include: os.path.join("rules", "simulate", "short_reads.smk")
 
 else:
-    MODEL = ""
-    RATIO = ""
-    PASSES = config.args.passes
-    ACCURACY = config.args.accuracy
-    if SEQ_TECH == "pacbio":
-        MODEL = "QSHMM-RSII"
-        RATIO = "22:45:33"
-    elif SEQ_TECH == "nanopore":
-        RATIO = "39:24:36"
-        if ERROR == "r10.4":
-            MODEL = "QSHMM-ONT-HQ"
-        elif ERROR == "r10.3":
-            MODEL = "QSHMM-ONT"
 
     include: os.path.join("rules", "simulate", "long_reads.smk")
 
