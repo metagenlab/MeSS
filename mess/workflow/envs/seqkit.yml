@@ -1,7 +1,7 @@
 name: seqkit
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - defaults
 dependencies:
-  - seqkit >= 2.6.0
+  - seqkit >=2.6.0

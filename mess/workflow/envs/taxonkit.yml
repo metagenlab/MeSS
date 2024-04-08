@@ -1,7 +1,7 @@
 name: taxonkit
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - defaults
 dependencies:
-  - taxonkit >= 0.15.1
+  - taxonkit >=0.15.1
