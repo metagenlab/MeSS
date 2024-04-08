@@ -1,30 +1,17 @@
-if GZIP:
-
-    rule unzip_fasta:
-        input:
-            fasta_input,
-        output:
-            temp(os.path.join(dir.out.fasta, "{fasta}.fna")),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        shell:
-            "zcat {input} > {output}"
-
-
-rule rename_headers:
+rule rename_fastas:
     input:
-        os.path.join(dir.out.fasta, "{fasta}.fna") if GZIP else fasta_input,
+        fasta_input,
     output:
-        temp(os.path.join(dir.out.fasta, "{fasta}.fasta")),
+        temp(os.path.join(dir.out.processing, "{fasta}.fasta")),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
+    conda:
+        os.path.join(dir.env, "seqkit.yml")
     shell:
         """
-        cut -f 1 -d" " {input} > {output}
+        seqkit seq -i {input} > {output}
         """
 
 
@@ -33,14 +20,12 @@ checkpoint split_contigs:
         fa=list_fastas,
         cov=os.path.join(dir.out.base, "cov.tsv"),
     output:
-        tsv=temp(os.path.join(dir.out.base, "split.tsv")),
-        dir=temp(directory(os.path.join(dir.out.base, "split"))),
+        tsv=os.path.join(dir.out.processing, "split.tsv"),
+        dir=directory(os.path.join(dir.out.processing, "split")),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
-    conda:
-        os.path.join(dir.env, "fasta.yml")
     log:
         os.path.join(dir.out.logs, "tables", "split.tsv"),
     script:
