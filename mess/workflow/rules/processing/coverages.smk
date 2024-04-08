@@ -20,11 +20,9 @@ rule replicates_table:
 checkpoint calculate_coverage:
     input:
         df=os.path.join(dir.out.base, "replicates.tsv"),
-        asm=get_assembly_summary_path,
+        asm=get_asm_summary,
     output:
-        temp(
-            os.path.join(dir.out.base, "cov.tsv"),
-        ),
+        os.path.join(dir.out.base, "cov.tsv"),
     params:
         dist=DIST,
         mu=MU,
