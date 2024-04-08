@@ -20,7 +20,7 @@ checkpoint split_contigs:
         fa=list_fastas,
         cov=os.path.join(dir.out.processing, "cov.tsv"),
     output:
-        tsv=os.path.join(dir.out.processing, "split.tsv"),
+        tsv=temp(os.path.join(dir.out.processing, "split.tsv")),
         dir=temp(directory(os.path.join(dir.out.base, "split"))),
     resources:
         mem_mb=config.resources.sml.mem,
