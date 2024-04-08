@@ -374,17 +374,22 @@ def test(**kwargs):
     """Run mess on test data"""
     # Config to add or update in configfile
     kwargs["input"] = snake_base(os.path.join("test_data", "minimal_test.tsv"))
-    if kwargs["tech"] == "nanopore":
-        kwargs["ratio"] = "39:24:36"
-        kwargs["accuracy"] = 0.99
-        kwargs["model"] = "QSHMM-ONT-HQ"
+    if kwargs["tech"] != "illumina" and kwargs["error"]:
+        if kwargs["tech"] == "pacbio":
+            kwargs["ratio"] = "22:45:33"
+            kwargs["model"] = "QSHMM-RSII"
+            if kwargs["error"] == "hifi":
+                kwargs["accuracy"] = 0.99
+                kwargs["passes"] = 2
 
-    if kwargs["tech"] == "pacbio":
-        kwargs["ratio"] = "22:45:33"
-        kwargs["model"] = "QSHMM-RSII"
-        if kwargs["error"] == "hifi":
-            kwargs["accuracy"] = 0.99
-            kwargs["passes"] = 3
+        if kwargs["tech"] == "nanopore":
+            kwargs["ratio"] = "39:24:36"
+            if kwargs["error"] == "r10.4":
+                kwargs["accuracy"] = 0.99
+                kwargs["model"] = "QSHMM-ONT-HQ"
+            if kwargs["error"] == "r10.3":
+                kwargs["accuracy"] = 0.95
+                kwargs["model"] = "QSHMM-ONT"
 
     merge_config = {"args": kwargs}
     run_snakemake(
