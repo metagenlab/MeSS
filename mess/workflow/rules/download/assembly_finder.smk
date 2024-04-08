@@ -46,7 +46,6 @@ checkpoint download_assemblies:
         asm=os.path.join(dir.out.base, "assembly_finder/assembly_summary.tsv"),
         seq=os.path.join(dir.out.base, "assembly_finder/sequence_report.tsv"),
         tax=os.path.join(dir.out.base, "assembly_finder/taxonomy.tsv"),
-        version=os.path.join(dir.out.versions, "assembly_finder.version"),
     params:
         args=af_args,
         comp=COMPRESSED,
@@ -82,5 +81,4 @@ checkpoint download_assemblies:
         --atypical {params.atyp} \\
         --mag {params.mag} \\
         -o {params.out} 2> {log}
-        assembly_finder -v > {output.version}
         """
