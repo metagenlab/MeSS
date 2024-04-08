@@ -50,8 +50,6 @@ rule pbsim3:
         """
 
 
-tmpdir = os.path.join(OUTPUT, "tmp")
-
 if PASSES > 1:
 
     rule ccs_sam_to_bam:
@@ -117,7 +115,6 @@ if PASSES > 1:
             mem_mb=config.resources.med.mem,
             mem=str(config.resources.med.mem) + "MB",
             time=config.resources.med.time,
-            tmpdir=tmpdir,
         benchmark:
             os.path.join(dir.out.bench, "ccs", "{sample}", "{fasta}", "{contig}.txt")
         log:
