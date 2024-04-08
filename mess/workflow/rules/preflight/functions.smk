@@ -88,11 +88,11 @@ def get_value(table, wildcards, value):
         df = pd.read_csv(
             table,
             sep="\t",
-            index_col=["samplename", "fasta"],
+            index_col=["samplename", "fasta", "contig"],
         )
         table_cache[table] = df
     df = table_cache[table]
-    val = df.loc[wildcards.sample].loc[wildcards.fasta][value]
+    val = df.loc[wildcards.sample].loc[wildcards.fasta].loc[wildcards.contig][value]
     return val
 
 
