@@ -18,10 +18,10 @@ rule rename_fastas:
 checkpoint split_contigs:
     input:
         fa=list_fastas,
-        cov=os.path.join(dir.out.base, "cov.tsv"),
+        cov=os.path.join(dir.out.processing, "cov.tsv"),
     output:
         tsv=os.path.join(dir.out.processing, "split.tsv"),
-        dir=directory(os.path.join(dir.out.processing, "split")),
+        dir=temp(directory(os.path.join(dir.out.base, "split"))),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
