@@ -382,6 +382,9 @@ def test(**kwargs):
     if kwargs["tech"] == "pacbio":
         kwargs["ratio"] = "22:45:33"
         kwargs["model"] = "QSHMM-RSII"
+        if kwargs["error"] == "hifi":
+            kwargs["accuracy"] = 0.99
+            kwargs["passes"] = 3
 
     merge_config = {"args": kwargs}
     run_snakemake(
