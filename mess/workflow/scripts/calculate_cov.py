@@ -120,8 +120,9 @@ else:
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["proportion"] = df["bases"] / df["sum_bases"]
 
+if "fasta" not in df.columns:
+    df["fasta"] = df["accession"]
 
-df["fasta"] = [str(fa).split("/")[-1].split(".fna")[0] for fa in df["path"]]
 df["seed"] = random.sample(range(1, 1000000), len(df))
 
 cols = [
@@ -141,6 +142,6 @@ cols = [
 df = df.astype(
     {"seed": int, "tax_id": int, "total_sequence_length": int, "number_of_contigs": int}
 )
-df = df[df["fasta"] != "nan"]
+
 df.to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
 df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
