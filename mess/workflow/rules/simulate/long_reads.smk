@@ -1,11 +1,7 @@
-fa = os.path.join(dir.out.base, "split", "{fasta}", "{contig}.fa")
-
-
 rule pbsim3:
     input:
-        fa=fa,
-        flag=os.path.join(dir.out.base, "split.tsv"),
-        df=os.path.join(dir.out.base, "cov.tsv"),
+        fa=os.path.join(dir.out.processing, "split", "{fasta}", "{contig}.fna"),
+        df=get_cov_table,
     output:
         temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.sam"))
         if PASSES > 1
