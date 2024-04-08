@@ -200,6 +200,7 @@ rule compress_contig_fastqs:
 
 rule cat_contig_fastqs:
     input:
+        dir=os.path.join(dir.out.base, "split"),
         flag=get_cov_table,
         fq=lambda wildcards: aggregate(wildcards, fastq_dir, "contig", "fq.gz"),
     output:
