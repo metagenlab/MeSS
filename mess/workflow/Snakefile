@@ -89,12 +89,6 @@ include: os.path.join("rules", "preflight", "samples.smk")
 include: os.path.join("rules", "download", "assembly_finder.smk")
 # calculate coverages
 include: os.path.join("rules", "processing", "coverages.smk")
-
-
-# process fasta options
-GZIP = config.args.gzip
-
-
 # fasta processing rules
 include: os.path.join("rules", "processing", "fastas.smk")
 

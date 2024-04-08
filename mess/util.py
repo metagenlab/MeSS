@@ -113,13 +113,6 @@ def sim_options(func):
             required=False,
         ),
         click.option(
-            "--gzip",
-            help="If fastas are gzipped",
-            type=bool,
-            default=True,
-            required=False,
-        ),
-        click.option(
             "--tech",
             help="Sequencing technology",
             type=click.Choice(["illumina", "pacbio", "nanopore"], case_sensitive=False),

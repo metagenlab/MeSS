@@ -53,12 +53,6 @@ MEAN_LEN = config.args.mean_len
 
 # calculate coverages
 include: os.path.join("rules", "processing", "coverages.smk")
-
-
-# process fasta options
-GZIP = config.args.gzip
-
-
 include: os.path.join("rules", "processing", "fastas.smk")
 
 

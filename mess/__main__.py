@@ -56,7 +56,6 @@ mess_simulate_options = (
     {
         "name": "Simulators options",
         "options": [
-            "--gzip",
             "--tech",
             "--bases",
             "--tool",
