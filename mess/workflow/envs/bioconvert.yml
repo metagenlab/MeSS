@@ -4,4 +4,5 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - bioconvert >= 1.0.0
+  - pip:
+      - bioconvert >=1.1.1
