@@ -7,11 +7,10 @@ from itertools import chain
 def split_fasta(fa, outdir):
     record_ids = []
     name = os.path.basename(fa).split(".fasta")[0]
-    subdir = os.path.join(outdir, name)
-    if not os.path.exists(subdir):
-        os.mkdir(subdir)
+    fasta_name = os.path.join(outdir, name)
+
     for record in SeqIO.parse(fa, "fasta"):
-        SeqIO.write(record, os.path.join(subdir, record.id) + ".fna", "fasta")
+        SeqIO.write(record, fasta_name + "_" + record.id + ".fna", "fasta")
         record_ids.append({"contig": record.id, "fasta": name})
     return record_ids
 
