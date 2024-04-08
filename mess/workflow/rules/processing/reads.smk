@@ -122,7 +122,7 @@ rule get_bam_coverage:
 rule get_tax_profile:
     input:
         cov=os.path.join(dir.out.bam, "{sample}.txt"),
-        tax=os.path.join(dir.out.base, "split.tsv"),
+        tax=get_cov_table,
     output:
         temp(os.path.join(dir.out.tax, "{sample}.tsv")),
     resources:
@@ -200,6 +200,7 @@ rule compress_contig_fastqs:
 
 rule cat_contig_fastqs:
     input:
+        flag=get_cov_table,
         fq=lambda wildcards: aggregate(wildcards, fastq_dir, "contig", "fq.gz"),
     output:
         temp(os.path.join(fastq_dir, "{sample}", "{fasta}{p}.fq.gz"))
