@@ -1,6 +1,6 @@
 rule pbsim3:
     input:
-        fa=os.path.join(dir.out.processing, "split", "{fasta}", "{contig}.fna"),
+        fa=os.path.join(dir.out.base, "split", "{fasta}_{contig}.fna"),
         df=get_cov_table,
     output:
         temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.sam"))
@@ -11,7 +11,7 @@ rule pbsim3:
         temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.maf")),
         temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.ref")),
     params:
-        model=MODEL,
+        model=os.path.join(os.environ["CONDA_PREFIX"], "data", f"{MODEL}.model"),
         ratio=RATIO,
         meanlen=MEAN_LEN,
         lensd=SD_LEN,
@@ -43,7 +43,7 @@ rule pbsim3:
         --length-sd {params.lensd} \\
         --prefix {params.prefix} \\
         --seed {params.seed} \\
-        --qshmm ${{CONDA_PREFIX}}/data/{params.model}.model \\
+        --qshmm {params.model} \\
         --pass-num {params.passes} \\
         --accuracy-mean {params.accuracy} \\
         --depth {params.cov} --genome {input.fa} &> {log}
