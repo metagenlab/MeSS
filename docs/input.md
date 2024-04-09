@@ -1,10 +1,6 @@
-# `MeSS` Input
+MeSS requires an input tsv file or a directory containing tsv files, specified with `--input`.
 
-## Input
-
-MeSS requires an input tsv file or directory, specified with `--input`.
-
-### Directory
+## Directory
 
 ```
 📦gut_subsets
@@ -13,31 +9,72 @@ MeSS requires an input tsv file or directory, specified with `--input`.
  ┗ 📜sample3.tsv
 ```
 
-### Input table columns
+## TSV
 
-the tsv file has to have an entry and nb headers.
+The tsv file requires an accession/taxon column to download genomes and a value to calculate the coverage for metagenome simulation.
 
-To set each entry's quantity, you can provide a reads, bases, coverage or abundance column. Optionally, the table can have a sample column, if not, the sample name will be the file's basename.
+### Download table
 
-Examples:
+=== "taxon"
 
-- Coverage
+    | taxon                  | nb  |
+    | :--------------------- | :-- |
+    | 1280  | 1   |
+    | pseudomonas_aeruginosa | 1   |
 
-| entry                  | nb  | cov_sim |
-| :--------------------- | :-- | :------ |
-| staphylococcus_aureus  | 1   | 10      |
-| pseudomonas_aeruginosa | 1   | 10      |
+=== "accession"
 
-- Bases
+    | accession              |
+    | :--------------------- |
+    | GCF_000418345.1 |
+    | GCF_000233495.1 |
 
-| entry                  | nb  | bases    |
-| :--------------------- | :-- | :------- |
-| staphylococcus_aureus  | 1   | 28213610 |
-| pseudomonas_aeruginosa | 1   | 62644040 |
+### Simulation table
 
-- Reads
+You can provide reads, bases, taxonomic or sequence abundance which will be converted to coverages.
 
-| entry                  | nb  | reads  |
-| :--------------------- | :-- | :----- |
-| staphylococcus_aureus  | 1   | 94045  |
-| pseudomonas_aeruginosa | 1   | 208813 |
+Alternatively, you can provide the coverage value directly.
+
+=== "coverage"
+
+    | taxon                  | nb  | cov_sim |
+    | :--------------------- | :-- | :------ |
+    | 1280  | 1   | 10      |
+    | pseudomonas_aeruginosa | 1   | 10      |
+
+=== "bases"
+
+    | taxon                  | nb  | bases    |
+    | :--------------------- | :-- | :------- |
+    | 1280  | 1   | 28213610 |
+    | pseudomonas_aeruginosa | 1   | 62644040 |
+
+=== "reads"
+
+    | taxon                  | nb  | reads  |
+    | :--------------------- | :-- | :----- |
+    | 1280  | 1   | 94045  |
+    | pseudomonas_aeruginosa | 1   | 208813 |
+
+=== "tax_abundance"
+
+    | taxon                  | nb  | tax_abundance  |
+    | :--------------------- | :-- | :----- |
+    | 1280  | 1   | 0.5  |
+    | pseudomonas_aeruginosa | 1   | 0.5 |
+
+=== "seq_abundance"
+
+    | taxon                  | nb  | seq_abundance  |
+    | :--------------------- | :-- | :----- |
+    | 1280  | 1   | 0.32  |
+    | pseudomonas_aeruginosa | 1   | 0.68 |
+
+### Local genomes table
+
+To simulate from local fasta, MeSS needs the genomes tax_ids and sequence lengths in the input table.
+
+| fasta  | path                   | cov_sim | tax_id | total_sequence_length |
+| :----- | :--------------------- | :------ | :----- | :-------------------- |
+| fasta1 | /path/to/fasta1.fna.gz | 10      | taxid1      | 6666666          |
+| fasta2 | /path/to/fasta2.fna.gz | 10      | taxid2      | 5555555          |

@@ -1,13 +1,17 @@
-# MeSS
+# Welcome to MeSS !
 
 [![](https://img.shields.io/static/v1?label=CLI&message=Snaketool&color=blueviolet)](https://github.com/beardymcjohnface/Snaketool)
-[![Documentation Status](https://readthedocs.org/projects/metagenomic-sequence-simulator-mess/badge/?version=latest)](https://metagenomic-sequence-simulator-mess.readthedocs.io/en/latest/?badge=latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![version](https://img.shields.io/conda/v/bioconda/mess?label=version&color=blue)](http://bioconda.github.io/recipes/mess/README.html)
 [![downloads](https://img.shields.io/conda/dn/bioconda/mess.svg)](https://anaconda.org/bioconda/mess)
 
-Metagenomic Sequence Simulator (MeSS) is a Snakemake pipeline, implemented using [Snaketool](https://github.com/beardymcjohnface/Snaketool), for simulating illumina, Oxford Nanopore (ONT) and Pacific Bioscience (PacBio) shotgun metagenomic samples.
+The Metagenomic Sequence Simulator (MeSS) is a [Snakemake](https://github.com/snakemake/snakemake) pipeline, implemented using [Snaketool](https://github.com/beardymcjohnface/Snaketool), for simulating illumina, Oxford Nanopore (ONT) and Pacific Bioscience (PacBio) shotgun metagenomic samples.
 
-For more details check [metagenomic-sequence-simulator-mess.readthedocs.io](https://metagenomic-sequence-simulator-mess.readthedocs.io)
+## Overview
+
+MeSS takes as input NCBI taxa or local genome assemblies to generate either long (PacBio or ONT) or short (illumina) reads. In addition to reads, MeSS optionally generates bam alignment files and taxonomic profiles in [bioboxes format](https://github.com/bioboxes/rfc).
+
+![overview](https://raw.githubusercontent.com/metagenlab/mess/master/docs/images/mess.svg)
 
 ## Installation
 
@@ -19,40 +23,4 @@ mamba create -n mess mess
 
 ## Usage
 
-```sh
-mess run -i <input> -o <outdir>
-```
-
-### Run minimal example
-
-```sh
-mess test
-```
-
-## Commands
-
-```sh
-        ___  ___     _____ _____
-        |  \/  |    /  ___/  ___|
-        | .  . | ___\ `--.\ `--.
-        | |\/| |/ _ \`--. \`--. \
-        | |  | |  __/\__/ /\__/ /
-        \_|  |_/\___\____/\____/
-
-Usage: mess [OPTIONS] COMMAND [ARGS]...
-
-  For more options, run: mess command --help
-
-Options:
-  -v, --version  Show the version and exit.
-  -h, --help     Show this message and exit.
-
-Commands:
-  run           Run MeSS
-  download      Download assemblies
-  simulate      Simulate reads from local fastas
-  test          Run mess on test data
-  hmp-template  Download and simulate healthy human microbiome templates
-  config        Copy the system default config file
-  citation      Print the citation(s) for this tool
-```
+![`mess -h`](docs/images/mess-help.svg)

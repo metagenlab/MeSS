@@ -18,10 +18,15 @@ theme:
   features:
     - navigation.instant
     - content.code.copy
+    - navigation.sections
+    - navigation.expand
+
 markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -32,11 +37,14 @@ markdown_extensions:
 nav:
   - Home:
       - Overview: index.md
-      - Motivation: applications.md
+      - Motivation: motivation.md
       - Citation: citation.md
   - Getting started:
       - Install: install.md
-      - Run: run.md
+      - Commands:
+          - Download: commands/download.md
+          - Simulate: commands/simulate.md
+          - Run: commands/run.md
       - Input: input.md
       - Output: output.md
   - Tutorials:

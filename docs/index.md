@@ -1,27 +1,26 @@
-# Welcome to `MeSS` !
+# Welcome to MeSS !
 
-MeSS is a Snakemake pipeline, implemented using [Snaketool](https://github.com/beardymcjohnface/Snaketool), for simulating illumina, Oxford Nanopore (ONT) and Pacific Bioscience (PacBio) shotgun metagenomic samples.
+[![](https://img.shields.io/static/v1?label=CLI&message=Snaketool&color=blueviolet)](https://github.com/beardymcjohnface/Snaketool)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![version](https://img.shields.io/conda/v/bioconda/mess?label=version&color=blue)](http://bioconda.github.io/recipes/mess/README.html)
+[![downloads](https://img.shields.io/conda/dn/bioconda/mess.svg)](https://anaconda.org/bioconda/mess)
+
+The Metagenomic Sequence Simulator (MeSS) is a [Snakemake](https://github.com/snakemake/snakemake) pipeline, implemented using [Snaketool](https://github.com/beardymcjohnface/Snaketool), for simulating illumina, Oxford Nanopore (ONT) and Pacific Bioscience (PacBio) shotgun metagenomic samples.
 
 ## Overview
 
-`MeSS` makes metagenomic sample generation easy !
+MeSS takes as input NCBI taxa or local genome assemblies to generate either long (PacBio or ONT) or short (illumina) reads. In addition to reads, MeSS optionally generates bam alignment files and taxonomic profiles in [bioboxes format](https://github.com/bioboxes/rfc).
 
-It automates tasks such as community design, genome download and read simulation in parallel and in a scalable fashion. It takes as input NCBI or local genome assemblies to generate either long (PacBio or ONT) or short (illumina) reads.
-In addition to fastq files, MeSS optionally generates bam files that indicate the genomic region from which the reads were sampled from. This is useful to evaluate sequencing errors and have a ground truth dataset of the samples taxonomic profile.
+![overview](images/mess.svg)
 
-<style>
-.aligncenter {
-    text-align: center;
-}
-</style>
+## Installation
 
-<p class="aligncenter">
-<img src="./mess.png" alt="image" width="300" height="auto">
-</p>
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/mess/README.html)
 
-- Genomes are downloaded using [`assembly_finder`](https://github.com/metagenlab/assembly_finder)
+```sh
+mamba create -n mess mess
+```
 
-- Short reads (illumina) are simulated by [`art`](https://www.niehs.nih.gov/research/resources/software/biostatistics/art)
-- Long reads (PacBio or ONT) are simulated by [`pbsim3`](https://github.com/yukiteruono/pbsim3)
+## Usage
 
-- Reads are shuffled using [`seqkit`](https://github.com/shenwei356/seqkit)
+![`mess -h`](docs/images/mess-help.svg)
