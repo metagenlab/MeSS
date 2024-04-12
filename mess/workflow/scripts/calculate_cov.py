@@ -14,7 +14,7 @@ def get_lognormal_dist(df, mu, sigma):
     function for simulating lognormal sequence distribution
     """
     df["lognormal"] = np.random.lognormal(mean=mu, sigma=sigma, size=len(df))
-    df["abundance"] = df["lognormal"] / df["lognormal"].sum()
+    df["tax_abundance"] = df["lognormal"] / df["lognormal"].sum()
     return df
 
 
@@ -26,7 +26,7 @@ def get_even_dist(df, cols):
         df[cols]
         .value_counts(normalize=True)
         .reset_index()
-        .rename(columns={"proportion": "abundance"}, inplace=True)
+        .rename(columns={"seq_abundance": "tax_abundance"}, inplace=True)
     )
     return df.merge(abundances)
 
@@ -64,61 +64,61 @@ if snakemake.params.dist == "even":
         "sum"
     )
     df["sum_cov"] = bases / df["sum_seq_length"]
-    df["cov_sim"] = df["sum_cov"] * df["abundance"]
+    df["cov_sim"] = df["sum_cov"] * df["tax_abundance"]
 
 
 elif snakemake.params.dist == "lognormal":
     df = get_lognormal_dist(df, snakemake.params.mu, snakemake.params.sigma)
-    df["bases"] = df["proportion"] * bases
+    df["bases"] = df["seq_abundance"] * bases
     df["reads"] = df["bases"] / (snakemake.params.read_len * p)
     df["cov_sim"] = df["bases"] / df["total_sequence_length"]
     df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
-    df["abundance"] = df["cov_sim"] / df["sum_cov"]
+    df["tax_abundance"] = df["cov_sim"] / df["sum_cov"]
     df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
     df["reads"] = df["bases"] / (snakemake.params.read_len * p)
-    df["proportion"] = df["bases"] / df["sum_bases"]
+    df["seq_abundance"] = df["bases"] / df["sum_bases"]
 else:
-    if "abundance" in entry_df.columns:
+    if "tax_abundance" in entry_df.columns:
         df["sum_seq_length"] = df.groupby("samplename")[
             "total_sequence_length"
         ].transform("sum")
         df["sum_cov"] = bases / df["sum_seq_length"]
-        df["cov_sim"] = df["sum_cov"] * df["abundance"]
+        df["cov_sim"] = df["sum_cov"] * df["tax_abundance"]
         df["bases"] = df["cov_sim"] * df["total_sequence_length"]
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
-        df["proportion"] = df["bases"] / df["sum_bases"]
+        df["seq_abundance"] = df["bases"] / df["sum_bases"]
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
 
-    if "proportion" in entry_df.columns:
-        df["bases"] = df["proportion"] * bases
+    if "seq_abundance" in entry_df.columns:
+        df["bases"] = df["seq_abundance"] * bases
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["cov_sim"] = df["bases"] / df["total_sequence_length"]
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
-        df["abundance"] = df["cov_sim"] / df["sum_cov"]
+        df["tax_abundance"] = df["cov_sim"] / df["sum_cov"]
 
     if "reads" in entry_df.columns:
         df["bases"] = df["reads"] * (snakemake.params.read_len * p)
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
-        df["proportion"] = df["bases"] / df["sum_bases"]
+        df["seq_abundance"] = df["bases"] / df["sum_bases"]
         df["cov_sim"] = df["bases"] / df["total_sequence_length"]
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
-        df["abundance"] = df["cov_sim"] / df["sum_cov"]
+        df["tax_abundance"] = df["cov_sim"] / df["sum_cov"]
 
     if "bases" in entry_df.columns:
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
-        df["proportion"] = df["bases"] / df["sum_bases"]
+        df["seq_abundance"] = df["bases"] / df["sum_bases"]
         df["cov_sim"] = df["bases"] / df["total_sequence_length"]
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
-        df["abundance"] = df["cov_sim"] / df["sum_cov"]
+        df["tax_abundance"] = df["cov_sim"] / df["sum_cov"]
 
     elif "cov_sim" in entry_df.columns:
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
-        df["abundance"] = df["cov_sim"] / df["sum_cov"]
+        df["tax_abundance"] = df["cov_sim"] / df["sum_cov"]
         df["bases"] = df["cov_sim"] * df["total_sequence_length"]
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
-        df["proportion"] = df["bases"] / df["sum_bases"]
+        df["seq_abundance"] = df["bases"] / df["sum_bases"]
 
 if "fasta" not in df.columns:
     df["fasta"] = df["accession"]
@@ -134,9 +134,9 @@ cols = [
     "number_of_contigs",
     "reads",
     "bases",
-    "proportion",
+    "seq_abundance",
     "cov_sim",
-    "abundance",
+    "tax_abundance",
     "seed",
 ]
 df = df.astype(

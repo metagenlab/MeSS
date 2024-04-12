@@ -18,7 +18,7 @@ else:
         for sample, rep in zip(samples_df["sample"], samples_df["rep"])
     ]
     samples_df.drop(["sample", "rep"], axis=1, inplace=True)
-accepted_cols = ["abundance", "proportion", "reads", "bases", "cov_sim"]
+accepted_cols = ["tax_abundance", "seq_abundance", "reads", "bases", "cov_sim"]
 
 for col in accepted_cols:
     try:

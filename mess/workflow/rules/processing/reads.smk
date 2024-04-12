@@ -136,8 +136,8 @@ rule get_tax_profile:
         cov_df.rename(columns={"#rname": "contig"}, inplace=True)
         merge_df = tax_df.merge(cov_df)
         df = merge_df.groupby("tax_id")["meandepth"].mean().reset_index()
-        df["abundance"] = df["meandepth"] / df["meandepth"].sum()
-        df[["tax_id", "abundance"]].to_csv(
+        df["tax_abundance"] = df["meandepth"] / df["meandepth"].sum()
+        df[["tax_id", "tax_abundance"]].to_csv(
             output[0], sep="\t", header=False, index=False
         )
 
