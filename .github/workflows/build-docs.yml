@@ -1,6 +1,9 @@
 name: Build images / docs
-on: [push]
-
+on:
+  push:
+    branches:
+      - master
+      - main
 # Cancel if a newer run is started
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -27,7 +30,7 @@ jobs:
         run: pip install mkdocs-material  .
 
       - name: Generate terminal images with rich-codex
-        uses: ewels/rich-codex@v1  
+        uses: ewels/rich-codex@v1
         with:
           commit_changes: "true"
           clean_img_paths: docs/imgages/*.svg
