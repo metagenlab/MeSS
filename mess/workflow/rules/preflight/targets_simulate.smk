@@ -3,6 +3,4 @@ All simulated reads are declared here
 """
 
 
-TargetSimreads = [
-    list_reads,
-]
+TargetSimreads = [os.path.join(dir.out.base, "split"), list_reads]
