@@ -32,12 +32,6 @@ def list_reads(wildcards):
     return reads
 
 
-def list_files(indir, extensions):
-    extensions = extensions.split(",")
-    files = [glob.glob(f"{indir}/*.{e}") for e in extensions]
-    return list(chain.from_iterable(files))
-
-
 def parse_samples(indir, replicates):
     if os.path.isfile(indir):
         files = [indir]
@@ -102,7 +96,10 @@ def get_asm_summary(wildcards):
             checkpoints.download_assemblies.get(**wildcards).output[0]
         )
     except AttributeError:
-        table = os.path.abspath(ASM_SUMMARY)
+        if FASTA and not ASM_SUMMARY:
+            table = os.path.join(dir.out.processing, "seqkit_stats.tsv")
+        else:
+            table = ASM_SUMMARY
     return table
 
 

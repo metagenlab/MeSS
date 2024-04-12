@@ -22,6 +22,7 @@ INPUT = os.path.abspath(str(config.args.input))
 OUTPUT = config.args.output
 LOG = os.path.join(OUTPUT, "mess.log")
 THREADS = config.args.threads
+
 # samples and replicates options
 REPLICATES = list(range(1, config.args.replicates + 1))
 SAMPLES = parse_samples(INPUT, REPLICATES)
@@ -33,9 +34,11 @@ REP_SD = config.args.rep_sd
 include: os.path.join("rules", "preflight", "samples.smk")
 
 
+# fasta paths options
+FASTA = config.args.fasta
+ASM_SUMMARY = config.args.asm_summary
 # coverage options
 SEQ_TECH = config.args.tech
-ASM_SUMMARY = config.args.asm_summary
 BASES = config.args.bases
 PAIRED = config.args.paired
 if not SEQ_TECH == "illumina":

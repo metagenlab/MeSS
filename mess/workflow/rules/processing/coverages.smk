@@ -24,6 +24,7 @@ checkpoint calculate_coverage:
     output:
         temp(os.path.join(dir.out.processing, "cov.tsv")),
     params:
+        fa=FASTA,
         dist=DIST,
         mu=MU,
         sigma=SIGMA,

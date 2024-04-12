@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 from humanfriendly import parse_size
 import random
-
+import os
+import glob
 
 """
 Functions
@@ -48,9 +49,28 @@ else:
 
 
 # Get table with assembly genomsizes and their taxonomy
-entry_df = pd.read_csv(snakemake.input.df, sep="\t")
 
-asm_df = pd.read_csv(snakemake.input.asm, sep="\t")
+if snakemake.params.fa:
+    entry_df = pd.read_csv(snakemake.input.df, sep="\t")
+    entry_df["path"] = [
+        glob.glob(os.path.join(snakemake.params.fa, f"{fa}*"))[0]
+        for fa in entry_df["fasta"]
+    ]
+    asm_df = pd.read_csv(snakemake.input.asm, sep="\t")
+    asm_df.rename(
+        columns={
+            "file": "path",
+            "sum_len": "total_sequence_length",
+            "num_seqs": "number_of_contigs",
+        },
+        inplace=True,
+    )
+
+else:
+    asm_df = pd.read_csv(snakemake.input.asm, sep="\t")
+    entry_df = pd.read_csv(snakemake.input.df, sep="\t")
+
+
 same_cols = list(np.intersect1d(entry_df.columns, asm_df.columns))
 df = pd.merge(entry_df, asm_df, how="left", on=same_cols)
 
@@ -144,4 +164,4 @@ df = df.astype(
 )
 
 df.to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
-df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
+df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")

@@ -54,7 +54,7 @@ mess_download_options = (
 )
 mess_simulate_options = (
     {
-        "name": "Simulators options",
+        "name": "Common simulators options",
         "options": [
             "--tech",
             "--bases",
@@ -66,11 +66,11 @@ mess_simulate_options = (
         ],
     },
     {
-        "name": "ART illumina options",
+        "name": "art_illumina options",
         "options": ["--custom-err", "--paired", "--frag-len", "--frag-sd"],
     },
     {
-        "name": "PBSIM3 options",
+        "name": "pbsim3 options",
         "options": [
             "--model",
             "--ratio",
@@ -99,8 +99,8 @@ mess_simulate_options = (
 )
 mess_local_sim_options = (
     {
-        "name": "Mess simulate options",
-        "options": ["--asm-summary"],
+        "name": "Local genomes options",
+        "options": ["--asm-summary", "--fasta"],
     },
 )
 
@@ -245,7 +245,9 @@ simulate reads from local fasta
 mess simulate ...
 \b
 EXAMPLES:
-mess simulate -i [input] -o [output] --asm-summary [asm_summary] --tech [tech] 
+mess simulate -i [input] --tech [tech] --fasta [fasta-dir] -o [output]
+or 
+mess simulate -i [input] --tech [tech] --asm-summary [asm-summary] -o [output]
 """
 help_test = """
 \b
@@ -320,19 +322,23 @@ def download(
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option("-i", "--input", help="path to sample sheet(s)", type=str, required=True)
+@click.option("-i", "--input", help="Path to sample sheet(s)", type=str, required=True)
 @sim_options
 @click.option(
     "--asm-summary",
-    help="Path to assembly summary table (contains tax_id, genome_size, path to fasta)",
+    help="Summary table with genome sizes, fasta paths, contig counts...",
     type=str,
-    required=True,
+)
+@click.option(
+    "--fasta",
+    help="Path to local fasta directory",
+    type=str,
 )
 @common_options
 def simulate(
     **kwargs,
 ):
-    """Simulate fastq from local genomes"""
+    """Simulate reads from local fastas"""
     if kwargs["tech"] != "illumina" and kwargs["error"]:
         if kwargs["tech"] == "pacbio":
             kwargs["ratio"] = "22:45:33"
@@ -350,7 +356,6 @@ def simulate(
                 kwargs["accuracy"] = 0.95
                 kwargs["model"] = "QSHMM-ONT"
 
-    """Simulate reads from local fastas"""
     # Config to add or update in configfile
     merge_config = {"args": kwargs}
     run_snakemake(

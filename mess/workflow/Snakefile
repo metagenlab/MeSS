@@ -63,9 +63,12 @@ SAMPLES = parse_samples(INPUT, REPLICATES)
 SEED = config.args.seed
 REP_SD = config.args.rep_sd
 
+# fasta paths options
+FASTA = config.args.asm_summary
+ASM_SUMMARY = config.args.asm_summary
+
 # coverage options
 SEQ_TECH = config.args.tech
-ASM_SUMMARY = config.args.asm_summary
 BASES = config.args.bases
 PAIRED = config.args.paired
 
