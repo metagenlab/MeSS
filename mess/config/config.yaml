@@ -1,18 +1,56 @@
-# Namespaced config file example
+args:
+  accuracy:
+  asm_summary:
+  bam:
+  bases:
+  conda_prefix:
+  configfile:
+  custom_err:
+  dist:
+  error:
+  fasta:
+  frag_len:
+  frag_sd:
+  input:
+  log:
+  max_len:
+  mean_len:
+  min_len:
+  model:
+  mu:
+  output:
+  paired:
+  passes:
+  profile:
+  ratio:
+  rep_sd:
+  replicates:
+  sd_len:
+  seed:
+  sigma:
+  skip_shuffle:
+  snake_args:
+  snake_default:
+  system_config:
+  tech:
+  threads:
+  tool:
+  use_conda:
+
 resources:
   big:
-    mem: 32000
     cpu: 16
+    mem: 32000
     time: "23:00:00"
   med:
-    mem: 16000
     cpu: 8
-    time: "08:00:00"
+    mem: 16000
+    time: 08:00:00
   norm:
+    cpu: 4
     mem: 6000
-    cpu: 3
-    time: "00:30:00"
+    time: 00:30:00
   sml:
-    mem: 2000
     cpu: 1
-    time: "00:01:00"
+    mem: 2000
+    time: 00:01:00
