@@ -232,8 +232,7 @@ Available targets:
 
 help_download = """
 \b
-downloads genomes from entries in input table(s)
-mess download ...
+Downloads genomes from taxons/accessions in input table(s)
 \b
 EXAMPLES:
 mess download -i [input] -o [output]
@@ -241,8 +240,7 @@ mess download -i [input] -o [output]
 
 help_simulate = """
 \b
-simulate reads from local fasta
-mess simulate ...
+Simulate reads from local fasta
 \b
 EXAMPLES:
 mess simulate -i [input] --tech [tech] --fasta [fasta-dir] -o [output]
@@ -251,17 +249,18 @@ mess simulate -i [input] --tech [tech] --asm-summary [asm-summary] -o [output]
 """
 help_test = """
 \b
-test command to run mess from assembly download to read simulation
+Test command to run mess from assembly download to read simulation
 \b
 EXAMPLES:
 mess test -o [output]
 """
 help_hmp_templates = """
 \b
-command to download and simulate healthy human microbiome templates
+Command to download and simulate healthy human microbiome templates
 \b
 EXAMPLES:
 mess hmp_template --site gut -o gut
+or
 mess hmp_template --site buccal_mucosa --sample SRS013506 -o SRS013506
 """
 
@@ -304,7 +303,7 @@ def run(
 def download(
     **kwargs,
 ):
-    """Download genomes"""
+    """Download genomes with assembly_finder"""
     # Config to add or update in configfile
     merge_config = {"args": kwargs}
 
@@ -331,7 +330,7 @@ def download(
 )
 @click.option(
     "--fasta",
-    help="Path to local fasta directory",
+    help="Path to local fasta directory if no path is set in summary or input table",
     type=str,
 )
 @common_options
@@ -339,12 +338,12 @@ def simulate(
     **kwargs,
 ):
     """Simulate reads from local fastas"""
-    if kwargs["tech"] != "illumina" and kwargs["error"]:
+    if kwargs["tech"] != "illumina":
         if kwargs["tech"] == "pacbio":
             kwargs["ratio"] = "22:45:33"
             kwargs["model"] = "QSHMM-RSII"
             if kwargs["error"] == "hifi":
-                kwargs["accuracy"] = 0.99
+                kwargs["accuracy"] = 0.999
                 kwargs["passes"] = 10
 
         if kwargs["tech"] == "nanopore":
@@ -352,7 +351,7 @@ def simulate(
             if kwargs["error"] == "r10.4":
                 kwargs["accuracy"] = 0.99
                 kwargs["model"] = "QSHMM-ONT-HQ"
-            if kwargs["error"] == "r10.3":
+            else:
                 kwargs["accuracy"] = 0.95
                 kwargs["model"] = "QSHMM-ONT"
 
@@ -379,20 +378,20 @@ def test(**kwargs):
     """Run mess on test data"""
     # Config to add or update in configfile
     kwargs["input"] = snake_base(os.path.join("test_data", "minimal_test.tsv"))
-    if kwargs["tech"] != "illumina" and kwargs["error"]:
+    if kwargs["tech"] != "illumina":
         if kwargs["tech"] == "pacbio":
             kwargs["ratio"] = "22:45:33"
             kwargs["model"] = "QSHMM-RSII"
             if kwargs["error"] == "hifi":
-                kwargs["accuracy"] = 0.99
-                kwargs["passes"] = 2
+                kwargs["accuracy"] = 0.999
+                kwargs["passes"] = 10
 
         if kwargs["tech"] == "nanopore":
             kwargs["ratio"] = "39:24:36"
             if kwargs["error"] == "r10.4":
                 kwargs["accuracy"] = 0.99
                 kwargs["model"] = "QSHMM-ONT-HQ"
-            if kwargs["error"] == "r10.3":
+            else:
                 kwargs["accuracy"] = 0.95
                 kwargs["model"] = "QSHMM-ONT"
 
