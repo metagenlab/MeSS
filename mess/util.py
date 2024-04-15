@@ -256,9 +256,8 @@ def sim_options(func):
             show_default=True,
         ),
         click.option(
-            "--bam",
+            "--bam/--no-bam",
             help="Generate gold standard bam files",
-            type=bool,
             default=False,
             show_default=True,
         ),
