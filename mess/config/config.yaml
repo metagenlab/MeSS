@@ -45,12 +45,12 @@ resources:
   med:
     cpu: 8
     mem: 16000
-    time: 08:00:00
+    time: "08:00:00"
   norm:
     cpu: 4
-    mem: 6000
-    time: 00:30:00
+    mem: 4000
+    time: "00:30:00"
   sml:
     cpu: 1
-    mem: 2000
-    time: 00:01:00
+    mem: 1000
+    time: "00:00:10"
