@@ -44,13 +44,11 @@ checkpoint split_contigs:
         fa=list_fastas,
         cov=os.path.join(dir.out.processing, "cov.tsv"),
     output:
-        tsv=temp(os.path.join(dir.out.processing, "split.tsv")),
+        tsv=os.path.join(dir.out.processing, "split.tsv"),
         dir=temp(directory(os.path.join(dir.out.base, "split"))),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
-    log:
-        os.path.join(dir.out.logs, "tables", "split.tsv"),
     script:
         os.path.join(dir.scripts, "split_contigs.py")

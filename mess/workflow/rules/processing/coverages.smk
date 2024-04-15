@@ -22,7 +22,7 @@ checkpoint calculate_coverage:
         df=os.path.join(dir.out.base, "replicates.tsv"),
         asm=get_asm_summary,
     output:
-        temp(os.path.join(dir.out.processing, "cov.tsv")),
+        os.path.join(dir.out.processing, "cov.tsv"),
     params:
         fa=FASTA,
         dist=DIST,
@@ -32,8 +32,6 @@ checkpoint calculate_coverage:
         read_len=MEAN_LEN,
         pairing=PAIRED,
         seed=SEED,
-    log:
-        os.path.join(dir.out.logs, "tables", "cov.tsv"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
