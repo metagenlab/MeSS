@@ -162,6 +162,4 @@ cols = [
 df = df.astype(
     {"seed": int, "tax_id": int, "total_sequence_length": int, "number_of_contigs": int}
 )
-
-df.to_csv(snakemake.log[0], sep="\t", index=None)  # type: ignore
-df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")
+df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
