@@ -68,7 +68,7 @@ rule merge_fasta_bams:
         mem_mb=config.resources.norm.mem,
         mem=str(config.resources.norm.mem) + "MB",
         time=config.resources.norm.time,
-    threads: config.resources.med.cpu
+    threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.env, "bioconvert.yml")
     shell:
@@ -90,7 +90,7 @@ rule sort_bams:
         mem_mb=config.resources.norm.mem,
         mem=str(config.resources.norm.mem) + "MB",
         time=config.resources.norm.time,
-    threads: config.resources.med.cpu
+    threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.env, "bioconvert.yml")
     shell:
@@ -173,7 +173,7 @@ rule index_bams:
         mem_mb=config.resources.norm.mem,
         mem=str(config.resources.norm.mem) + "MB",
         time=config.resources.norm.time,
-    threads: config.resources.med.cpu
+    threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.env, "bioconvert.yml")
     shell:
@@ -188,9 +188,9 @@ rule compress_contig_fastqs:
     output:
         fastq_gz,
     resources:
-        mem_mb=config.resources.norm.mem,
-        mem=str(config.resources.norm.mem) + "MB",
-        time=config.resources.norm.time,
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     shell:
         """
@@ -207,9 +207,9 @@ rule cat_contig_fastqs:
         if PAIRED
         else temp(os.path.join(fastq_dir, "{sample}", "{fasta}.fq.gz")),
     resources:
-        mem_mb=config.resources.norm.mem,
-        mem=str(config.resources.norm.mem) + "MB",
-        time=config.resources.norm.time,
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
     shell:
         """
         cat {input.fq} > {output}
@@ -268,8 +268,8 @@ if not SKIP_SHUFFLE:
             if PAIRED
             else os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}.log"),
         resources:
-            mem_mb=config.resources.med.mem,
-            mem=str(config.resources.med.mem) + "MB",
+            mem_mb=config.resources.norm.mem,
+            mem=str(config.resources.norm.mem) + "MB",
             time=config.resources.norm.time,
         threads: config.resources.norm.cpu
         conda:

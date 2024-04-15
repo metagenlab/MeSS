@@ -108,17 +108,18 @@ if PASSES > 1:
                     "{contig}.zmw_metrics.json.gz",
                 )
             ),
-        params:
-            passes=PASSES,
-            accuracy=ACCURACY,
-        resources:
-            mem_mb=config.resources.med.mem,
-            mem=str(config.resources.med.mem) + "MB",
-            time=config.resources.med.time,
         benchmark:
             os.path.join(dir.out.bench, "ccs", "{sample}", "{fasta}", "{contig}.txt")
         log:
             os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
+        params:
+            passes=PASSES,
+            accuracy=ACCURACY,
+        resources:
+            mem_mb=config.resources.norm.mem,
+            mem=str(config.resources.norm.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
         conda:
             os.path.join(dir.env, "pbccs.yml")
         shell:
@@ -170,9 +171,9 @@ if BAM:
                 "{fasta}_{contig}.log",
             ),
         resources:
-            mem_mb=config.resources.norm.mem,
-            mem=str(config.resources.norm.mem) + "MB",
-            time=config.resources.norm.time,
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
         threads: config.resources.sml.cpu
         conda:
             os.path.join(dir.env, "bioconvert.yml")
