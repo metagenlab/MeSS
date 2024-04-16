@@ -10,6 +10,142 @@ if PAIRED:
     fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}{p}.fq")
     fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}{p}.fq.gz"))
 
+# hifi reads post processing
+if PASSES > 1:
+
+    rule ccs_sam_to_bam:
+        input:
+            os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.sam"),
+        output:
+            temp(
+                os.path.join(
+                    dir.out.base,
+                    "ccs",
+                    "{sample}",
+                    "{fasta}",
+                    "{contig}.ccs.bam",
+                )
+            ),
+        benchmark:
+            os.path.join(
+                dir.out.bench,
+                "samtools",
+                "sam2bam",
+                "{sample}",
+                "{fasta}_{contig}.txt",
+            )
+        log:
+            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.env, "bioconvert.yml")
+        shell:
+            """
+            samtools view -@ {threads} -bS {input} | \
+            samtools sort -@ {threads} > {output} 2> {log}
+            """
+
+    rule ccs_bam_to_fastq:
+        input:
+            os.path.join(dir.out.base, "ccs", "{sample}", "{fasta}", "{contig}.ccs.bam"),
+        output:
+            fq=temp(
+                os.path.join(
+                    dir.out.long,
+                    "{sample}",
+                    "{fasta}",
+                    "{contig}.fq.gz",
+                )
+            ),
+            json=temp(
+                os.path.join(
+                    dir.out.long,
+                    "{sample}",
+                    "{fasta}",
+                    "{contig}.zmw_metrics.json.gz",
+                )
+            ),
+        benchmark:
+            os.path.join(dir.out.bench, "ccs", "{sample}", "{fasta}", "{contig}.txt")
+        log:
+            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
+        params:
+            passes=PASSES,
+            accuracy=ACCURACY,
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.env, "pbccs.yml")
+        shell:
+            """
+            MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 \\
+            ccs -j {threads} --min-passes {params.passes} \\
+            --min-rq {params.accuracy} {input} {output.fq} --report-file {log}
+            """
+
+
+# PBSIM3 bam pre-processing
+if BAM:
+
+    rule add_reference_name:
+        input:
+            maf=os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.maf"),
+            fa=os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.ref"),
+        output:
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.maf")),
+        params:
+            seqname=lambda wildcards, input: get_header(input.fa),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        conda:
+            os.path.join(dir.env, "sed.yml")
+        shell:
+            """
+            sed 's/ref/{params.seqname}/g' {input.maf} > {output}
+            """
+
+    rule convert_maf_to_sam:
+        input:
+            os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.maf"),
+        output:
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.sam")),
+        benchmark:
+            os.path.join(
+                dir.out.logs,
+                "bioconvert",
+                "maf2sam",
+                "{sample}",
+                "{fasta}_{contig}.txt",
+            )
+        log:
+            os.path.join(
+                dir.out.logs,
+                "bioconvert",
+                "maf2sam",
+                "{sample}",
+                "{fasta}_{contig}.log",
+            ),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.sml.cpu
+        conda:
+            os.path.join(dir.env, "bioconvert.yml")
+        shell:
+            """
+            bioconvert {input} {output} 2> {log}
+            """
+
 
 rule convert_sam_to_bam:
     input:
@@ -110,6 +246,8 @@ if BAM:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
+        conda:
+            os.path.join(dir.env, "curl.yml")
         shell:
             """
             curl ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz -o {output} 2> {log}
@@ -133,6 +271,8 @@ if BAM:
             time=config.resources.sml.time,
         log:
             os.path.join(dir.out.logs, "wget", "taxdump.log"),
+        conda:
+            os.path.join(dir.env, "tar.yml")
         shell:
             """
             tar -xzvf {input} -C {params.dir} &> {log}
@@ -239,6 +379,8 @@ rule compress_contig_fastqs:
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
+    conda:
+        os.path.join(dir.env, "pigz.yml")
     shell:
         """
         pigz -p {threads} {input}
