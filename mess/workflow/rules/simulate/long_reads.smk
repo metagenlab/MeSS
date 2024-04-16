@@ -27,8 +27,8 @@ rule pbsim3:
     log:
         os.path.join(dir.out.logs, "pbsim3", "{sample}", "{fasta}", "{contig}.log"),
     resources:
-        mem_mb=config.resources.norm.mem,
-        mem=str(config.resources.norm.mem) + "MB",
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.norm.time,
     conda:
         os.path.join(dir.env, "pbsim3.yml")
@@ -76,8 +76,8 @@ if PASSES > 1:
         log:
             os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
         resources:
-            mem_mb=config.resources.norm.mem,
-            mem=str(config.resources.norm.mem) + "MB",
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.norm.time,
         threads: config.resources.norm.cpu
         conda:
@@ -116,8 +116,8 @@ if PASSES > 1:
             passes=PASSES,
             accuracy=ACCURACY,
         resources:
-            mem_mb=config.resources.norm.mem,
-            mem=str(config.resources.norm.mem) + "MB",
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.norm.time,
         threads: config.resources.norm.cpu
         conda:
@@ -179,7 +179,7 @@ if BAM:
             os.path.join(dir.env, "bioconvert.yml")
         shell:
             """
-            bioconvert {input} {output} 2>> {log}
+            bioconvert {input} {output} 2> {log}
             """
 
 

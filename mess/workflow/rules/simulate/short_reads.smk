@@ -53,8 +53,8 @@ rule art_illumina:
     log:
         os.path.join(dir.out.logs, "art", "{sample}", "{fasta}", "{contig}.log"),
     resources:
-        mem_mb=config.resources.norm.mem,
-        mem=str(config.resources.norm.mem) + "MB",
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.norm.time,
     conda:
         os.path.join(dir.env, "art.yml")

@@ -43,10 +43,10 @@ rule merge_contig_bams:
     log:
         os.path.join(dir.out.logs, "samtools", "merge", "{sample}", "{fasta}.log"),
     resources:
-        mem_mb=config.resources.norm.mem,
-        mem=str(config.resources.norm.mem) + "MB",
-        time=config.resources.norm.time,
-    threads: config.resources.norm.cpu
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
+    threads: config.resources.sml.cpu
     conda:
         os.path.join(dir.env, "bioconvert.yml")
     shell:
@@ -55,7 +55,7 @@ rule merge_contig_bams:
         """
 
 
-rule merge_fasta_bams:
+rule get_sample_bams:
     input:
         lambda wildcards: aggregate(wildcards, dir.out.bam, "fasta", "bam"),
     output:
@@ -65,9 +65,9 @@ rule merge_fasta_bams:
     log:
         os.path.join(dir.out.logs, "samtools", "merge", "{sample}.log"),
     resources:
-        mem_mb=config.resources.norm.mem,
-        mem=str(config.resources.norm.mem) + "MB",
-        time=config.resources.norm.time,
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
     threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.env, "bioconvert.yml")
@@ -87,9 +87,9 @@ rule sort_bams:
     log:
         os.path.join(dir.out.logs, "samtools", "sort", "{sample}.log"),
     resources:
-        mem_mb=config.resources.norm.mem,
-        mem=str(config.resources.norm.mem) + "MB",
-        time=config.resources.norm.time,
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
     threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.env, "bioconvert.yml")
@@ -142,7 +142,7 @@ rule get_tax_profile:
         )
 
 
-rule convert_to_biobox_format:
+rule tax_profile_to_biobox:
     input:
         os.path.join(dir.out.tax, "{sample}.tsv"),
     output:
@@ -170,8 +170,8 @@ rule index_bams:
     benchmark:
         os.path.join(dir.out.bench, "samtools", "index", "{sample}.txt")
     resources:
-        mem_mb=config.resources.norm.mem,
-        mem=str(config.resources.norm.mem) + "MB",
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.norm.time,
     threads: config.resources.norm.cpu
     conda:
@@ -229,7 +229,7 @@ else:
         sample_fastq_out = temp(os.path.join(dir.out.cat, "{sample}.fq.gz"))
 
 
-rule cat_fasta_fastqs:
+rule cat_sample_fastqs:
     input:
         lambda wildcards: aggregate(wildcards, fastq_dir, "fasta", "fq.gz"),
     output:
@@ -268,9 +268,9 @@ if not SKIP_SHUFFLE:
             if PAIRED
             else os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}.log"),
         resources:
-            mem_mb=config.resources.norm.mem,
-            mem=str(config.resources.norm.mem) + "MB",
-            time=config.resources.norm.time,
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
         threads: config.resources.norm.cpu
         conda:
             os.path.join(dir.env, "seqkit.yml")
@@ -310,8 +310,8 @@ if not SKIP_SHUFFLE:
             if PAIRED
             else os.path.join(dir.out.logs, "anonymized_reads", "{sample}.tsv"),
         resources:
-            mem_mb=config.resources.norm.mem,
-            mem=str(config.resources.norm.mem) + "MB",
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.norm.time,
         shell:
             """
