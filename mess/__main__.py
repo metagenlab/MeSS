@@ -428,9 +428,11 @@ def hmp_template(site, sample, **kwargs):
     """Download and simulate healthy human microbiome templates"""
     # Config to add or update in configfile
     if sample == None:
-        kwargs["input"] = snake_base(os.path.join("data", site))
+        kwargs["input"] = snake_base(os.path.join("data", "hmp_templates", site))
     else:
-        kwargs["input"] = snake_base(os.path.join("data", site, f"{sample}.tsv"))
+        kwargs["input"] = snake_base(
+            os.path.join("data", "hmp_templates", site, f"{sample}.tsv")
+        )
     merge_config = {"args": kwargs}
     run_snakemake(
         # Full path to Snakefile

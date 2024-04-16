@@ -189,10 +189,16 @@ def sim_options(func):
             show_default=True,
         ),
         click.option(
+            "--model-path",
+            help="Path to pbsim3 sequencing error models",
+            type=click.Path(),
+            default=snake_base(os.path.join("data", "models", "pbsim3")),
+            show_default=True,
+        ),
+        click.option(
             "--model",
-            help="PBSIM3 sequencing error model",
-            type=str,
-            default=None,
+            help="Path to pbsim3 sequencing error models",
+            type=click.Choice(["QSHMM-ONT-HQ", "QSHMM-ONT", "QSHMM-RSII"]),
         ),
         click.option(
             "--ratio",

@@ -105,6 +105,7 @@ MAX_LEN = config.args.max_len
 SD_LEN = config.args.sd_len
 PASSES = config.args.passes
 ACCURACY = config.args.accuracy
+MODEL_PATH = config.args.model_path
 MODEL = config.args.model
 RATIO = config.args.ratio
 # simulate reads
