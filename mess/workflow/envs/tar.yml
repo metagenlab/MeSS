@@ -1,0 +1,6 @@
+name: tar
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - tar>=1.34
