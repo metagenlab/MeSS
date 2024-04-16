@@ -1,17 +1,22 @@
+prefix = os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}")
+if PASSES > 1:
+    pbsim3_out = temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.sam"))
+    rrename = f"mv {prefix}_0001.sam {prefix}.sam"
+else:
+    pbsim3_out = temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq"))
+    rename = f"mv {prefix}_0001.fastq {prefix}.fq"
+
+
 rule pbsim3:
     input:
         fa=os.path.join(dir.out.base, "split", "{fasta}_{contig}.fna"),
         df=get_cov_table,
     output:
-        temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.sam"))
-        if PASSES > 1
-        else temp(
-            os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.fastq")
-        ),
-        temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.maf")),
-        temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.ref")),
+        pbsim3_out,
+        temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.maf")),
+        temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.ref")),
     params:
-        model=os.path.join(os.environ["CONDA_PREFIX"], "data", f"{MODEL}.model"),
+        model=os.path.join(MODEL_PATH, f"{MODEL}.model"),
         ratio=RATIO,
         meanlen=MEAN_LEN,
         lensd=SD_LEN,
@@ -21,7 +26,8 @@ rule pbsim3:
         accuracy=ACCURACY,
         cov=lambda wildcards, input: get_value(input.df, wildcards, "cov_sim"),
         seed=lambda wildcards, input: int(get_value(input.df, wildcards, "seed")),
-        prefix=os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}"),
+        prefix=prefix,
+        reads_rename=rename,
     benchmark:
         os.path.join(dir.out.bench, "pbsim3", "{sample}", "{fasta}", "{contig}.txt")
     log:
@@ -47,155 +53,8 @@ rule pbsim3:
         --pass-num {params.passes} \\
         --accuracy-mean {params.accuracy} \\
         --depth {params.cov} --genome {input.fa} &> {log}
+        
+        mv {params.prefix}_0001.maf {params.prefix}.maf
+        mv {params.prefix}_0001.ref {params.prefix}.ref
+        {params.reads_rename}
         """
-
-
-if PASSES > 1:
-
-    rule ccs_sam_to_bam:
-        input:
-            os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.sam"),
-        output:
-            temp(
-                os.path.join(
-                    dir.out.base,
-                    "ccs",
-                    "{sample}",
-                    "{fasta}",
-                    "{contig}.ccs.bam",
-                )
-            ),
-        benchmark:
-            os.path.join(
-                dir.out.bench,
-                "samtools",
-                "sam2bam",
-                "{sample}",
-                "{fasta}_{contig}.txt",
-            )
-        log:
-            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.norm.time,
-        threads: config.resources.norm.cpu
-        conda:
-            os.path.join(dir.env, "bioconvert.yml")
-        shell:
-            """
-            samtools view -@ {threads} -bS {input} | \
-            samtools sort -@ {threads} > {output} 2> {log}
-            """
-
-    rule ccs_bam_to_fastq:
-        input:
-            os.path.join(dir.out.base, "ccs", "{sample}", "{fasta}", "{contig}.ccs.bam"),
-        output:
-            fq=temp(
-                os.path.join(
-                    dir.out.long,
-                    "{sample}",
-                    "{fasta}",
-                    "{contig}.fq.gz",
-                )
-            ),
-            json=temp(
-                os.path.join(
-                    dir.out.long,
-                    "{sample}",
-                    "{fasta}",
-                    "{contig}.zmw_metrics.json.gz",
-                )
-            ),
-        benchmark:
-            os.path.join(dir.out.bench, "ccs", "{sample}", "{fasta}", "{contig}.txt")
-        log:
-            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
-        params:
-            passes=PASSES,
-            accuracy=ACCURACY,
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.norm.time,
-        threads: config.resources.norm.cpu
-        conda:
-            os.path.join(dir.env, "pbccs.yml")
-        shell:
-            """
-            MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 \\
-            ccs -j {threads} --min-passes {params.passes} \\
-            --min-rq {params.accuracy} {input} {output.fq} --report-file {log}
-            """
-
-
-if BAM:
-
-    rule add_reference_name:
-        input:
-            maf=os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.maf"),
-            fa=os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.ref"),
-        output:
-            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.maf")),
-        params:
-            seqname=lambda wildcards, input: get_header(input.fa),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        shell:
-            """
-            sed 's/ref/{params.seqname}/g' {input.maf} > {output}
-            """
-
-    rule convert_maf_to_sam:
-        input:
-            os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.maf"),
-        output:
-            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.sam")),
-        benchmark:
-            os.path.join(
-                dir.out.logs,
-                "bioconvert",
-                "maf2sam",
-                "{sample}",
-                "{fasta}_{contig}.txt",
-            )
-        log:
-            os.path.join(
-                dir.out.logs,
-                "bioconvert",
-                "maf2sam",
-                "{sample}",
-                "{fasta}_{contig}.log",
-            ),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        threads: config.resources.sml.cpu
-        conda:
-            os.path.join(dir.env, "bioconvert.yml")
-        shell:
-            """
-            bioconvert {input} {output} 2> {log}
-            """
-
-
-if PASSES == 1:
-
-    rule rename_single_pass_fastq:
-        input:
-            os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_0001.fastq"),
-        output:
-            temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq")),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        threads: config.resources.sml.cpu
-        shell:
-            """
-            mv {input} {output}
-            """
