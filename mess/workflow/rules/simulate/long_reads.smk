@@ -1,7 +1,7 @@
 prefix = os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}")
 if PASSES > 1:
     pbsim3_out = temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.sam"))
-    rrename = f"mv {prefix}_0001.sam {prefix}.sam"
+    rename = f"mv {prefix}_0001.sam {prefix}.sam"
 else:
     pbsim3_out = temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq"))
     rename = f"mv {prefix}_0001.fastq {prefix}.fq"
