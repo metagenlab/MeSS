@@ -32,9 +32,9 @@ CLASSIFIERS = [
     "Natural Language :: English",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS :: MacOS X",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 
@@ -42,7 +42,7 @@ setup(
     name="mess",
     packages=find_packages(),
     url="https://github.com/metagenlab/MeSS",
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     description="Snakemake pipeline for simulating short and long read metagenomes",
     long_description=get_description(),
     long_description_content_type="text/markdown",
@@ -53,6 +53,7 @@ setup(
     py_modules=["mess"],
     install_requires=[
         "snakemake>=7.32.4",
+        "pulp<2.8",
         "snaketool-utils>=0.0.5",
         "attrmap>=0.0.7",
         "pyyaml>=6.0.1",
