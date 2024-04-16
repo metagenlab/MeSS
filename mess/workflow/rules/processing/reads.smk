@@ -99,6 +99,46 @@ rule sort_bams:
         """
 
 
+if BAM:
+
+    rule download_taxdump:
+        output:
+            temp(os.path.join(TAXONKIT, "taxdump.tar.gz")),
+        log:
+            os.path.join(dir.out.logs, "curl", "taxdump.log"),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        shell:
+            """
+            curl ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz -o {output} 2> {log}
+            """
+
+    rule decompress_taxdump:
+        input:
+            os.path.join(TAXONKIT, "taxdump.tar.gz"),
+        output:
+            os.path.join(TAXONKIT, "names.dmp"),
+            os.path.join(TAXONKIT, "nodes.dmp"),
+            os.path.join(TAXONKIT, "delnodes.dmp"),
+            os.path.join(TAXONKIT, "merged.dmp"),
+        params:
+            dir=TAXONKIT,
+        log:
+            os.path.join(dir.out.logs, "tar", "taxdump.log"),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        log:
+            os.path.join(dir.out.logs, "wget", "taxdump.log"),
+        shell:
+            """
+            tar -xzvf {input} -C {params.dir} &> {log}
+            """
+
+
 rule get_bam_coverage:
     input:
         os.path.join(dir.out.bam, "{sample}.bam"),
@@ -144,11 +184,14 @@ rule get_tax_profile:
 
 rule tax_profile_to_biobox:
     input:
-        os.path.join(dir.out.tax, "{sample}.tsv"),
+        tsv=os.path.join(dir.out.tax, "{sample}.tsv"),
+        dmp=os.path.join(TAXONKIT, "names.dmp"),
     output:
         os.path.join(dir.out.tax, "{sample}_profile.txt"),
     log:
         os.path.join(dir.out.logs, "taxonkit", "profile2cami", "{sample}.log"),
+    params:
+        dir=TAXONKIT,
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -158,7 +201,11 @@ rule tax_profile_to_biobox:
         os.path.join(dir.env, "taxonkit.yml")
     shell:
         """
-        taxonkit profile2cami -s {wildcards.sample} {input} > {output}
+        taxonkit \\
+            profile2cami \\
+            -j {threads} \\
+            --data-dir {params.dir} \\
+            -s {wildcards.sample} {input.tsv} > {output}
         """
 
 

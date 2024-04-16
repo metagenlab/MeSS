@@ -256,6 +256,13 @@ def sim_options(func):
             show_default=True,
         ),
         click.option(
+            "--taxonkit",
+            default=snake_base(os.path.join("workflow", "taxonkit")),
+            help="Define path to taxonkit data-dir",
+            type=click.Path(),
+            show_default=True,
+        ),
+        click.option(
             "--bam/--no-bam",
             help="Generate gold standard bam files",
             default=False,

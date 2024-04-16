@@ -100,6 +100,7 @@ else:
 # reads post-processsing options
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
+TAXONKIT = config.args.taxonkit
 
 
 include: os.path.join("rules", "processing", "reads.smk")

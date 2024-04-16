@@ -61,6 +61,7 @@ mess_simulate_options = (
             "--tool",
             "--error",
             "--mean-len",
+            "--taxonkit",
             "--bam",
             "--seed",
         ],
