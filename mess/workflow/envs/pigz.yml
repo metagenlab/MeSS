@@ -3,4 +3,4 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - pigz>=2.8
+  - pigz >=2.8
