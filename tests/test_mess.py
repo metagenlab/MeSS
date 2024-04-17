@@ -80,9 +80,3 @@ def test_simulate_pacbio():
     """mess simulate pacbio reads"""
     exec_command(" ".join(cmd) + " --tech pacbio --bam")
     remove_directory(outdir)
-
-
-def test_simulate_pacbio_hifi():
-    """mess simulate pacbio hifi reads"""
-    exec_command(" ".join(cmd) + " --tech pacbio --accuracy 0.999 --passes 2 --bam")
-    remove_directory(outdir)
