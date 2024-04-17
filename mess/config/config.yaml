@@ -1,0 +1,56 @@
+args:
+  accuracy:
+  asm_summary:
+  bam:
+  bases:
+  conda_prefix:
+  configfile:
+  custom_err:
+  dist:
+  error:
+  fasta:
+  frag_len:
+  frag_sd:
+  input:
+  log:
+  max_len:
+  mean_len:
+  min_len:
+  model:
+  mu:
+  output:
+  paired:
+  passes:
+  profile:
+  ratio:
+  rep_sd:
+  replicates:
+  sd_len:
+  seed:
+  sigma:
+  skip_shuffle:
+  snake_args:
+  snake_default:
+  system_config:
+  tech:
+  threads:
+  tool:
+  use_conda:
+
+resources:
+  big:
+    cpu: 16
+    mem: 32000
+    time: "23:00:00"
+  med:
+    cpu: 8
+    mem: 16000
+    time: "08:00:00"
+  norm:
+    cpu: 4
+    mem: 4000
+    time: "00:30:00"
+  sml:
+    cpu: 1
+    mem: 2000
+    time: "00:00:10"

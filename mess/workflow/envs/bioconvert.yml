@@ -1,0 +1,7 @@
+name: bioconvert
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconvert >=1.1.1

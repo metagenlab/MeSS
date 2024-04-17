@@ -1,0 +1,5 @@
+{
+    "SBATCH_DEFAULTS": "",
+    "CLUSTER_NAME": "",
+    "CLUSTER_CONFIG": ""
+}

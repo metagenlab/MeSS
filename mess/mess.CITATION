@@ -1,0 +1,27 @@
+Please cite MeSS and assembly_finder in your paper using this article:
+
+
+Please consider also citing these dependencies:
+ART:
+https://doi.org/10.1093/bioinformatics/btr708
+
+Bioconvert:
+https://doi.org/10.1093/nargab/lqad074
+
+PBSIM3:
+https://doi.org/10.1093/nargab/lqac092
+
+Snakemake:
+https://doi.org/10.12688/f1000research.29032.1
+
+Snaketool:
+https://doi.org/10.1371/journal.pcbi.1010705
+
+Seqkit2:
+https://doi.org/10.1002/imt2.191
+
+Samtools:
+https://doi.org/10.1093/gigascience/giab008
+
+Taxonkit:
+https://doi.org/10.1016/j.jgg.2021.03.006
