@@ -250,7 +250,8 @@ if BAM:
             os.path.join(dir.env, "curl.yml")
         shell:
             """
-            curl ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz -o {output} 2> {log}
+            curl https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz \\
+            -o {output} 2> {log}
             """
 
     rule decompress_taxdump:
