@@ -505,7 +505,7 @@ if not SKIP_SHUFFLE:
             time=config.resources.norm.time,
         shell:
             """
-            zcat {input} | seqkit replace \\
+            seqkit seq {input} | seqkit replace \\
             -p .+ -r "{params}" -o {output} 2> {log[0]}
             paste -d '\t' <(seqkit seq -n {output}) <(seqkit seq -n {input}) > {log[1]} 
             """
