@@ -1,6 +1,9 @@
-name: sed
+name: utils
 channels:
   - conda-forge
   - defaults
 dependencies:
+  - tar >=1.34
   - sed >=4.7
+  - pigz >=2.8
+  - curl >=8.7.1

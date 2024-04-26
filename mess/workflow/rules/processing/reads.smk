@@ -107,7 +107,7 @@ if BAM:
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
         conda:
-            os.path.join(dir.env, "sed.yml")
+            os.path.join(dir.env, "utils.yml")
         shell:
             """
             sed 's/ref/{params.seqname}/g' {input.maf} > {output}
@@ -247,7 +247,7 @@ if BAM:
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
         conda:
-            os.path.join(dir.env, "curl.yml")
+            os.path.join(dir.env, "utils.yml")
         shell:
             """
             curl https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz \\
@@ -273,7 +273,7 @@ if BAM:
         log:
             os.path.join(dir.out.logs, "wget", "taxdump.log"),
         conda:
-            os.path.join(dir.env, "tar.yml")
+            os.path.join(dir.env, "utils.yml")
         shell:
             """
             tar -xzvf {input} -C {params.dir} &> {log}
@@ -381,7 +381,7 @@ rule compress_contig_fastqs:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     conda:
-        os.path.join(dir.env, "pigz.yml")
+        os.path.join(dir.env, "utils.yml")
     shell:
         """
         pigz -p {threads} {input}
