@@ -43,6 +43,13 @@ def common_options(func):
             show_default=True,
         ),
         click.option(
+            "--taxonkit",
+            default=snake_base(os.path.join("workflow", "taxonkit")),
+            help="Define path to taxonkit data-dir",
+            type=click.Path(),
+            show_default=True,
+        ),
+        click.option(
             "--configfile",
             default="config.yaml",
             show_default=False,
@@ -259,13 +266,6 @@ def sim_options(func):
             help="Fragment length standard deviation for paired short read sequencing",
             type=int,
             default=10,
-            show_default=True,
-        ),
-        click.option(
-            "--taxonkit",
-            default=snake_base(os.path.join("workflow", "taxonkit")),
-            help="Define path to taxonkit data-dir",
-            type=click.Path(),
             show_default=True,
         ),
         click.option(
