@@ -55,6 +55,8 @@ checkpoint download_assemblies:
         annot=ANNOTATED,
         atyp=ATYPICAL,
         mag=MAG,
+        conda=CONDA_PREFIX,
+        taxonkit=TAXONKIT,
         out=os.path.join(dir.out.base, "assembly_finder"),
     benchmark:
         os.path.join(dir.out.bench, "assembly_finder", "download.txt")
@@ -64,14 +66,16 @@ checkpoint download_assemblies:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.med.time,
-    threads: config.resources.med.cpu
+    threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.env, "assembly_finder.yml")
     shell:
         """
         assembly_finder \\
         -i {input} \\
-        -t {threads} \\
+        --conda-prefix {params.conda} \\
+        --taxonkit {params.taxonkit} \\
+        --threads {threads} \\
         {params.args} \\
         --compressed {params.comp} \\
         --include {params.incl} \\
