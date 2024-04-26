@@ -433,7 +433,6 @@ def hmp_template(site, sample, **kwargs):
         kwargs["input"] = snake_base(
             os.path.join("data", "hmp_templates", site, f"{sample}.tsv")
         )
-    kwargs["taxon"] = False
     merge_config = {"args": kwargs}
     run_snakemake(
         # Full path to Snakefile
