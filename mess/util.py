@@ -296,8 +296,8 @@ def download_options(func):
         click.option(
             "--limit",
             help="Limit number of genomes per query",
-            type=int,
-            default=None,
+            type=str,
+            default=1,
         ),
         click.option("--api-key", type=str, help="NCBI api-key", default=None),
         click.option(
