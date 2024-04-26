@@ -4,4 +4,4 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - assembly_finder >=0.6.2
+  - assembly_finder >=0.7.1

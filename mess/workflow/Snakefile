@@ -43,6 +43,8 @@ LOG = os.path.join(OUTPUT, "mess.log")
 THREADS = config.args.threads
 
 # download options
+CONDA_PREFIX = config.args.conda_prefix
+TAXONKIT = config.args.taxonkit
 API_KEY = config.args.api_key
 LIMIT = config.args.limit
 COMPRESSED = config.args.compressed

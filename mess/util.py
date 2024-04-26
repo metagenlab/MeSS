@@ -43,6 +43,13 @@ def common_options(func):
             show_default=True,
         ),
         click.option(
+            "--taxonkit",
+            default=snake_base(os.path.join("workflow", "taxonkit")),
+            help="Define path to taxonkit data-dir",
+            type=click.Path(),
+            show_default=True,
+        ),
+        click.option(
             "--configfile",
             default="config.yaml",
             show_default=False,
@@ -262,13 +269,6 @@ def sim_options(func):
             show_default=True,
         ),
         click.option(
-            "--taxonkit",
-            default=snake_base(os.path.join("workflow", "taxonkit")),
-            help="Define path to taxonkit data-dir",
-            type=click.Path(),
-            show_default=True,
-        ),
-        click.option(
             "--bam/--no-bam",
             help="Generate gold standard bam files",
             default=False,
@@ -296,8 +296,8 @@ def download_options(func):
         click.option(
             "--limit",
             help="Limit number of genomes per query",
-            type=int,
-            default=None,
+            type=str,
+            default=1,
         ),
         click.option("--api-key", type=str, help="NCBI api-key", default=None),
         click.option(

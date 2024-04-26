@@ -1,4 +1,4 @@
-name: Unit tests
+name: Tests
 
 on:
   push:
@@ -31,8 +31,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
-        python-version: ["3.10", "3.12"]
+        os: [macos-13, ubuntu-latest]
+        python-version: ["3.12"]
 
     steps:
       - uses: "actions/checkout@v3"

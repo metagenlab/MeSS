@@ -1,8 +1,7 @@
-name: Build images / docs
+name: Docs
 on:
   push:
     branches:
-      - master
       - main
 # Cancel if a newer run is started
 concurrency:

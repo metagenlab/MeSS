@@ -37,7 +37,7 @@ if not PAIRED:
 
 rule art_illumina:
     input:
-        fa=os.path.join(dir.out.base, "split", "{fasta}_{contig}.fna"),
+        fa=os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna"),
         df=get_cov_table,
     output:
         sam=sam_out,

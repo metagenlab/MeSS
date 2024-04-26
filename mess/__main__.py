@@ -29,7 +29,7 @@ click.rich_click.APPEND_METAVARS_HELP = True
 mess_common_options = (
     {
         "name": "Common options",
-        "options": ["--input", "--output", "--threads", "--help"],
+        "options": ["--input", "--output", "--threads", "--taxonkit", "--help"],
     },
 )
 mess_download_options = (
@@ -61,7 +61,6 @@ mess_simulate_options = (
             "--tool",
             "--error",
             "--mean-len",
-            "--taxonkit",
             "--bam",
             "--seed",
         ],
@@ -74,6 +73,7 @@ mess_simulate_options = (
         "name": "pbsim3 options",
         "options": [
             "--model",
+            "--model-path",
             "--ratio",
             "--accuracy",
             "--passes",

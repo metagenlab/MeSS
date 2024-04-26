@@ -107,7 +107,7 @@ if BAM:
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
         conda:
-            os.path.join(dir.env, "sed.yml")
+            os.path.join(dir.env, "utils.yml")
         shell:
             """
             sed 's/ref/{params.seqname}/g' {input.maf} > {output}
@@ -239,15 +239,15 @@ if BAM:
 
     rule download_taxdump:
         output:
-            temp(os.path.join(TAXONKIT, "taxdump.tar.gz")),
+            os.path.join(TAXONKIT, "taxdump.tar.gz"),
         log:
-            os.path.join(dir.out.logs, "curl", "taxdump.log"),
+            os.path.join(dir.out.logs, "curl.log"),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
         conda:
-            os.path.join(dir.env, "curl.yml")
+            os.path.join(dir.env, "utils.yml")
         shell:
             """
             curl https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz \\
@@ -265,15 +265,13 @@ if BAM:
         params:
             dir=TAXONKIT,
         log:
-            os.path.join(dir.out.logs, "tar", "taxdump.log"),
+            os.path.join(dir.out.logs, "taxdump.log"),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
-        log:
-            os.path.join(dir.out.logs, "wget", "taxdump.log"),
         conda:
-            os.path.join(dir.env, "tar.yml")
+            os.path.join(dir.env, "utils.yml")
         shell:
             """
             tar -xzvf {input} -C {params.dir} &> {log}
@@ -381,7 +379,7 @@ rule compress_contig_fastqs:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     conda:
-        os.path.join(dir.env, "pigz.yml")
+        os.path.join(dir.env, "utils.yml")
     shell:
         """
         pigz -p {threads} {input}
@@ -482,16 +480,12 @@ if not SKIP_SHUFFLE:
             os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz")
             if PAIRED
             else os.path.join(dir.out.fastq, "{sample}.fq.gz"),
-        conda:
-            os.path.join(dir.env, "seqkit.yml")
         benchmark:
             os.path.join(
                 dir.out.bench, "seqkit", "anonymize", "{sample}_R{p}.txt"
             ) if PAIRED else os.path.join(
                 dir.out.bench, "seqkit", "anonymize", "{sample}.txt"
             )
-        params:
-            seqkit_replace,
         log:
             os.path.join(dir.out.logs, "seqkit", "replace", "{sample}_R{p}.log")
             if PAIRED
@@ -499,13 +493,41 @@ if not SKIP_SHUFFLE:
             os.path.join(dir.out.logs, "anonymized_reads", "{sample}_R{p}.tsv")
             if PAIRED
             else os.path.join(dir.out.logs, "anonymized_reads", "{sample}.tsv"),
+        params:
+            seqkit_replace,
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.norm.time,
+        conda:
+            os.path.join(dir.env, "seqkit.yml")
         shell:
             """
             seqkit seq {input} | seqkit replace \\
             -p .+ -r "{params}" -o {output} 2> {log[0]}
             paste -d '\t' <(seqkit seq -n {output}) <(seqkit seq -n {input}) > {log[1]} 
             """
+
+
+rule cleanup_files:
+    input:
+        list_reads,
+        os.path.join(dir.out.base, "replicates.tsv"),
+        os.path.join(dir.out.base, "samples.tsv"),
+        os.path.join(dir.out.processing, "split"),
+    output:
+        temp(os.path.join(dir.out.base, "cleanup.done")),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.norm.time,
+    params:
+        proc=dir.out.processing,
+        base=dir.out.base,
+    conda:
+        os.path.join(dir.env, "utils.yml")
+    shell:
+        """
+        rm -rf {params[0]}
+        touch {output}
+        """

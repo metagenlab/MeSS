@@ -42,10 +42,10 @@ if FASTA and not ASM_SUMMARY:
 checkpoint split_contigs:
     input:
         fa=list_fastas,
-        cov=os.path.join(dir.out.processing, "cov.tsv"),
+        cov=os.path.join(dir.out.base, "cov.tsv"),
     output:
         tsv=os.path.join(dir.out.processing, "split.tsv"),
-        dir=temp(directory(os.path.join(dir.out.base, "split"))),
+        dir=directory(os.path.join(dir.out.processing, "split")),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",

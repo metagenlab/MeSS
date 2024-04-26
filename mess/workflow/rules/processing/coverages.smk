@@ -22,7 +22,7 @@ checkpoint calculate_coverage:
         df=os.path.join(dir.out.base, "replicates.tsv"),
         asm=get_asm_summary,
     output:
-        os.path.join(dir.out.processing, "cov.tsv"),
+        os.path.join(dir.out.base, "cov.tsv"),
     params:
         fa=FASTA,
         dist=DIST,
