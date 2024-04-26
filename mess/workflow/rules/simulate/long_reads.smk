@@ -9,7 +9,7 @@ else:
 
 rule pbsim3:
     input:
-        fa=os.path.join(dir.out.base, "split", "{fasta}_{contig}.fna"),
+        fa=os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna"),
         df=get_cov_table,
     output:
         pbsim3_out,
