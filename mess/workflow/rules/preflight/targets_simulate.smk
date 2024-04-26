@@ -3,4 +3,4 @@ All simulated reads are declared here
 """
 
 
-TargetSimreads = [os.path.join(dir.out.base, "split"), list_reads]
+TargetSimreads = [list_reads, os.path.join(dir.out.base, "cleanup.done")]
