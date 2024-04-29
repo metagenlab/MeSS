@@ -11,7 +11,7 @@ The Metagenomic Sequence Simulator (MeSS) is a [Snakemake](https://github.com/sn
 
 MeSS takes as input NCBI taxa or local genome assemblies to generate either long (PacBio or ONT) or short (illumina) reads. In addition to reads, MeSS optionally generates bam alignment files and taxonomic profiles in [bioboxes format](https://github.com/bioboxes/rfc).
 
-![overview](docs/images/workflow.svg)
+![overview](images/workflow.svg)
 
 ## Installation
 
