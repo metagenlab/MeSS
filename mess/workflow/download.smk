@@ -56,8 +56,8 @@ NRANK = config.args.nrank
 include: os.path.join("rules", "preflight", "functions.smk")
 # directories
 include: os.path.join("rules", "preflight", "directories.smk")
-# read sample
-include: os.path.join("rules", "preflight", "samples.smk")
+# preflight setup
+include: os.path.join("rules", "preflight", "setup.smk")
 # targets
 include: os.path.join("rules", "preflight", "targets_download.smk")
 # assembly_finder

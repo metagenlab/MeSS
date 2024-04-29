@@ -48,7 +48,7 @@ REP_SD = config.args.rep_sd
 
 
 # aggregate samples tables and make replicates
-include: os.path.join("rules", "preflight", "samples.smk")
+include: os.path.join("rules", "preflight", "setup.smk")
 
 
 # fasta paths options

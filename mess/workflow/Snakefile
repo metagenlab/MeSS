@@ -89,7 +89,7 @@ MEAN_LEN = config.args.mean_len
 
 
 # aggregate samples tables and make replicates
-include: os.path.join("rules", "preflight", "samples.smk")
+include: os.path.join("rules", "preflight", "setup.smk")
 # assembly_finder
 include: os.path.join("rules", "download", "assembly_finder.smk")
 # calculate coverages
