@@ -92,9 +92,8 @@ def get_value(table, wildcards, value):
 
 def get_asm_summary(wildcards):
     try:
-        table = os.path.abspath(
-            checkpoints.download_assemblies.get(**wildcards).output[0]
-        )
+        table = checkpoints.download_assemblies.get(**wildcards).output[0]
+
     except AttributeError:
         if FASTA and not ASM_SUMMARY:
             table = os.path.join(dir.out.processing, "seqkit_stats.tsv")
