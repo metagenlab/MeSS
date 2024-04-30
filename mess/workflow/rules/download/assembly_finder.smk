@@ -73,7 +73,7 @@ checkpoint download_assemblies:
     shell:
         """
         assembly_finder \\
-        -i {input} \\
+        -i {input.tsv} \\
         --taxonkit {params.taxonkit} \\
         --threads {threads} \\
         {params.args} \\
