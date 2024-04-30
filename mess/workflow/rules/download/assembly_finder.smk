@@ -41,8 +41,8 @@ if API_KEY:
 
 checkpoint download_assemblies:
     input:
-        dmp=os.path.join(TAXONKIT, "names.dmp"),
         tsv=os.path.join(dir.out.base, "uniq_entries.tsv"),
+        dmp=os.path.join(TAXONKIT, "names.dmp"),
     output:
         asm=os.path.join(dir.out.base, "assembly_finder/assembly_summary.tsv"),
         seq=os.path.join(dir.out.base, "assembly_finder/sequence_report.tsv"),
@@ -84,6 +84,5 @@ checkpoint download_assemblies:
         --annotated {params.annot} \\
         --atypical {params.atyp} \\
         --mag {params.mag} \\
-        -o {params.out} 2> {log} \\
-        --no-use-conda  
+        -o {params.out} 2> {log}
         """
