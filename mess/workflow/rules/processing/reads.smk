@@ -298,10 +298,9 @@ rule tax_profile_to_biobox:
     shell:
         """
         taxonkit \\
-            profile2cami \\
-            -j {threads} \\
-            --data-dir {params.dir} \\
-            -s {wildcards.sample} {input.tsv} > {output}
+        profile2cami \\
+        -j {threads} --data-dir {params.dir} \\
+        -s {wildcards.sample} {input.tsv} > {output}
         """
 
 
@@ -471,7 +470,6 @@ rule cleanup_files:
         list_reads,
         os.path.join(dir.out.base, "replicates.tsv"),
         os.path.join(dir.out.base, "samples.tsv"),
-        os.path.join(dir.out.processing, "split"),
     output:
         temp(os.path.join(dir.out.base, "cleanup.done")),
     resources:
