@@ -1,6 +1,6 @@
 ## Help
 
-![`mess simulate -h`](docs/images/mess-simulate-help.svg)
+![`mess simulate -h`](../images/mess-simulate-help.svg)
 
 ## Example
 

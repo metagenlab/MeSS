@@ -23,4 +23,4 @@ mamba create -n mess mess
 
 ## Usage
 
-![`mess -h`](docs/images/mess-help.svg)
+![`mess -h`](images/mess-help.svg)

@@ -17,13 +17,23 @@ theme:
         name: Switch to light mode
   features:
     - navigation.instant
-    - content.code.copy
     - navigation.sections
-    - navigation.expand
+    - navigation.prune
+    - navigation.indexes
+    - content.code.copy
 
 markdown_extensions:
+  - attr_list
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - admonition
   - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
@@ -31,23 +41,30 @@ markdown_extensions:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences
+
+
 nav:
-  - Home:
-      - Overview: index.md
-      - Motivation: motivation.md
-      - Citation: citation.md
+  - Home: index.md
+  - Motivation: motivation.md
+  - Citation: citation.md
   - Getting started:
       - Install: install.md
-      - Commands:
-          - Download: commands/download.md
-          - Simulate: commands/simulate.md
-          - Run: commands/run.md
-      - Input: input.md
-      - Output: output.md
+      - Step by step guide:
+        - 1) Setup inputs: guide/input.md
+        - 2) Download genomes <small>(optional)</small>: guide/download.md
+        - 3) Community design: guide/community.md
+        - 4) Fasta/reads processing: guide/processing.md
+        - 5) Output: output.md
+  - Commands:
+      - download: commands/download.md
+      - simulate: commands/simulate.md
+      - run: commands/run.md
+      - hmp-template: commands/hmp-template.md
   - Tutorials:
-      - Examples: examples.md
+      - Run the test command: tutorials/test.md
+      - Run using a taxonomic profile: 
+        - Bracken: tutorials/bracken.md
   - Benchmarks:
-      - Benchmarking: benchmarking.md
+      - benchmarks/index.md
+      - Species composition: benchmarks/species-composition.md
+      - Resource usage: benchmarks/resource-usage.md
