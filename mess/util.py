@@ -332,7 +332,7 @@ def download_options(func):
             "--reference",
             type=bool,
             help="Limit to reference and representative genomes",
-            default=False,
+            default=True,
             show_default=True,
         ),
         click.option(
