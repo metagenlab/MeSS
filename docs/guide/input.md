@@ -1,62 +1,26 @@
-# Input types
 
-All mess commands require as input a tsv file or a directory containing tsv files, specified with `--input`.
+All [mess commands](../commands/index.md) take as input one or multiple tables.
 
-## Directory
-
-The sequencing_run directory contains 3 tsv files, one for each metagenomic community.
-
-```sh
-📂sequencing_run
- ┣ 📜sample1.tsv
- ┣ 📜sample2.tsv
- ┗ 📜sample3.tsv
+In this guide we are using [`mess test`](index.md#command) to execute all the workflow steps using a minimal example (shown below)
+``` title="minimal_test.tsv"
+--8<-- "mess/test_data/minimal_test.tsv"
 ```
 
-## TSV
-There are three types of columns in the input table:
 
-* taxon/accession
-* nb
-* abundance (reads, bases, tax_abundance, seq_abundancea and cov_sim)
+The input file contains:
+
+* Taxon/accession and nb columns for genome download 
+* Third column to calculate genome coverage for read simulation.
+* sample column to map genomes to their respective sample
 
 
-The combination of taxon/accession and nb columns, is used by [`mess download`](../commands/download.md) to download a number of taxa or accessions.
 
-The abundance column is used by [`mess simulate`](../commands/simulate.md) to calculate the coverage depth of each genome.
+## Other examples
+### Table
+Instead of coverage depths, you can set bases, reads, taxonomic or sequence abundance in the input table. 
 
-### Download table 
-
-!!! example 
-
-    === "taxon"
-
-        | taxon                  | nb  |
-        | :--------------------- | :-- |
-        | 1280  | 1   |
-        | pseudomonas_aeruginosa | 1   |
-
-    === "accession"
-
-        | accession              |
-        | :--------------------- |
-        | GCF_000418345.1 |
-        | GCF_000233495.1 |
-
-### Simulation table
-
-!!! example 
-    [`mess simulate`](../commands/simulate.md) uses coverage depth as input for read simulators.
-
-    Reads, bases, taxonomic or sequence abundance will be [converted to coverages](community.md).
-
-    === "coverage"
-
-        | taxon                  | nb  | cov_sim |
-        | :--------------------- | :-- | :------ |
-        | 1280  | 1   | 10      |
-        | pseudomonas_aeruginosa | 1   | 10      |
-
+See [coverage calculation](simulate/coverage.md) for more details
+!!! example
     === "bases"
 
         | taxon                  | nb  | bases    |
@@ -84,13 +48,35 @@ The abundance column is used by [`mess simulate`](../commands/simulate.md) to ca
         | :--------------------- | :-- | :----- |
         | 1280  | 1   | 0.32  |
         | pseudomonas_aeruginosa | 1   | 0.68 |
+    
+    === "coverage"
 
-### Local genomes table
+        | taxon                  | nb  | cov_sim |
+        | :--------------------- | :-- | :------ |
+        | 1280  | 1   | 10      |
+        | pseudomonas_aeruginosa | 1   | 10      |
 
+
+### Directory
+
+If you want to run the pipeline on multiple samples you can point to a directory with multiple tables (one for each sample, with the sample name in the file name).
 !!! example 
-    [`mess simulate`](../commands/simulate.md) needs genome path, size and tax_ids in the input table.
+    ```sh
+    📂sequencing_run
+    ┣ 📜sample1.tsv
+    ┣ 📜sample2.tsv
+    ┗ 📜sample3.tsv
+    ```
+Or you can aggregate all sample info in one table
+ 
+!!! example
+    | taxon                 | nb  | cov_sim | sample  |
+    | :-------------------- | :-- | :------ | :------ |
+    | staphylococcus_aureus | 1   | 10     | sample1 |
+    | 1290                  | 1   | 10     | sample2 |
+    | 562                  | 1   | 10     | sample3 |
 
-    | fasta  | path                   | cov_sim | tax_id | total_sequence_length |
-    | :----- | :--------------------- | :------ | :----- | :-------------------- |
-    | fasta1 | /path/to/fasta1.fna.gz | 10      | taxid1      | 6666666          |
-    | fasta2 | /path/to/fasta2.fna.gz | 10      | taxid2      | 5555555          |
+
+
+
+

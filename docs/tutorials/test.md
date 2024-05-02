@@ -53,7 +53,7 @@ This how the output directory should look like (excluding logs and benchmarks)
  ┗ 📜cov.tsv
 ```
 
-### Coverage table
+### Cov.tsv
 
 Check genome size (total_sequence_length), coverage depth (cov_sim) and other stats for both samples in cov.tsv
 
@@ -67,7 +67,7 @@ Check genome size (total_sequence_length), coverage depth (cov_sim) and other st
     | --------------- | --------------------- | ----------------- | ------- | -------- | ------------- | ------- | ------------- |
     | GCF_003812505.1 | 2257431               | 3                 | 752.477 | 225743.1 | 1.0           | 0.1     | 1.0           |
 
-### Reads
+### Fastq
 
 Let's check the fastq content using [`seqkit stats`](https://bioinf.shenwei.me/seqkit/usage/#stats).
 
@@ -85,7 +85,7 @@ fastq/sample2_R2.fq.gz  FASTQ   DNA        752  112,800      150      150      1
 - [x] Both genomes are covered at 0.1x (divide sum_len by genome size)
 
 
-### Alignments
+### BAM
 
 Using the `--bam` flag, sorted and indexed BAM files are generated, which can be quality controlled with [qualimap](http://qualimap.conesalab.org/). Qualimap reports for each sample can be aggregated using [multiQC ](https://multiqc.info/).
 
@@ -123,3 +123,40 @@ multiqc .
 !!! warning
     Only 6% of both genome locations are covered at 1x. This is to be expected as our requested coverage depth is at 0.1x. If we want to cover a larger fraction of the genomes, we need to simulate more reads.
 
+### tax profiles
+
+
+
+=== "sample1"
+    ```sh
+    @SampleID:sample1
+    @Version:0.10.0
+    @Ranks:superkingdom|phylum|class|order|family|genus|species|strain
+    @TaxonomyID:
+    @@TAXID	RANK	TAXPATH	TAXPATHSN	PERCENTAGE
+    2	superkingdom	2	Bacteria	100.000000000000000
+    1239	phylum	2|1239	Bacteria|Bacillota	100.000000000000000
+    91061	class	2|1239|91061	Bacteria|Bacillota|Bacilli	100.000000000000000
+    1385	order	2|1239|91061|1385	Bacteria|Bacillota|Bacilli|Bacillales	100.000000000000000
+    90964	family	2|1239|91061|1385|90964	Bacteria|Bacillota|Bacilli|Bacillales|Staphylococcaceae	100.000000000000000
+    1279	genus	2|1239|91061|1385|90964|1279	Bacteria|Bacillota|Bacilli|Bacillales|Staphylococcaceae|Staphylococcus	100.000000000000000
+    1280	species	2|1239|91061|1385|90964|1279|1280	Bacteria|Bacillota|Bacilli|Bacillales|Staphylococcaceae|Staphylococcus|Staphylococcus aureus	100.000000000000000
+    93061	strain	2|1239|91061|1385|90964|1279|1280|93061	Bacteria|Bacillota|Bacilli|Bacillales|Staphylococcaceae|Staphylococcus|Staphylococcus aureus|Staphylococcus aureus subsp. aureus NCTC 8325	100.000000000000000
+    ```
+
+=== "sample2"
+    ```sh
+    @SampleID:sample2
+    @Version:0.10.0
+    @Ranks:superkingdom|phylum|class|order|family|genus|species|strain
+    @TaxonomyID:
+    @@TAXID	RANK	TAXPATH	TAXPATHSN	PERCENTAGE
+    2	superkingdom	2	Bacteria	100.000000000000000
+    1239	phylum	2|1239	Bacteria|Bacillota	100.000000000000000
+    91061	class	2|1239|91061	Bacteria|Bacillota|Bacilli	100.000000000000000
+    1385	order	2|1239|91061|1385	Bacteria|Bacillota|Bacilli|Bacillales	100.000000000000000
+    90964	family	2|1239|91061|1385|90964	Bacteria|Bacillota|Bacilli|Bacillales|Staphylococcaceae	100.000000000000000
+    1279	genus	2|1239|91061|1385|90964|1279	Bacteria|Bacillota|Bacilli|Bacillales|Staphylococcaceae|Staphylococcus	100.000000000000000
+    1290	species	2|1239|91061|1385|90964|1279|1290	Bacteria|Bacillota|Bacilli|Bacillales|Staphylococcaceae|Staphylococcus|Staphylococcus hominis	100.000000000000000
+    ```
+- [x] Samples have the correct taxonomic profile in biobox format

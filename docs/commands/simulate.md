@@ -2,8 +2,14 @@
 
 ![`mess simulate -h`](../images/mess-simulate-help.svg)
 
-## Example
+## Examples
+### Input
 
-```sh
-mess simulate -i <input.tsv> --asm_summary <summary_table> -o <output_dir>
-```
+!!! example "table with fasta paths"
+    
+
+    | fasta  | path                   | cov_sim | tax_id | total_sequence_length |
+    | :----- | :--------------------- | :------ | :----- | :-------------------- |
+    | fasta1 | /path/to/fasta1.fna.gz | 10      | taxid1      | 6666666          |
+    | fasta2 | /path/to/fasta2.fna.gz | 10      | taxid2      | 5555555          |
+

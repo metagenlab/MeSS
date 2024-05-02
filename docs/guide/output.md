@@ -4,7 +4,7 @@ mess test --bam
 ```
 ## Output
 ### Directory structure
-```sh
+```sh hl_lines="3-7 15-24 28-30"
 📂mess_out
  ┣ 📂assembly_finder
  ┃ ┣ 📂download
