@@ -24,6 +24,7 @@ theme:
 
 markdown_extensions:
   - attr_list
+  - md_in_html
   - def_list
   - pymdownx.tasklist:
       custom_checkbox: true
@@ -34,36 +35,58 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.inlinehilite
   - pymdownx.snippets
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
+  - pymdownx.arithmatex:
+        generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 
 nav:
-  - Home: index.md
+  - index.md
   - Motivation: motivation.md
   - Citation: citation.md
   - Getting started:
+      - getting_started/index.md
       - Install: install.md
-      - Step by step guide:
+      - Step-by-step guide:
+        - guide/index.md
         - 1) Setup inputs: guide/input.md
-        - 2) Download genomes <small>(optional)</small>: guide/download.md
-        - 3) Community design: guide/community.md
-        - 4) Fasta/reads processing: guide/processing.md
-        - 5) Output: output.md
+        - 2) Download genomes: guide/download.md
+        - 3) Simulate reads: 
+          - guide/simulate/index.md
+          - a) Fasta processing: guide/simulate/fa-processing.md
+          - b) Calculate coverage: guide/simulate/coverage.md
+          - c) Reads post-processing: guide/simulate/fq-processing.md 
+        - 4) Output: guide/output.md
   - Commands:
-      - download: commands/download.md
-      - simulate: commands/simulate.md
-      - run: commands/run.md
-      - hmp-template: commands/hmp-template.md
+    - commands/index.md
+    - download: commands/download.md
+    - simulate: commands/simulate.md
+    - run: commands/run.md
+    - hmp-template: commands/hmp-template.md
   - Tutorials:
-      - Run the test command: tutorials/test.md
-      - Run using a taxonomic profile: 
-        - Bracken: tutorials/bracken.md
+    - tutorials/index.md
+    - Run the test command: tutorials/test.md
+    - Taxonomic profiles as input: 
+      - Bracken: tutorials/bracken.md
+    - Sequencing technologies:
+      - Illumina: tutorials/illumina.md
+      - Nanopore: tutorials/nanopore.md
+      - PacBio: tutorials/pacbio.md
   - Benchmarks:
       - benchmarks/index.md
       - Species composition: benchmarks/species-composition.md
