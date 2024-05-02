@@ -15,14 +15,16 @@ conda config --add channels bioconda
 conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
-Install with mamba
+
+Install mess with mamba
 
 ```sh
 mamba create -n mess mess
 ```
 
 ## Git
-Install Mamba as shown before, clone the MeSS repo and install via pip.
+
+Install Mamba as shown before, clone the mess repo and install via pip.
 
 ```sh
 git clone https://github.com/metagenlab/MeSS
@@ -31,7 +33,7 @@ pip install -e MeSS
 
 ## Docker
 
-### ghcr
+### github container registry
 
 ```sh
 docker pull ghcr.io/metagenlab/mess:latest
@@ -40,5 +42,5 @@ docker pull ghcr.io/metagenlab/mess:latest
 ### biocontainers
 
 ```sh
-docker pull quay.io/biocontainers/mess
+docker pull quay.io/biocontainers/mess:0.8.2--pyhdfd78af_0
 ```
