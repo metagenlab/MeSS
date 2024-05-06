@@ -19,17 +19,18 @@ def get_lognormal_dist(df, mu, sigma):
     return df
 
 
-def get_even_dist(df, cols):
+def get_even_dist(table, cols):
     """
     function that calculates even abundances across taxonomy
     """
     abundances = (
-        df[cols]
+        table[cols]
         .value_counts(normalize=True)
         .reset_index()
-        .rename(columns={"seq_abundance": "tax_abundance"}, inplace=True)
+        .rename(columns={"proportion": "tax_abundance"})
     )
-    return df.merge(abundances)
+
+    return table.merge(abundances)
 
 
 """
@@ -99,15 +100,14 @@ elif snakemake.params.dist == "lognormal":
     df["seq_abundance"] = df["bases"] / df["sum_bases"]
 else:
     if "tax_abundance" in entry_df.columns:
-        df["sum_seq_length"] = df.groupby("samplename")[
-            "total_sequence_length"
-        ].transform("sum")
-        df["sum_cov"] = bases / df["sum_seq_length"]
-        df["cov_sim"] = df["sum_cov"] * df["tax_abundance"]
+        df["cov_obtained"] = bases / df["total_sequence_length"] 
+        df["sum_cov_obtained"] = df.groupby("samplename")["cov_obtained"].transform("sum")
+        df["cov_sim"] = df["tax_abundance"] * df["sum_cov_obtained"]
+        df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
         df["bases"] = df["cov_sim"] * df["total_sequence_length"]
         df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
-        df["seq_abundance"] = df["bases"] / df["sum_bases"]
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
+        df["seq_abundance"] = df["bases"] / df["sum_bases"]
 
     if "seq_abundance" in entry_df.columns:
         df["bases"] = df["seq_abundance"] * bases
