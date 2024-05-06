@@ -1,5 +1,4 @@
-Before generating reads, `mess` pre-processes fastas for read simulators.
-## Flowchart
+Before generating reads, `mess` pre-processes fastas for read simulators as shown below:
 
 ``` mermaid
 graph LR

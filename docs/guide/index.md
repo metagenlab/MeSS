@@ -3,7 +3,7 @@ This guide details `mess test` steps and outputs.
 
 ## Command
 ```sh
-mess test --bam -o test_bam_out
+mess test --bam
 ```
 ## Steps description
 ### [1) Setup inputs](input.md)

@@ -17,7 +17,6 @@ The input file contains:
 
 ## Other examples
 ### Table
-Instead of coverage depths, you can set bases, reads, taxonomic or sequence abundance in the input table. 
 
 See [coverage calculation](simulate/coverage.md) for more details
 !!! example
@@ -59,7 +58,7 @@ See [coverage calculation](simulate/coverage.md) for more details
 
 ### Directory
 
-If you want to run the pipeline on multiple samples you can point to a directory with multiple tables (one for each sample, with the sample name in the file name).
+If you want to simulate multiple samples at once, you can point to a directory with multiple tables (one for each sample, with the sample name in the file name).
 !!! example 
     ```sh
     📂sequencing_run
@@ -72,9 +71,9 @@ Or you can aggregate all sample info in one table
 !!! example
     | taxon                 | nb  | cov_sim | sample  |
     | :-------------------- | :-- | :------ | :------ |
-    | staphylococcus_aureus | 1   | 10     | sample1 |
-    | 1290                  | 1   | 10     | sample2 |
-    | 562                  | 1   | 10     | sample3 |
+    | staphylococcus_aureus | 1   | 10      | sample1 |
+    | 1290                  | 1   | 10      | sample2 |
+    | 562                   | 1   | 10      | sample3 |
 
 
 

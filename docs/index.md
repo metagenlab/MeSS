@@ -17,11 +17,11 @@ The Metagenomic Sequence Simulator (MeSS) is a [Snakemake](https://github.com/sn
 
     [:octicons-arrow-right-24: Getting started](getting_started/index.md)
 
--   :material-swap-vertical-variant:{ .lg .middle } __Streamlined metagenome simulation__
+-   :material-swap-vertical-variant:{ .lg .middle } __Streamlined pipeline__
 
     ---
 
-    Easily download genomes and simulate reads with a single command
+    Easily download genomes and simulate reads in a single command
     
     [:octicons-arrow-right-24: Step-by-step guide](guide/index.md)
 

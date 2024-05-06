@@ -15,7 +15,7 @@ The download step outputs:
 * Taxonomy, assembly and sequence summaries in assembly_finder
 
 ```sh hl_lines="3-8 10-11"
-📂test_bam_out
+📂mess_out
  ┣ 📂assembly_finder
  ┃ ┣ 📂download
  ┃ ┃ ┣ 📂GCF_000013425.1
