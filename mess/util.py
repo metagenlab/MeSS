@@ -148,6 +148,7 @@ def sim_options(func):
             help="Simulator error profile",
             type=str,
             default="HS25",
+            show_default=True,
         ),
         click.option(
             "--custom-err",
@@ -212,6 +213,7 @@ def sim_options(func):
             help="PBSIM3 substitution, insertion and deletion ratio",
             type=str,
             default="6:55:39",
+            show_default=True,
         ),
         click.option(
             "--accuracy",
