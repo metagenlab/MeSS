@@ -77,8 +77,8 @@ nav:
           - guide/simulate/index.md
           - a) Fasta processing: guide/simulate/fa-processing.md
           - b) Calculate coverage: guide/simulate/coverage.md
-          - c) Read simulation and post-processing: guide/simulate/reads.md
-        - 4) Output: guide/output.md
+          - c) Read simulation and processing: guide/simulate/reads.md
+        - 4) Examine outputs: guide/output.md
   - Commands:
     - commands/index.md
     - download: commands/download.md

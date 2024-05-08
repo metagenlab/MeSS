@@ -12,7 +12,7 @@ mess test --bam
 
 ### Output
 ```sh hl_lines="3-7 15-24 28-30"
-📂test_out
+📂mess_out
  ┣ 📂assembly_finder
  ┃ ┣ 📂download
  ┃ ┃ ┣ 📂GCF_000418345.1

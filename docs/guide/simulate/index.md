@@ -8,8 +8,7 @@ After fetching genomes in the [download step](../download.md), the pipeline proc
 
 ## [b) Get replicates and calculate coverage](coverage.md)
 
-## [c) Read simulation](reads.md)
+## [c) Read and alignments processing](reads.md)
 
-## [d) Reads post-processing](fq-processing.md)
 
 
