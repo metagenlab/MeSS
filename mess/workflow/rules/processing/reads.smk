@@ -191,7 +191,7 @@ rule merge_contig_bams:
         """
 
 
-rule get_sample_bams:
+rule merge_sample_bams:
     input:
         lambda wildcards: aggregate(wildcards, dir.out.bam, "fasta", "bam"),
     output:
