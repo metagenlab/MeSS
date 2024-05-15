@@ -11,18 +11,16 @@ rule replicates_table:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
-    log:
-        os.path.join(dir.out.logs, "tables", "replicates.tsv"),
     script:
         os.path.join(dir.scripts, "replicates.py")
 
 
-checkpoint calculate_coverage:
+checkpoint calculate_genome_coverages:
     input:
         df=os.path.join(dir.out.base, "replicates.tsv"),
         asm=get_asm_summary,
     output:
-        os.path.join(dir.out.base, "cov.tsv"),
+        os.path.join(dir.out.processing, "coverages.tsv"),
     params:
         fa=FASTA,
         dist=DIST,
