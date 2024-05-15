@@ -87,13 +87,15 @@ nav:
     - hmp-template: commands/hmp-template.md
   - Tutorials:
     - tutorials/index.md
-    - Run the test command: tutorials/test.md
-    - Taxonomic profiles as input: 
-      - Bracken: tutorials/bracken.md
+    - Taxonomic profiles as input:
+      - tutorials/profilers/index.md
+      - Kraken2: tutorials/profilers/kraken2.md
+      - Bracken: tutorials/profilers/bracken.md
     - Sequencing technologies:
-      - Illumina: tutorials/illumina.md
-      - Nanopore: tutorials/nanopore.md
-      - PacBio: tutorials/pacbio.md
+      - tutorials/seqtech/index.md
+      - Illumina: tutorials/seqtech/illumina.md
+      - Nanopore: tutorials/seqtech/nanopore.md
+      - PacBio: tutorials/seqtech/pacbio.md
   - Benchmarks:
       - benchmarks/index.md
       - Species composition: benchmarks/species-composition.md

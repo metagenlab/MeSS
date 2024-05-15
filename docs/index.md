@@ -31,7 +31,7 @@ The Metagenomic Sequence Simulator (MeSS) is a [Snakemake](https://github.com/sn
 
     Simulate sequencing runs for both long and short reads
 
-    [:octicons-arrow-right-24: Tutorials](tutorials/index.md#sequencing-technologies)
+    [:octicons-arrow-right-24: Tutorials](tutorials/seqtech/index.md)
 
 -   :material-speedometer:{ .lg .middle } __Fast and scalable__
 
