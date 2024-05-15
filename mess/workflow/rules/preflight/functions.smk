@@ -59,7 +59,7 @@ fasta_cache = {}
 
 
 def fasta_input(wildcards):
-    table = checkpoints.calculate_coverage.get(**wildcards).output[0]
+    table = checkpoints.calculate_genome_coverages.get(**wildcards).output[0]
     if table not in fasta_cache:
         df = pd.read_csv(table, sep="\t", index_col="fasta")
         fasta_cache[table] = df
@@ -68,7 +68,7 @@ def fasta_input(wildcards):
 
 
 def list_fastas(wildcards):
-    table = checkpoints.calculate_coverage.get(**wildcards).output[0]
+    table = checkpoints.calculate_genome_coverages.get(**wildcards).output[0]
     df = pd.read_csv(table, sep="\t")
     fastas = list(set(df["fasta"]))
     return expand(os.path.join(dir.out.processing, "{fasta}.fasta"), fasta=fastas)
