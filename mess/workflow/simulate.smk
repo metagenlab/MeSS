@@ -102,7 +102,8 @@ else:
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
 TAXONKIT = config.args.taxonkit
-
+ABUNDANCE = config.args.abundance
+RANKS = config.args.ranks
 
 include: os.path.join("rules", "processing", "reads.smk")
 include: os.path.join("rules", "preflight", "targets_simulate.smk")
