@@ -219,7 +219,7 @@ def sim_options(func):
             "--accuracy",
             help="Mean accuracy for long read sequencing",
             type=float,
-            default=0.85,
+            default=0.99,
             show_default=True,
         ),
         click.option(
@@ -274,6 +274,20 @@ def sim_options(func):
             "--bam/--no-bam",
             help="Generate gold standard bam files",
             default=False,
+            show_default=True,
+        ),
+        click.option(
+            "--abundance",
+            help="Choose sequence or taxonomic abundance to include in the taxonomic profile",
+            type=click.Choice(["seq", "tax"]),
+            default="seq",
+            show_default=True,
+        ),
+        click.option(
+            "--ranks",
+            help="Ranks to show in the taxonomic profile",
+            type=str,
+            default="superkingdom,phylum,class,order,family,genus,species,strain",
             show_default=True,
         ),
         click.option(
