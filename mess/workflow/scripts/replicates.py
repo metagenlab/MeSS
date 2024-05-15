@@ -30,5 +30,4 @@ for col in accepted_cols:
         continue
 
 samples_df.reset_index(inplace=True, drop=True)
-samples_df.to_csv(snakemake.log[0], sep="\t", index=None)
 samples_df.to_csv(snakemake.output[0], sep="\t", index=None)
