@@ -48,6 +48,7 @@ REP_SD = config.args.rep_sd
 
 
 # aggregate samples tables and make replicates
+TAXONKIT = config.args.taxonkit
 include: os.path.join("rules", "preflight", "setup.smk")
 
 
@@ -101,7 +102,6 @@ else:
 # reads post-processsing options
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
-TAXONKIT = config.args.taxonkit
 ABUNDANCE = config.args.abundance
 RANKS = config.args.ranks
 
