@@ -4,7 +4,7 @@ Run all steps of the pipeline
 
 ## Help
 
-![`mess run -h`](docs/images/mess-run-help.svg)
+![`mess run -h`](../images/mess-run-help.svg)
 
 ## Example
 

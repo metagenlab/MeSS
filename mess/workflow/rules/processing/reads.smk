@@ -191,7 +191,7 @@ rule merge_contig_bams:
         """
 
 
-rule get_sample_bams:
+rule merge_sample_bams:
     input:
         lambda wildcards: aggregate(wildcards, dir.out.bam, "fasta", "bam"),
     output:
@@ -235,49 +235,6 @@ rule sort_bams:
         """
 
 
-if BAM:
-
-    rule download_taxdump:
-        output:
-            os.path.join(TAXONKIT, "taxdump.tar.gz"),
-        log:
-            os.path.join(dir.out.logs, "curl.log"),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        conda:
-            os.path.join(dir.env, "utils.yml")
-        shell:
-            """
-            curl https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz \\
-            -o {output} 2> {log}
-            """
-
-    rule decompress_taxdump:
-        input:
-            os.path.join(TAXONKIT, "taxdump.tar.gz"),
-        output:
-            os.path.join(TAXONKIT, "names.dmp"),
-            os.path.join(TAXONKIT, "nodes.dmp"),
-            os.path.join(TAXONKIT, "delnodes.dmp"),
-            os.path.join(TAXONKIT, "merged.dmp"),
-        params:
-            dir=TAXONKIT,
-        log:
-            os.path.join(dir.out.logs, "taxdump.log"),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        conda:
-            os.path.join(dir.env, "utils.yml")
-        shell:
-            """
-            tar -xzvf {input} -C {params.dir} &> {log}
-            """
-
-
 rule get_bam_coverage:
     input:
         os.path.join(dir.out.bam, "{sample}.bam"),
@@ -303,22 +260,34 @@ rule get_tax_profile:
         cov=os.path.join(dir.out.bam, "{sample}.txt"),
         tax=get_cov_table,
     output:
-        temp(os.path.join(dir.out.tax, "{sample}.tsv")),
+        abundance=temp(os.path.join(dir.out.tax, "{sample}.tsv")),
+        coverage=os.path.join(dir.out.tax, "{sample}_coverage.tsv"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
+    params:
+        abundance=ABUNDANCE,
+        paired=PAIRED,
     run:
         tax_df = pd.read_csv(input.tax, sep="\t")
         cov_df = pd.read_csv(input.cov, sep="\t")
         cov_df.rename(columns={"#rname": "contig"}, inplace=True)
         merge_df = tax_df.merge(cov_df)
-        df = merge_df.groupby("tax_id")["meandepth"].mean().reset_index()
-        df["tax_abundance"] = df["meandepth"] / df["meandepth"].sum()
-        df[["tax_id", "tax_abundance"]].to_csv(
-            output[0], sep="\t", header=False, index=False
+        merge_df.to_csv(output.coverage, sep="\t", index=None)
+        if params.paired:
+            merge_df["numreads"] = merge_df["numreads"] / 2
+        if params.abundance == "tax":
+            col = "meandepth"
+        if params.abundance == "seq":
+            col = "numreads"
+        df = merge_df.groupby("tax_id")[col].mean().reset_index()
+        df["abundance"] = df[col] / df[col].sum()
+        df[["tax_id", "abundance"]].to_csv(
+            output.abundance, sep="\t", header=False, index=False
         )
+
 
 
 rule tax_profile_to_biobox:
@@ -331,6 +300,7 @@ rule tax_profile_to_biobox:
         os.path.join(dir.out.logs, "taxonkit", "profile2cami", "{sample}.log"),
     params:
         dir=TAXONKIT,
+        ranks=RANKS,
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -341,10 +311,10 @@ rule tax_profile_to_biobox:
     shell:
         """
         taxonkit \\
-            profile2cami \\
-            -j {threads} \\
-            --data-dir {params.dir} \\
-            -s {wildcards.sample} {input.tsv} > {output}
+        profile2cami \\
+        -j {threads} --data-dir {params.dir} \\
+        -r {params.ranks} \\
+        -s {wildcards.sample} {input.tsv} > {output}
         """
 
 
@@ -514,7 +484,6 @@ rule cleanup_files:
         list_reads,
         os.path.join(dir.out.base, "replicates.tsv"),
         os.path.join(dir.out.base, "samples.tsv"),
-        os.path.join(dir.out.processing, "split"),
     output:
         temp(os.path.join(dir.out.base, "cleanup.done")),
     resources:

@@ -148,6 +148,7 @@ def sim_options(func):
             help="Simulator error profile",
             type=str,
             default="HS25",
+            show_default=True,
         ),
         click.option(
             "--custom-err",
@@ -212,12 +213,13 @@ def sim_options(func):
             help="PBSIM3 substitution, insertion and deletion ratio",
             type=str,
             default="6:55:39",
+            show_default=True,
         ),
         click.option(
             "--accuracy",
             help="Mean accuracy for long read sequencing",
             type=float,
-            default=0.85,
+            default=0.99,
             show_default=True,
         ),
         click.option(
@@ -272,6 +274,20 @@ def sim_options(func):
             "--bam/--no-bam",
             help="Generate gold standard bam files",
             default=False,
+            show_default=True,
+        ),
+        click.option(
+            "--abundance",
+            help="Choose sequence or taxonomic abundance to include in the taxonomic profile",
+            type=click.Choice(["seq", "tax"]),
+            default="seq",
+            show_default=True,
+        ),
+        click.option(
+            "--ranks",
+            help="Ranks to show in the taxonomic profile",
+            type=str,
+            default="superkingdom,phylum,class,order,family,genus,species,strain",
             show_default=True,
         ),
         click.option(
@@ -332,7 +348,7 @@ def download_options(func):
             "--reference",
             type=bool,
             help="Limit to reference and representative genomes",
-            default=False,
+            default=True,
             show_default=True,
         ),
         click.option(

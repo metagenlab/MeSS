@@ -26,13 +26,13 @@ click.rich_click.STYLE_COMMANDS_TABLE_COLUMN_WIDTH_RATIO = (1, 2)
 click.rich_click.SHOW_METAVARS_COLUMN = False
 click.rich_click.APPEND_METAVARS_HELP = True
 
-mess_common_options = (
+cmd_common_options = (
     {
         "name": "Common options",
         "options": ["--input", "--output", "--threads", "--taxonkit", "--help"],
     },
 )
-mess_download_options = (
+cmd_dl_options = (
     {
         "name": "Download options",
         "options": [
@@ -52,7 +52,7 @@ mess_download_options = (
         ],
     },
 )
-mess_simulate_options = (
+cmd_sim_options = (
     {
         "name": "Common simulators options",
         "options": [
@@ -97,13 +97,23 @@ mess_simulate_options = (
             "--sigma",
         ],
     },
+    {
+        "name": "Taxonomic profile options",
+        "options": [
+            "--abundance",
+            "--ranks",
+        ],
+    },
 )
-mess_local_sim_options = (
+local_sim_options = (
     {
         "name": "Local genomes options",
         "options": ["--asm-summary", "--fasta"],
     },
 )
+
+cmd_hmp_options = ({"name": "Hmp-template options", "options": ["--site", "--sample"]},)
+
 
 skip_options = (
     {
@@ -129,23 +139,32 @@ snakemake_options = (
 
 mess_run = [
     options
-    for options in mess_common_options
-    + mess_download_options
-    + mess_simulate_options
+    for options in cmd_common_options
+    + cmd_dl_options
+    + cmd_sim_options
     + skip_options
     + snakemake_options
 ]
 
 mess_download = [
-    options
-    for options in mess_common_options + mess_download_options + snakemake_options
+    options for options in cmd_common_options + cmd_dl_options + snakemake_options
 ]
 
 mess_simulate = [
     options
-    for options in mess_common_options
-    + mess_local_sim_options
-    + mess_simulate_options
+    for options in cmd_common_options
+    + local_sim_options
+    + cmd_sim_options
+    + skip_options
+    + snakemake_options
+]
+
+hmp_options = [
+    options
+    for options in cmd_hmp_options
+    + cmd_common_options
+    + cmd_dl_options
+    + cmd_sim_options
     + skip_options
     + snakemake_options
 ]
@@ -161,9 +180,7 @@ click.rich_click.OPTION_GROUPS = {
     "mess run": mess_run,
     "mess download": mess_download,
     "mess simulate": mess_simulate,
-    "mess hmp-template": [
-        {"name": "Hmp-template options", "options": ["--site", "--sample"]}
-    ],
+    "mess hmp-template": hmp_options,
 }
 
 click.rich_click.COMMAND_GROUPS = {
@@ -199,11 +216,11 @@ def cli():
     """
     \b
     ___  ___     _____ _____ 
-    |  \/  |    /  ___/  ___|
-    | .  . | ___\ `--.\ `--. 
-    | |\/| |/ _ \`--. \`--. \\
-    | |  | |  __/\__/ /\__/ /
-    \_|  |_/\___\____/\____/
+    |  \\/  |    /  ___/  ___|
+    | .  . | ___\\ `--.\\ `--. 
+    | |\\/| |/ _ \\`--. \\`--. \\
+    | |  | |  __/\\__/ /\\__/ /
+    \\_|  |_/\\___\\____/\\____/
     \b
     For more options: 
 
@@ -232,37 +249,42 @@ Available targets:
 """
 
 help_download = """
-\b
+\n
 Downloads genomes from taxons/accessions in input table(s)
-\b
+\n
 EXAMPLES:
 mess download -i [input] -o [output]
 """
 
 help_simulate = """
-\b
+\n
 Simulate reads from local fasta
-\b
+\n
 EXAMPLES:
 mess simulate -i [input] --tech [tech] --fasta [fasta-dir] -o [output]
-or 
+\n
+or
+\n 
 mess simulate -i [input] --tech [tech] --asm-summary [asm-summary] -o [output]
 """
 help_test = """
-\b
+\n
 Test command to run mess from assembly download to read simulation
-\b
+\n
 EXAMPLES:
 mess test -o [output]
 """
 help_hmp_templates = """
-\b
+\n
 Command to download and simulate healthy human microbiome templates
-\b
+\n
 EXAMPLES:
-mess hmp_template --site gut -o gut
+\n
+mess hmp-template --site gut -o gut
+\n
 or
-mess hmp_template --site buccal_mucosa --sample SRS013506 -o SRS013506
+\n
+mess hmp-template --site buccal_mucosa --sample SRS013506 -o SRS013506
 """
 
 
@@ -272,7 +294,13 @@ mess hmp_template --site buccal_mucosa --sample SRS013506 -o SRS013506
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option("-i", "--input", help="Input sample sheet(s)", type=str, required=True)
+@click.option(
+    "-i",
+    "--input",
+    help="Path to input table(s)",
+    type=click.Path(exists=True, file_okay=True, dir_okay=True, readable=True),
+    required=True,
+)
 @download_options
 @common_options
 @sim_options
@@ -298,7 +326,13 @@ def run(
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option("-i", "--input", help="Input file/directory", type=str, required=True)
+@click.option(
+    "-i",
+    "--input",
+    help="Path to input table(s)",
+    type=click.Path(exists=True, file_okay=True, dir_okay=True, readable=True),
+    required=True,
+)
 @download_options
 @common_options
 def download(
@@ -322,7 +356,13 @@ def download(
         help_option_names=["-h", "--help"], ignore_unknown_options=True
     ),
 )
-@click.option("-i", "--input", help="Path to sample sheet(s)", type=str, required=True)
+@click.option(
+    "-i",
+    "--input",
+    help="Path to input table(s)",
+    type=click.Path(exists=True, file_okay=True, dir_okay=True, readable=True),
+    required=True,
+)
 @sim_options
 @click.option(
     "--asm-summary",
@@ -340,21 +380,18 @@ def simulate(
 ):
     """Simulate reads from local fastas"""
     if kwargs["tech"] != "illumina":
+        kwargs["mean_len"] = 9000
         if kwargs["tech"] == "pacbio":
             kwargs["ratio"] = "22:45:33"
             kwargs["model"] = "QSHMM-RSII"
+            kwargs["accuracy"] = 0.85
             if kwargs["error"] == "hifi":
                 kwargs["accuracy"] = 0.999
                 kwargs["passes"] = 10
-
         if kwargs["tech"] == "nanopore":
             kwargs["ratio"] = "39:24:36"
-            if kwargs["error"] == "r10.4":
-                kwargs["accuracy"] = 0.99
-                kwargs["model"] = "QSHMM-ONT-HQ"
-            else:
-                kwargs["accuracy"] = 0.95
-                kwargs["model"] = "QSHMM-ONT"
+            kwargs["accuracy"] = 0.99
+            kwargs["model"] = "QSHMM-ONT-HQ"
 
     # Config to add or update in configfile
     merge_config = {"args": kwargs}
@@ -380,21 +417,18 @@ def test(**kwargs):
     # Config to add or update in configfile
     kwargs["input"] = snake_base(os.path.join("test_data", "minimal_test.tsv"))
     if kwargs["tech"] != "illumina":
+        kwargs["mean_len"] = 9000
         if kwargs["tech"] == "pacbio":
             kwargs["ratio"] = "22:45:33"
             kwargs["model"] = "QSHMM-RSII"
+            kwargs["accuracy"] = 0.85
             if kwargs["error"] == "hifi":
                 kwargs["accuracy"] = 0.999
                 kwargs["passes"] = 10
-
         if kwargs["tech"] == "nanopore":
             kwargs["ratio"] = "39:24:36"
-            if kwargs["error"] == "r10.4":
-                kwargs["accuracy"] = 0.99
-                kwargs["model"] = "QSHMM-ONT-HQ"
-            else:
-                kwargs["accuracy"] = 0.95
-                kwargs["model"] = "QSHMM-ONT"
+            kwargs["accuracy"] = 0.99
+            kwargs["model"] = "QSHMM-ONT-HQ"
 
     merge_config = {"args": kwargs}
     run_snakemake(

@@ -2,7 +2,7 @@ Download genomes from taxa or accessions table
 
 ## Help
 
-![`mess download -h`](docs/images/mess-download-help.svg)
+![`mess download -h`](../images/mess-download-help.svg)
 
 ## Example
 

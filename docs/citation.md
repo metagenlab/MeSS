@@ -1,3 +1,3 @@
 # Citation
 
-![`mess citation`](docs/images/mess-citation.svg)
+![`mess citation`](images/mess-citation.svg)

@@ -4,6 +4,9 @@ repo_url: https://github.com/metagenlab/MeSS
 site_author: Farid Chaabane
 theme:
   name: material
+  icon:
+    logo: material/library-outline
+    repo: fontawesome/brands/github
   palette:
     # Palette toggle for light mode
     - scheme: default
@@ -17,37 +20,83 @@ theme:
         name: Switch to light mode
   features:
     - navigation.instant
-    - content.code.copy
     - navigation.sections
-    - navigation.expand
+    - navigation.prune
+    - navigation.indexes
+    - content.code.copy
 
 markdown_extensions:
+  - attr_list
+  - md_in_html
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences
+  - pymdownx.arithmatex:
+        generic: true
+
+extra_javascript:
+  - javascripts/katex.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/auto-render.min.js
+
+extra_css:
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css
+
+
 nav:
-  - Home:
-      - Overview: index.md
-      - Motivation: motivation.md
-      - Citation: citation.md
+  - index.md
+  - Motivation: motivation.md
+  - Citation: citation.md
   - Getting started:
+      - getting_started/index.md
       - Install: install.md
-      - Commands:
-          - Download: commands/download.md
-          - Simulate: commands/simulate.md
-          - Run: commands/run.md
-      - Input: input.md
-      - Output: output.md
+      - Step-by-step guide:
+        - guide/index.md
+        - 1) Setup inputs: guide/input.md
+        - 2) Download genomes: guide/download.md
+        - 3) Simulate reads: 
+          - guide/simulate/index.md
+          - a) Fasta processing: guide/simulate/fa-processing.md
+          - b) Calculate coverage: guide/simulate/coverage.md
+          - c) Read simulation and processing: guide/simulate/reads.md
+        - 4) Examine outputs: guide/output.md
+  - Commands:
+    - commands/index.md
+    - download: commands/download.md
+    - simulate: commands/simulate.md
+    - run: commands/run.md
+    - hmp-template: commands/hmp-template.md
   - Tutorials:
-      - Examples: examples.md
+    - tutorials/index.md
+    - Taxonomic profiles as input:
+      - tutorials/profilers/index.md
+      - Kraken2: tutorials/profilers/kraken2.md
+      - Bracken: tutorials/profilers/bracken.md
+    - Sequencing technologies:
+      - tutorials/seqtech/index.md
+      - Illumina: tutorials/seqtech/illumina.md
+      - Nanopore: tutorials/seqtech/nanopore.md
+      - PacBio: tutorials/seqtech/pacbio.md
   - Benchmarks:
-      - Benchmarking: benchmarking.md
+      - benchmarks/index.md
+      - Species composition: benchmarks/species-composition.md
+      - Resource usage: benchmarks/resource-usage.md
