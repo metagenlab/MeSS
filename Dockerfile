@@ -8,7 +8,8 @@ ENV LANG C.UTF-8
 ENV SHELL /bin/bash
 USER root 
 
-RUN micromamba install -q -y -c bioconda -c conda-forge -n base \
+RUN micromamba config set extract_threads 1 \
+    micromamba install -q -y -c bioconda -c conda-forge -n base \
     mess --only-deps && \
     micromamba install -q -y -c conda-forge -n base mamba && \
     micromamba clean -afy
