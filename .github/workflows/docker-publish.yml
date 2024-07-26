@@ -1,68 +1,57 @@
-name: Docker publish
+name: Publish Docker image
 
 on:
   push:
-    branches: ["main"]
-    tags: ["v*.*.*"]
-  pull_request:
-    branches: ["main"]
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+    branches: [main]
+  release:
+    types: [published]
 
 jobs:
-  build:
+  push_to_registry:
+    if: github.repository == 'metagenlab/MeSS'
+    name: Build + Push Docker image
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-
     steps:
-      - name: Checkout repository
+      - name: Check out the repo
         uses: actions/checkout@v4
 
-      - name: Install cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@v3.5.0
-        with:
-          cosign-release: "v2.2.4"
-
+      # https://github.com/docker/setup-qemu-action
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v2
 
+      # https://github.com/docker/setup-buildx-action
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        id: buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Push dev image
+        uses: docker/build-push-action@v3
+        if: github.event_name == 'push'
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # All available with python:3.X-slim are:
+          # platforms: linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
+          # But 32-bit binaries likely require compilation from source so stick with linux/amd64 and linux/arm64 for now
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/metagenlab/mess:dev
 
-      - name: Build and push Docker image
-        id: build-and-push
-        uses: docker/build-push-action@v5
+      - name: Push release image
+        uses: docker/build-push-action@v3
+        if: github.event_name == 'release'
         with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Sign the published Docker image
-        if: ${{ github.event_name != 'pull_request' }}
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+          # All available with python:3.X-slim are:
+          # platforms: linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
+          # But 32-bit binaries likely require compilation from source so stick with linux/amd64 and linux/arm64 for now
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/metagenlab/mess:${{ github.event.release.tag_name }}
+            ghcr.io/metagenlab/mess:latest
