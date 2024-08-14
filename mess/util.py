@@ -44,7 +44,7 @@ def common_options(func):
         ),
         click.option(
             "--taxonkit",
-            default=snake_base(os.path.join("workflow", "taxonkit")),
+            default=lambda: os.path.join(os.getcwd(), ".taxonkit"),
             help="Define path to taxonkit data-dir",
             type=click.Path(),
             show_default=True,
