@@ -4,6 +4,9 @@ mess.egg-info/
 mess/__pycache__
 build/
 
+tests/
+profiles/
+
 htmlcov/
 .tox/
 .coverage
@@ -17,4 +20,4 @@ tests/__pycache__
 
 .snakemake
 mess/workflow/conda
-mess/workflow/taxonkit
+.taxonkit/
