@@ -15,7 +15,7 @@ def get_lognormal_dist(df, mu, sigma):
     function for simulating lognormal sequence distribution
     """
     df["lognormal"] = np.random.lognormal(mean=mu, sigma=sigma, size=len(df))
-    df["tax_abundance"] = df["lognormal"] / df["lognormal"].sum()
+    df["seq_abundance"] = df["lognormal"] / df["lognormal"].sum()
     return df
 
 
@@ -49,7 +49,7 @@ else:
     p = 1
 
 
-# Get table with assembly genomsizes and their taxonomy
+# Get table with assembly genome sizes and their taxonomy
 
 if snakemake.params.fa:
     entry_df = pd.read_csv(snakemake.input.df, sep="\t")
