@@ -8,8 +8,10 @@ import attrmap as ap
 
 dir = ap.AttrMap()
 
+# Env paths
+dir.conda = os.path.join(workflow.basedir, "envs", "conda")
+
 # Workflow dirs
-dir.env = os.path.join(workflow.basedir, "envs")
 dir.rules = os.path.join(workflow.basedir, "rules")
 dir.scripts = os.path.join(workflow.basedir, "scripts")
 
