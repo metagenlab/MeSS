@@ -1,18 +1,17 @@
-FROM mambaorg/micromamba
+FROM mambaorg/micromamba:alpine
+
 LABEL org.opencontainers.image.source=https://github.com/metagenlab/MeSS
 LABEL org.opencontainers.image.description="Snakemake pipeline for simulating shotgun metagenomic samples"
 LABEL org.opencontainers.image.licenses=MIT
-ADD . /tmp/repo
-WORKDIR /tmp/repo
-ENV LANG C.UTF-8
-ENV SHELL /bin/bash
-USER root 
 
-RUN micromamba config set extract_threads 1 && \
-    micromamba install -q -y -c bioconda -c conda-forge -n base \
-    mess --only-deps && \
-    micromamba install -q -y -c conda-forge -n base mamba && \
+RUN micromamba config prepend channels conda-forge && \
+    micromamba config append channels bioconda && \
+    micromamba config set channel_priority strict && \
+    micromamba config set extract_threads 1 && \
+    micromamba install mess --only-deps -n base && \
     micromamba clean -afy
 
-ENV PATH /opt/conda/bin:${PATH}
-RUN pip install .
+COPY . .
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+RUN python -m pip install . --no-deps --no-build-isolation --no-cache-dir -vvv
+RUN mess test --conda-create-envs-only --conda-cleanup-pkgs
