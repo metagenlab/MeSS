@@ -1,4 +1,4 @@
-FROM ghcr.io/mamba-org/micromamba:alpine3.19 
+FROM mambaorg/micromamba:alpine3.19
 LABEL org.opencontainers.image.source=https://github.com/metagenlab/MeSS
 LABEL org.opencontainers.image.description="Snakemake pipeline for simulating shotgun metagenomic samples"
 LABEL org.opencontainers.image.licenses=MIT
