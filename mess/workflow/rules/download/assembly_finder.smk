@@ -71,7 +71,7 @@ checkpoint download_assemblies:
         time=config.resources.med.time,
     threads: config.resources.norm.cpu
     conda:
-        os.path.join(dir.env, "assembly_finder.yml")
+        os.path.join(dir.conda, "assembly_finder.yml")
     shell:
         """
         assembly_finder \\

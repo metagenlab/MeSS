@@ -57,7 +57,7 @@ rule art_illumina:
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.norm.time,
     conda:
-        os.path.join(dir.env, "art.yml")
+        os.path.join(dir.conda, "art.yml")
     shell:
         """
         art_illumina -i {input.fa} \\
