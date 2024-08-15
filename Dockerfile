@@ -14,5 +14,6 @@ RUN micromamba config prepend channels conda-forge && \
 COPY . /pkg
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 RUN python -m pip install /pkg --no-deps --no-build-isolation --no-cache-dir -vvv
+ENV PATH=/opt/conda/bin:$PATH
 
 
