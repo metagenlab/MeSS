@@ -21,3 +21,4 @@ tests/__pycache__
 .snakemake
 mess/workflow/conda
 .taxonkit/
+*.sif
