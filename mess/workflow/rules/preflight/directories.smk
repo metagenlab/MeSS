@@ -5,12 +5,15 @@ A lot inspired from hybracter and hecatomb
 """
 
 import attrmap as ap
+import yaml
 
 dir = ap.AttrMap()
 
 # Env paths
 dir.conda = os.path.join(workflow.basedir, "envs", "conda")
-
+containers = ap.AttrMap(
+    yaml.safe_load(open(os.path.join(workflow.basedir, "envs", "containers.yml"), "r"))
+)
 # Workflow dirs
 dir.rules = os.path.join(workflow.basedir, "rules")
 dir.scripts = os.path.join(workflow.basedir, "scripts")
