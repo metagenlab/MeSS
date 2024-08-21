@@ -274,44 +274,43 @@ rule get_tax_profile:
         cov=os.path.join(dir.out.bam, "{sample}.txt"),
         tax=get_cov_table,
     output:
-        abundance=temp(os.path.join(dir.out.tax, "{sample}.tsv")),
-        coverage=os.path.join(dir.out.tax, "{sample}_coverage.tsv"),
+        seq_abundance=temp(os.path.join(dir.out.tax, "{sample}_seq.tsv")),
+        tax_abundance=temp(os.path.join(dir.out.tax, "{sample}_tax.tsv")),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     params:
-        abundance=ABUNDANCE,
         paired=PAIRED,
     run:
         tax_df = pd.read_csv(input.tax, sep="\t")
         cov_df = pd.read_csv(input.cov, sep="\t")
         cov_df.rename(columns={"#rname": "contig"}, inplace=True)
         merge_df = tax_df.merge(cov_df)
-        merge_df.to_csv(output.coverage, sep="\t", index=None)
-        if params.paired:
-            merge_df["numreads"] = merge_df["numreads"] / 2
-        if params.abundance == "tax":
-            col = "meandepth"
-        if params.abundance == "seq":
-            col = "numreads"
-        df = merge_df.groupby("tax_id")[col].mean().reset_index()
-        df["abundance"] = df[col] / df[col].sum()
-        df[["tax_id", "abundance"]].to_csv(
-            output.abundance, sep="\t", header=False, index=False
-        )
+        for col in ["numreads", "meandepth"]:
+            if col == "numreads":
+                out = output.seq_abundance
+            elif col == "meandepth":
+                out = output.tax_abundance
+            df = merge_df.groupby("tax_id")[col].mean().reset_index()
+            df["abundance"] = df[col] / df[col].sum()
+            df[["tax_id", "abundance"]].to_csv(
+                out, sep="\t", header=False, index=False
+            )
 
 
 
 rule tax_profile_to_biobox:
     input:
-        tsv=os.path.join(dir.out.tax, "{sample}.tsv"),
+        tsv=os.path.join(dir.out.tax, "{sample}_{abundance}.tsv"),
         dmp=os.path.join(TAXONKIT, "names.dmp"),
     output:
-        os.path.join(dir.out.tax, "{sample}_profile.txt"),
+        os.path.join(dir.out.tax, "{sample}_{abundance}.txt"),
     log:
-        os.path.join(dir.out.logs, "taxonkit", "profile2cami", "{sample}.log"),
+        os.path.join(
+            dir.out.logs, "taxonkit", "profile2cami", "{sample}_{abundance}.log"
+        ),
     params:
         dir=TAXONKIT,
         ranks=RANKS,

@@ -26,7 +26,11 @@ def list_reads(wildcards):
             sample=SAMPLES,
             bam=["bam", "bam.bai"],
         )
-        tax = expand(os.path.join(dir.out.tax, "{sample}_profile.txt"), sample=SAMPLES)
+        tax = expand(
+            os.path.join(dir.out.tax, "{sample}_{abundance}.txt"),
+            sample=SAMPLES,
+            abundance=["seq", "tax"],
+        )
         reads = reads + bams + tax
 
     return reads
