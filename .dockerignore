@@ -19,6 +19,5 @@ tests/__pycache__
 .pytest_cache
 
 .snakemake
-mess/workflow/conda
 .taxonkit/
 *.sif
