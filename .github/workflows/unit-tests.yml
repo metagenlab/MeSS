@@ -20,25 +20,20 @@ permissions:
   contents: read
 
 jobs:
-  tests:
-    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }}"
-    runs-on: ${{ matrix.os }}
-
+  linux:
+    runs-on: "ubuntu-latest"
     defaults:
       run:
         shell: bash -el {0}
-
     strategy:
-      fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
         python-version: ["3.12"]
-
+      fail-fast: false
+    name: Linux Python ${{ matrix.python-version }}
     steps:
-      - uses: "actions/checkout@v4"
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
@@ -51,8 +46,41 @@ jobs:
           activate-environment: mess
           python-version: ${{ matrix.python-version }}
           auto-activate-base: false
+      - name: "Test and generate coverage report for Linux python ${{ matrix.python-version }}"
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest coverage
+          python -m pip install .
+          coverage run -m pytest
 
-      - name: "Test and generate coverage report on ${{ matrix.os }} for Python ${{ matrix.python-version }}"
+  osx:
+    runs-on: "macos-latest"
+    defaults:
+      run:
+        shell: bash -el {0}
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+        architecture: ["x64"]
+      fail-fast: false
+    name: OSX Python ${{ matrix.python-version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          miniforge-version: "latest"
+          miniforge-variant: Mambaforge
+          use-mamba: true
+          mamba-version: "*"
+          channels: conda-forge,bioconda,defaults
+          channel-priority: strict
+          activate-environment: mess
+          python-version: ${{ matrix.python-version }}
+          auto-activate-base: false
+      - name: "Test and generate coverage report for OSX python ${{ matrix.python-version }}"
         run: |
           python -m pip install --upgrade pip
           python -m pip install pytest coverage
