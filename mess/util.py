@@ -418,7 +418,7 @@ def sim_options(func):
             "--seed",
             help="Seed for pseudo random number generator",
             type=int,
-            default=42,
+            default=1,
             show_default=True,
         ),
     ]
