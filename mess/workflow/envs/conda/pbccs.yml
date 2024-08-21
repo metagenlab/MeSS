@@ -4,4 +4,4 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - pbccs >=6.4.0
+  - pbccs =6.4.0

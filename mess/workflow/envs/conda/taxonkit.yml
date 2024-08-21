@@ -4,5 +4,4 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - taxonkit >=0.16.0
-  - csvtk >=0.30.0
+  - taxonkit =0.17.0

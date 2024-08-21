@@ -4,4 +4,4 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - pbsim3 >=3.0.1
+  - pbsim3 =3.0.4

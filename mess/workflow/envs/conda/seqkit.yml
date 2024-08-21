@@ -4,4 +4,4 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - seqkit >=2.6.0
+  - seqkit =2.8.2
