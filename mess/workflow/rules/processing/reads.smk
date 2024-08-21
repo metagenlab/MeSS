@@ -43,6 +43,8 @@ if PASSES > 1:
         threads: config.resources.norm.cpu
         conda:
             os.path.join(dir.conda, "bioconvert.yml")
+        container:
+            containers.bioconvert
         shell:
             """
             samtools view -@ {threads} -bS {input} | \
@@ -83,6 +85,8 @@ if PASSES > 1:
         threads: config.resources.norm.cpu
         conda:
             os.path.join(dir.conda, "pbccs.yml")
+        container:
+            containers.pbccs
         shell:
             """
             MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 \\
@@ -106,8 +110,6 @@ if BAM:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
-        conda:
-            os.path.join(dir.conda, "utils.yml")
         shell:
             """
             sed 's/ref/{params.seqname}/g' {input.maf} > {output}
@@ -141,6 +143,8 @@ if BAM:
         threads: config.resources.sml.cpu
         conda:
             os.path.join(dir.conda, "bioconvert.yml")
+        container:
+            containers.bioconvert
         shell:
             """
             bioconvert {input} {output} 2> {log}
@@ -163,6 +167,8 @@ rule convert_sam_to_bam:
     threads: config.resources.sml.cpu
     conda:
         os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         bioconvert {input} {output} -t {threads} 2> {log}
@@ -185,6 +191,8 @@ rule merge_contig_bams:
     threads: config.resources.sml.cpu
     conda:
         os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         samtools merge -@ {threads} -o {output} {input} 2> {log}
@@ -207,6 +215,8 @@ rule merge_sample_bams:
     threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         samtools merge -@ {threads} -o {output} {input} 2> {log}
@@ -229,6 +239,8 @@ rule sort_bams:
     threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         samtools sort -@ {threads} {input} -o {output}  2> {log}
@@ -249,6 +261,8 @@ rule get_bam_coverage:
     threads: config.resources.sml.cpu
     conda:
         os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         samtools coverage {input} > {output}
@@ -308,6 +322,8 @@ rule tax_profile_to_biobox:
     threads: config.resources.sml.cpu
     conda:
         os.path.join(dir.conda, "taxonkit.yml")
+    container:
+        containers.taxonkit
     shell:
         """
         taxonkit \\
@@ -332,6 +348,8 @@ rule index_bams:
     threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         samtools index -@ {threads} {input}
@@ -349,7 +367,9 @@ rule compress_contig_fastqs:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     conda:
-        os.path.join(dir.conda, "utils.yml")
+        os.path.join(dir.conda, "pigz.yml")
+    container:
+        containers.pigz
     shell:
         """
         pigz -p {threads} {input}
@@ -432,6 +452,8 @@ if not SKIP_SHUFFLE:
         threads: config.resources.norm.cpu
         conda:
             os.path.join(dir.conda, "seqkit.yml")
+        container:
+            containers.seqkit
         shell:
             """
             seqkit \\
@@ -471,6 +493,8 @@ if not SKIP_SHUFFLE:
             time=config.resources.norm.time,
         conda:
             os.path.join(dir.conda, "seqkit.yml")
+        container:
+            containers.bioconvert
         shell:
             """
             seqkit seq {input} | seqkit replace \\
@@ -493,8 +517,6 @@ rule cleanup_files:
     params:
         proc=dir.out.processing,
         base=dir.out.base,
-    conda:
-        os.path.join(dir.conda, "utils.yml")
     shell:
         """
         rm -rf {params[0]}

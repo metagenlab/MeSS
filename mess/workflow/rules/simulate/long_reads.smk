@@ -38,6 +38,8 @@ rule pbsim3:
         time=config.resources.norm.time,
     conda:
         os.path.join(dir.conda, "pbsim3.yml")
+    container:
+        containers.pbsim3
     shell:
         """
         pbsim --strategy wgs --method qshmm \\

@@ -19,7 +19,9 @@ if not os.path.exists(os.path.join(TAXONKIT, "names.dmp")):
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
         conda:
-            os.path.join(dir.conda, "utils.yml")
+            os.path.join(dir.conda, "curl.yml")
+        container:
+            containers.curl
         shell:
             """
             curl https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz \\
@@ -42,8 +44,6 @@ if not os.path.exists(os.path.join(TAXONKIT, "names.dmp")):
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
-        conda:
-            os.path.join(dir.conda, "utils.yml")
         shell:
             """
             tar -xzvf {input} -C {params.dir} &> {log}

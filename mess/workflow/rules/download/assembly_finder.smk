@@ -72,13 +72,14 @@ checkpoint download_assemblies:
     threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.conda, "assembly_finder.yml")
+    container:
+        containers.assembly_finder
     shell:
         """
-        assembly_finder \\
-        --no-use-conda \\
-        -i {input.tsv} \\
+        assembly_finder -i {input.tsv} \\
         --taxonkit {params.taxonkit} \\
         --threads {threads} \\
         {params.args} \\
+        --no-use-conda \\
         -o {params.out} 2> {log}
         """

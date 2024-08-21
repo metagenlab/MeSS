@@ -58,6 +58,8 @@ rule art_illumina:
         time=config.resources.norm.time,
     conda:
         os.path.join(dir.conda, "art.yml")
+    container:
+        containers.art
     shell:
         """
         art_illumina -i {input.fa} \\
