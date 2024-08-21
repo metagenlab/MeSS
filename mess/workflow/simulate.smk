@@ -105,7 +105,6 @@ else:
 # reads post-processsing options
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
-ABUNDANCE = config.args.abundance
 RANKS = config.args.ranks
 
 

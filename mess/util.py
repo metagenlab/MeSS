@@ -401,13 +401,6 @@ def sim_options(func):
             show_default=True,
         ),
         click.option(
-            "--abundance",
-            help="Choose sequence or taxonomic abundance to include in the taxonomic profile",
-            type=click.Choice(["seq", "tax"]),
-            default="seq",
-            show_default=True,
-        ),
-        click.option(
             "--ranks",
             help="Ranks to show in the taxonomic profile",
             type=str,
