@@ -12,6 +12,8 @@ from snaketool_utils.cli_utils import (
     msg_box,
 )
 
+workflow_basedir = os.path.join(os.path.dirname(os.path.realpath(__file__)))
+
 
 def snake_base(rel_path):
     """Get the filepath to a Snaketool system file (relative to __main__.py)"""
@@ -114,7 +116,10 @@ def run_snakemake(
             if prefix:
                 snake_command += ["--conda-prefix", prefix]
         if sdm == "apptainer":
-            snake_command += ["--sdm apptainer"]
+
+            snake_command += [
+                f"--sdm apptainer --apptainer-args '-B {workflow_basedir}:{workflow_basedir}'"
+            ]
             if prefix:
                 snake_command += ["--apptainer-prefix", prefix]
     # add snakemake default args
