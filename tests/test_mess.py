@@ -12,10 +12,15 @@ def tmp_dir(tmpdir_factory):
 
 test_data_path = Path("mess/test_data")
 outdir = Path("test_out")
+cache = Path(".snakemake")
 threads = 2
 
 
 def remove_directory(dir_path):
+    if os.path.exists(dir_path):
+        shutil.rmtree(dir_path)
+    
+def remove_cache(dir_path):
     if os.path.exists(dir_path):
         shutil.rmtree(dir_path)
 
@@ -50,13 +55,14 @@ def test_mess_cli():
 
 def test_run():
     """run mess test"""
-    cmd = f"mess test --threads {threads} --output {outdir}"
+    cmd = f"mess test --sdm apptainer --threads {threads} --output {outdir}"
     exec_command(cmd)
     remove_directory(outdir)
 
 
 cmd = (
-    f"mess simulate",
+    "mess simulate",
+    "--sdm apptainer",
     f"--threads {threads}",
     f"--input {test_data_path}/simulate_test.tsv",
     f"--fasta {test_data_path}/fastas",
@@ -80,3 +86,4 @@ def test_simulate_pacbio():
     """mess simulate pacbio reads"""
     exec_command(" ".join(cmd) + " --tech pacbio --bam")
     remove_directory(outdir)
+    remove_cache(cache)
