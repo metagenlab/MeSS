@@ -1,6 +1,7 @@
 """
 Snakefile for downloading genomes and simulating reads
 """
+
 import attrmap as ap
 import glob
 import os
@@ -24,7 +25,7 @@ onerror:
 
 
 # config file
-configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
+configfile: os.path.join(workflow.basedir, "config", "config.yaml")
 
 
 config = ap.AttrMap(config)
@@ -90,6 +91,8 @@ MEAN_LEN = config.args.mean_len
 
 # aggregate samples tables and make replicates
 TAXONKIT = config.args.taxonkit
+
+
 include: os.path.join("rules", "preflight", "setup.smk")
 # assembly_finder
 include: os.path.join("rules", "download", "assembly_finder.smk")
@@ -124,8 +127,8 @@ else:
 # reads post-processsing options
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
-ABUNDANCE = config.args.abundance
 RANKS = config.args.ranks
+
 
 include: os.path.join("rules", "processing", "reads.smk")
 # targets

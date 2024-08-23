@@ -1,7 +1,7 @@
-name: pbccs
+name: seqkit
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - pbccs >=6.4.0
+  - seqkit =2.8.2

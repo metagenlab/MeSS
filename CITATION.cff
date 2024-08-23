@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+title: MeSS
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Farid
+    family-names: Chaabane
+    email: farid.chaabane@chuv.ch
+    orcid: 'https://orcid.org/0009-0007-9322-1281'
+    affiliation: University Hospital of Lausanne
+  - given-names: Trestan
+    family-names: Pillonel
+    email: trestan.pillonel@chuv.ch
+    orcid: 'https://orcid.org/0000-0002-5725-7929'
+    affiliation: University Hospital of Lausanne
+  - orcid: 'https://orcid.org/0000-0003-0550-8981'
+    given-names: Claire
+    family-names: Bertelli
+    email: claire.bertelli@chuv.ch
+    affiliation: University Hospital of Lausanne
+repository-code: 'https://github.com/metagenlab/MeSS'
+url: 'https://metagenlab.github.io/MeSS/'
+abstract: >-
+  Snakemake pipeline for simulating shotgun metagenomic
+  samples 
+license: MIT
+version: 0.9.0

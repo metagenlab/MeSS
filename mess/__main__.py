@@ -8,13 +8,10 @@ https://github.com/beardymcjohnface/Snaketool/wiki/Customising-your-Snaketool
 import os
 import rich_click as click
 
-
-from snaketool_utils.cli_utils import (
-    run_snakemake,
-    copy_config,
-)
 from .util import (
+    copy_config,
     snake_base,
+    run_snakemake,
     get_version,
     print_citation,
     common_options,
@@ -130,8 +127,8 @@ snakemake_options = (
         "options": [
             "--configfile",
             "--profile",
-            "--use-conda",
-            "--conda-prefix",
+            "--sdm",
+            "--prefix",
             "--snake-default",
         ],
     },
@@ -239,13 +236,9 @@ https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles
 RUN EXAMPLES:
 Required:           mess run --input [file]
 Specify threads:    mess run ... --threads [threads]
-Disable conda:      mess run ... --no-use-conda 
+Use conda:          mess run ... --sdm conda
 Change defaults:    mess run ... --snake-default="-k --nolock"
 Add Snakemake args: mess run ... --dry-run --keep-going --touch
-Specify targets:    mess run ... all print_targets
-Available targets:
-    all             Run everything (default)
-    print_targets   List available targets
 """
 
 help_download = """

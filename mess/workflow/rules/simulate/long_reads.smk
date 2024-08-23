@@ -37,7 +37,9 @@ rule pbsim3:
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.norm.time,
     conda:
-        os.path.join(dir.env, "pbsim3.yml")
+        os.path.join(dir.conda, "pbsim3.yml")
+    container:
+        containers.pbsim3
     shell:
         """
         pbsim --strategy wgs --method qshmm \\

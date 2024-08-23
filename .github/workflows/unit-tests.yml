@@ -4,14 +4,14 @@ on:
   push:
     branches: ["main"]
     paths:
-      - ".github/workflows/unit-tests.yaml"
+      - ".github/workflows/unit-tests.yml"
       - "tests/**"
       - "mess/**"
       - "setup.py"
   pull_request:
     branches: ["main"]
     paths:
-      - ".github/workflows/unit-tests.yaml"
+      - ".github/workflows/unit-tests.yml"
       - "tests/**"
       - "mess/**"
       - "setup.py"
@@ -35,11 +35,12 @@ jobs:
         python-version: ["3.12"]
 
     steps:
-      - uses: "actions/checkout@v3"
+      - uses: "actions/checkout@v4"
         with:
           fetch-depth: 0
 
-      - uses: conda-incubator/setup-miniconda@v3
+      - name: Setup conda env
+        uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           miniforge-version: "latest"

@@ -1,7 +1,7 @@
-name: seqkit
+name: art
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - seqkit >=2.6.0
+  - art =2016.06.05

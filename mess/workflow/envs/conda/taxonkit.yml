@@ -1,7 +1,7 @@
-name: art
+name: taxonkit
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - art >=2016.06.05
+  - taxonkit =0.17.0

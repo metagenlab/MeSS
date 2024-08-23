@@ -56,7 +56,7 @@ def test_run():
 
 
 cmd = (
-    f"mess simulate",
+    "mess simulate",
     f"--threads {threads}",
     f"--input {test_data_path}/simulate_test.tsv",
     f"--fasta {test_data_path}/fastas",

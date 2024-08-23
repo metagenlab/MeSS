@@ -1,6 +1,7 @@
 """
 Snakefile for simulating reads
 """
+
 import attrmap as ap
 
 
@@ -22,7 +23,7 @@ onerror:
 
 
 # config file
-configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
+configfile: os.path.join(workflow.basedir, "config", "config.yaml")
 
 
 config = ap.AttrMap(config)
@@ -49,6 +50,8 @@ REP_SD = config.args.rep_sd
 
 # aggregate samples tables and make replicates
 TAXONKIT = config.args.taxonkit
+
+
 include: os.path.join("rules", "preflight", "setup.smk")
 
 
@@ -102,8 +105,8 @@ else:
 # reads post-processsing options
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
-ABUNDANCE = config.args.abundance
 RANKS = config.args.ranks
+
 
 include: os.path.join("rules", "processing", "reads.smk")
 include: os.path.join("rules", "preflight", "targets_simulate.smk")

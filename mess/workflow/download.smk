@@ -1,6 +1,7 @@
 """
 Snakefile for downloading assemblies
 """
+
 import attrmap as ap
 import os
 import glob
@@ -24,7 +25,7 @@ onerror:
 
 
 # config file
-configfile: os.path.join(workflow.basedir, "../", "config", "config.yaml")
+configfile: os.path.join(workflow.basedir, "config", "config.yaml")
 
 
 config = ap.AttrMap(config)

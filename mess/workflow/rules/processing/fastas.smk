@@ -8,7 +8,9 @@ rule rename_fastas:
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
     conda:
-        os.path.join(dir.env, "seqkit.yml")
+        os.path.join(dir.conda, "seqkit.yml")
+    container:
+        containers.seqkit
     shell:
         """
         seqkit seq -i {input} > {output}
@@ -32,7 +34,9 @@ if FASTA and not ASM_SUMMARY:
             time=config.resources.sml.time,
         threads: config.resources.norm.cpu
         conda:
-            os.path.join(dir.env, "seqkit.yml")
+            os.path.join(dir.conda, "seqkit.yml")
+        container:
+            containers.seqkit
         shell:
             """
             seqkit stats -T -j {threads} {params.path} > {output} 2> {log}

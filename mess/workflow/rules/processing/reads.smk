@@ -42,7 +42,9 @@ if PASSES > 1:
             time=config.resources.norm.time,
         threads: config.resources.norm.cpu
         conda:
-            os.path.join(dir.env, "bioconvert.yml")
+            os.path.join(dir.conda, "bioconvert.yml")
+        container:
+            containers.bioconvert
         shell:
             """
             samtools view -@ {threads} -bS {input} | \
@@ -82,7 +84,9 @@ if PASSES > 1:
             time=config.resources.norm.time,
         threads: config.resources.norm.cpu
         conda:
-            os.path.join(dir.env, "pbccs.yml")
+            os.path.join(dir.conda, "pbccs.yml")
+        container:
+            containers.pbccs
         shell:
             """
             MIMALLOC_PAGE_RESET=0 MIMALLOC_LARGE_OS_PAGES=1 \\
@@ -106,8 +110,6 @@ if BAM:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
-        conda:
-            os.path.join(dir.env, "utils.yml")
         shell:
             """
             sed 's/ref/{params.seqname}/g' {input.maf} > {output}
@@ -140,7 +142,9 @@ if BAM:
             time=config.resources.sml.time,
         threads: config.resources.sml.cpu
         conda:
-            os.path.join(dir.env, "bioconvert.yml")
+            os.path.join(dir.conda, "bioconvert.yml")
+        container:
+            containers.bioconvert
         shell:
             """
             bioconvert {input} {output} 2> {log}
@@ -162,7 +166,9 @@ rule convert_sam_to_bam:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     conda:
-        os.path.join(dir.env, "bioconvert.yml")
+        os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         bioconvert {input} {output} -t {threads} 2> {log}
@@ -184,7 +190,9 @@ rule merge_contig_bams:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     conda:
-        os.path.join(dir.env, "bioconvert.yml")
+        os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         samtools merge -@ {threads} -o {output} {input} 2> {log}
@@ -206,7 +214,9 @@ rule merge_sample_bams:
         time=config.resources.sml.time,
     threads: config.resources.norm.cpu
     conda:
-        os.path.join(dir.env, "bioconvert.yml")
+        os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         samtools merge -@ {threads} -o {output} {input} 2> {log}
@@ -228,7 +238,9 @@ rule sort_bams:
         time=config.resources.sml.time,
     threads: config.resources.norm.cpu
     conda:
-        os.path.join(dir.env, "bioconvert.yml")
+        os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         samtools sort -@ {threads} {input} -o {output}  2> {log}
@@ -248,7 +260,9 @@ rule get_bam_coverage:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     conda:
-        os.path.join(dir.env, "bioconvert.yml")
+        os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         samtools coverage {input} > {output}
@@ -260,44 +274,43 @@ rule get_tax_profile:
         cov=os.path.join(dir.out.bam, "{sample}.txt"),
         tax=get_cov_table,
     output:
-        abundance=temp(os.path.join(dir.out.tax, "{sample}.tsv")),
-        coverage=os.path.join(dir.out.tax, "{sample}_coverage.tsv"),
+        seq_abundance=temp(os.path.join(dir.out.tax, "{sample}_seq.tsv")),
+        tax_abundance=temp(os.path.join(dir.out.tax, "{sample}_tax.tsv")),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     params:
-        abundance=ABUNDANCE,
         paired=PAIRED,
     run:
         tax_df = pd.read_csv(input.tax, sep="\t")
         cov_df = pd.read_csv(input.cov, sep="\t")
         cov_df.rename(columns={"#rname": "contig"}, inplace=True)
         merge_df = tax_df.merge(cov_df)
-        merge_df.to_csv(output.coverage, sep="\t", index=None)
-        if params.paired:
-            merge_df["numreads"] = merge_df["numreads"] / 2
-        if params.abundance == "tax":
-            col = "meandepth"
-        if params.abundance == "seq":
-            col = "numreads"
-        df = merge_df.groupby("tax_id")[col].mean().reset_index()
-        df["abundance"] = df[col] / df[col].sum()
-        df[["tax_id", "abundance"]].to_csv(
-            output.abundance, sep="\t", header=False, index=False
-        )
+        for col in ["numreads", "meandepth"]:
+            if col == "numreads":
+                out = output.seq_abundance
+            elif col == "meandepth":
+                out = output.tax_abundance
+            df = merge_df.groupby("tax_id")[col].mean().reset_index()
+            df["abundance"] = df[col] / df[col].sum()
+            df[["tax_id", "abundance"]].to_csv(
+                out, sep="\t", header=False, index=False
+            )
 
 
 
 rule tax_profile_to_biobox:
     input:
-        tsv=os.path.join(dir.out.tax, "{sample}.tsv"),
+        tsv=os.path.join(dir.out.tax, "{sample}_{abundance}.tsv"),
         dmp=os.path.join(TAXONKIT, "names.dmp"),
     output:
-        os.path.join(dir.out.tax, "{sample}_profile.txt"),
+        os.path.join(dir.out.tax, "{sample}_{abundance}.txt"),
     log:
-        os.path.join(dir.out.logs, "taxonkit", "profile2cami", "{sample}.log"),
+        os.path.join(
+            dir.out.logs, "taxonkit", "profile2cami", "{sample}_{abundance}.log"
+        ),
     params:
         dir=TAXONKIT,
         ranks=RANKS,
@@ -307,7 +320,9 @@ rule tax_profile_to_biobox:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     conda:
-        os.path.join(dir.env, "taxonkit.yml")
+        os.path.join(dir.conda, "taxonkit.yml")
+    container:
+        containers.taxonkit
     shell:
         """
         taxonkit \\
@@ -331,7 +346,9 @@ rule index_bams:
         time=config.resources.norm.time,
     threads: config.resources.norm.cpu
     conda:
-        os.path.join(dir.env, "bioconvert.yml")
+        os.path.join(dir.conda, "bioconvert.yml")
+    container:
+        containers.bioconvert
     shell:
         """
         samtools index -@ {threads} {input}
@@ -349,7 +366,9 @@ rule compress_contig_fastqs:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     conda:
-        os.path.join(dir.env, "utils.yml")
+        os.path.join(dir.conda, "pigz.yml")
+    container:
+        containers.pigz
     shell:
         """
         pigz -p {threads} {input}
@@ -416,10 +435,10 @@ if not SKIP_SHUFFLE:
         params:
             lambda wildcards: SHUFFLE[wildcards.sample],
         benchmark:
-            os.path.join(
-                dir.out.bench, "seqkit", "shuffle", "{sample}_R{p}.txt"
-            ) if PAIRED else os.path.join(
-                dir.out.bench, "seqkit", "shuffle", "{sample}.txt"
+            (
+                os.path.join(dir.out.bench, "seqkit", "shuffle", "{sample}_R{p}.txt")
+                if PAIRED
+                else os.path.join(dir.out.bench, "seqkit", "shuffle", "{sample}.txt")
             )
         log:
             os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}_R{p}.log")
@@ -431,7 +450,9 @@ if not SKIP_SHUFFLE:
             time=config.resources.sml.time,
         threads: config.resources.norm.cpu
         conda:
-            os.path.join(dir.env, "seqkit.yml")
+            os.path.join(dir.conda, "seqkit.yml")
+        container:
+            containers.seqkit
         shell:
             """
             seqkit \\
@@ -451,10 +472,10 @@ if not SKIP_SHUFFLE:
             if PAIRED
             else os.path.join(dir.out.fastq, "{sample}.fq.gz"),
         benchmark:
-            os.path.join(
-                dir.out.bench, "seqkit", "anonymize", "{sample}_R{p}.txt"
-            ) if PAIRED else os.path.join(
-                dir.out.bench, "seqkit", "anonymize", "{sample}.txt"
+            (
+                os.path.join(dir.out.bench, "seqkit", "anonymize", "{sample}_R{p}.txt")
+                if PAIRED
+                else os.path.join(dir.out.bench, "seqkit", "anonymize", "{sample}.txt")
             )
         log:
             os.path.join(dir.out.logs, "seqkit", "replace", "{sample}_R{p}.log")
@@ -470,7 +491,9 @@ if not SKIP_SHUFFLE:
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.norm.time,
         conda:
-            os.path.join(dir.env, "seqkit.yml")
+            os.path.join(dir.conda, "seqkit.yml")
+        container:
+            containers.bioconvert
         shell:
             """
             seqkit seq {input} | seqkit replace \\
@@ -493,8 +516,6 @@ rule cleanup_files:
     params:
         proc=dir.out.processing,
         base=dir.out.base,
-    conda:
-        os.path.join(dir.env, "utils.yml")
     shell:
         """
         rm -rf {params[0]}
