@@ -46,7 +46,7 @@ if FASTA and not ASM_SUMMARY:
 checkpoint split_contigs:
     input:
         fa=list_fastas,
-        cov=os.path.join(dir.out.processing, "coverages.tsv"),
+        cov=os.path.join(dir.out.base, "coverages.tsv"),
     output:
         tsv=os.path.join(dir.out.processing, "cov.tsv"),
         dir=directory(os.path.join(dir.out.processing, "split")),

@@ -20,7 +20,7 @@ checkpoint calculate_genome_coverages:
         df=os.path.join(dir.out.base, "replicates.tsv"),
         asm=get_asm_summary,
     output:
-        os.path.join(dir.out.processing, "coverages.tsv"),
+        os.path.join(dir.out.base, "coverages.tsv"),
     params:
         fa=FASTA,
         dist=DIST,
