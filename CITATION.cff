@@ -8,22 +8,34 @@ authors:
   - given-names: Farid
     family-names: Chaabane
     email: farid.chaabane@chuv.ch
-    orcid: 'https://orcid.org/0009-0007-9322-1281'
-    affiliation: University Hospital of Lausanne
+    orcid: "https://orcid.org/0009-0007-9322-1281"
+    affiliation: >-
+      Institute of Microbiology, Lausanne University
+      Hospital and University of Lausanne, Lausanne,
+      Switzerland
   - given-names: Trestan
     family-names: Pillonel
     email: trestan.pillonel@chuv.ch
-    orcid: 'https://orcid.org/0000-0002-5725-7929'
-    affiliation: University Hospital of Lausanne
-  - orcid: 'https://orcid.org/0000-0003-0550-8981'
-    given-names: Claire
+    orcid: "https://orcid.org/0000-0002-5725-7929"
+    affiliation: >-
+      Institute of Microbiology, Lausanne University
+      Hospital and University of Lausanne, Lausanne,
+      Switzerland
+  - given-names: Claire
     family-names: Bertelli
     email: claire.bertelli@chuv.ch
-    affiliation: University Hospital of Lausanne
-repository-code: 'https://github.com/metagenlab/MeSS'
-url: 'https://metagenlab.github.io/MeSS/'
+    orcid: "https://orcid.org/0000-0003-0550-8981"
+    affiliation: >-
+      Institute of Microbiology, Lausanne University
+      Hospital and University of Lausanne, Lausanne,
+      Switzerland
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.13365501
+    description: zenodo software
+repository-code: "https://github.com/metagenlab/MeSS"
+url: "https://metagenlab.github.io/MeSS/"
 abstract: >-
-  Snakemake pipeline for simulating shotgun metagenomic
-  samples 
+  Snakemake pipeline for simulating shotgun metagenomic samples
 license: MIT
-version: 0.9.0
+version: 0.9.1
