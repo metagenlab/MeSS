@@ -2,7 +2,7 @@ fastq_dir = dir.out.long
 sam_in = os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.sam")
 if SEQ_TECH == "illumina":
     fastq_dir = dir.out.short
-    sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.sam")
+    sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fixed")
 
 fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq")
 fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq.gz"))
@@ -151,6 +151,29 @@ if BAM:
             """
 
 
+rule fix_art_sam:
+    """
+    rule to replace SAM cigar string with read length + M
+    Fixes truncated art_illumina SAM files with some genomes
+    """
+    input:
+        os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.sam"),
+    output:
+        temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fixed")),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
+    params:
+        maxlen=MEAN_LEN,
+    shell:
+        """
+        awk 'BEGIN {{OFS="\t"}} {{ if ($1 ~ /^@/) {{ print $0 }} \\
+        else {{ $6 = "{params.maxlen}M"; print $0 }} }}' \\
+        {input} > {output}
+        """
+
+
 rule convert_sam_to_bam:
     input:
         sam_in,
@@ -171,7 +194,7 @@ rule convert_sam_to_bam:
         containers.bioconvert
     shell:
         """
-        bioconvert {input} {output} -t {threads} 2> {log}
+        bioconvert sam2bam {input} {output} -t {threads} 2> {log}
         """
 
 
@@ -243,7 +266,7 @@ rule sort_bams:
         containers.bioconvert
     shell:
         """
-        samtools sort -@ {threads} {input} -o {output}  2> {log}
+        samtools sort -@ {threads} {input} -o {output} 2> {log}
         """
 
 
@@ -265,7 +288,7 @@ rule get_bam_coverage:
         containers.bioconvert
     shell:
         """
-        samtools coverage {input} > {output}
+        samtools coverage {input} | tee {output} {log}
         """
 
 
@@ -274,6 +297,7 @@ rule get_tax_profile:
         cov=os.path.join(dir.out.bam, "{sample}.txt"),
         tax=get_cov_table,
     output:
+        counts=os.path.join(dir.out.tax, "{sample}.tsv"),
         seq_abundance=temp(os.path.join(dir.out.tax, "{sample}_seq.tsv")),
         tax_abundance=temp(os.path.join(dir.out.tax, "{sample}_tax.tsv")),
     resources:
@@ -288,6 +312,23 @@ rule get_tax_profile:
         cov_df = pd.read_csv(input.cov, sep="\t")
         cov_df.rename(columns={"#rname": "contig"}, inplace=True)
         merge_df = tax_df.merge(cov_df)
+        merge_df[
+            [
+                "samplename",
+                "fasta",
+                "contig",
+                "tax_id",
+                "startpos",
+                "endpos",
+                "numreads",
+                "covbases",
+                "coverage",
+                "cov_sim",
+                "meandepth",
+                "meanbaseq",
+                "meanmapq",
+            ]
+        ].to_csv(output.counts, sep="\t", index=False)
         for col in ["numreads", "meandepth"]:
             if col == "numreads":
                 out = output.seq_abundance
