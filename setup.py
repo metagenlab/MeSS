@@ -57,7 +57,7 @@ setup(
         "pyyaml>=6.0.1",
         "pandas>=2.2.1",
         "biopython>=1.83",
-        "rich-click>=1.7.4",
+        "rich-click>=1.8.3",
     ],
     entry_points={"console_scripts": ["mess=mess.__main__:main"]},
     include_package_data=True,
