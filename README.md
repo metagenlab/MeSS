@@ -20,33 +20,61 @@ MeSS takes as input NCBI taxa or local genome assemblies to generate either long
 
 ``` mermaid
 flowchart LR
+subgraph input
+sample[sample.tsv]
+end
+
+sample --> genome
+assembly_finder(assembly_finder)
 fasta
-subgraph genome download
+subgraph download[genome download]
 B{download ?}
 genome["taxons or
 accesions"] --> B
 B -->|yes| assembly_finder
 end
+sample --> replicates(make replicates)
+subgraph community design
+dist{draw distribution ?}
+dist -->|yes| lognormal
+lognormal --> seqab("sequence abundance")
+dist -->|yes| even
+even --> taxab("taxonomic abundance")
+
+replicates --> dist
+
+end
+dist -->|no | reads
+dist -->|no | bases
+dist -->|no | abundances
+seqab --> abundances
+taxab --> abundances
+
 assembly_finder --> fasta
+subgraph fasta processing
+fasta --> |split contigs| contigs
+end
 
-
+subgraph coverage_calculation[coverage calculation]
 depth["coverage depth"]
 reads --> depth
 bases --> depth
-abundance["abundances 
+abundances["abundances 
 (sequence, taxonomic)"] --> depth 
+end
 
 subgraph read simulation
  simulator["read simulator 
  (art_illumina, pbsim3...)"]
+ contigs --> simulator
+ depth --> simulator
+
+end
+subgraph output
  simulator --> bam
  simulator --> fastq
  simulator --> CAMI-profile
-
 end
-fasta --> simulator
-depth --> simulator
-
 
 B -->|no| fasta 
 ```
