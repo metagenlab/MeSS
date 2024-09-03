@@ -19,64 +19,51 @@ The Metagenomic Sequence Simulator (MeSS) is a [Snakemake](https://github.com/sn
 MeSS takes as input NCBI taxa or local genome assemblies to generate either long (PacBio or ONT) or short (illumina) reads. In addition to reads, MeSS optionally generates bam alignment files and taxonomic + sequence abundances in [CAMI format](https://github.com/bioboxes/rfc/blob/master/data-format/profiling.mkd).
 
 ``` mermaid
+%%{init: {'theme':'forest'}}%%
 flowchart LR
-subgraph input
-sample[sample.tsv]
-end
-
-sample --> genome
-assembly_finder(assembly_finder)
 fasta
-subgraph download[genome download]
-B{download ?}
-genome["taxons or
-accesions"] --> B
-B -->|yes| assembly_finder
-end
-sample --> replicates(make replicates)
-subgraph community design
-dist{draw distribution ?}
-dist -->|yes| lognormal
-lognormal --> seqab("sequence abundance")
-dist -->|yes| even
-even --> taxab("taxonomic abundance")
+input["samples.tsv 
+or 
+samples/*.tsv"] --> taxons
 
-replicates --> dist
-
-end
-dist -->|no | reads
-dist -->|no | bases
-dist -->|no | abundances
-seqab --> abundances
-taxab --> abundances
-
+subgraph download["genome download"]
+dlchoice{download ?}
+taxons["taxons or
+accesions"] --> dlchoice
+dlchoice -->|yes| assembly_finder
+dlchoice -->|no| fasta 
 assembly_finder --> fasta
-subgraph fasta processing
-fasta --> |split contigs| contigs
 end
 
-subgraph coverage_calculation[coverage calculation]
+input --> distchoice
+subgraph community["community design"]
+distchoice{draw distribution ?}
+distchoice -->|yes| dist["distribution 
+(lognormal, even)"]
+dist --> abundances
+distchoice -->|no| reads
+distchoice -->|no| bases
+distchoice -->|no| abundances
 depth["coverage depth"]
 reads --> depth
 bases --> depth
 abundances["abundances 
 (sequence, taxonomic)"] --> depth 
 end
+fasta --> simulator
+depth --> simulator
 
-subgraph read simulation
- simulator["read simulator 
- (art_illumina, pbsim3...)"]
- contigs --> simulator
- depth --> simulator
+simulator["read simulator 
+(art_illumina, pbsim3...)"]
+simulator --> bam
+simulator --> fastq
+simulator --> CAMI-profile
 
-end
-subgraph output
- simulator --> bam
- simulator --> fastq
- simulator --> CAMI-profile
-end
-
-B -->|no| fasta 
+%% colors
+classDef yellow fill:#e4cb8a,color:#fff,stroke:#333;
+classDef green fill:#a4e795,color:#fff,stroke:#333;
+class download green
+class community yellow
 ```
 ## :books: Documentation 
 
