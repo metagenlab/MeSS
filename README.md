@@ -21,12 +21,11 @@ MeSS takes as input NCBI taxa or local genome assemblies to generate either long
 ``` mermaid
 %%{init: {'theme':'forest'}}%%
 flowchart LR
-fasta
 input["samples.tsv 
 or 
 samples/*.tsv"] --> taxons
 
-subgraph download["genome download"]
+subgraph genome_download["genome download"]
 dlchoice{download ?}
 taxons["taxons or
 accesions"] --> dlchoice
@@ -36,7 +35,7 @@ assembly_finder --> fasta
 end
 
 input --> distchoice
-subgraph community["community design"]
+subgraph community_design["community design"]
 distchoice{draw distribution ?}
 distchoice -->|yes| dist["distribution 
 (lognormal, even)"]
@@ -60,10 +59,12 @@ simulator --> fastq
 simulator --> CAMI-profile
 
 %% colors
-classDef yellow fill:#e4cb8a,color:#fff,stroke:#333;
-classDef green fill:#a4e795,color:#fff,stroke:#333;
-class download green
-class community yellow
+style genome_download color:black
+style community_design color:black
+classDef red fill:#faeaea,color:#fff,stroke:#333;
+classDef blue fill:#eaecfa,color:#fff,stroke:#333;
+class genome_download blue
+class community_design red
 ```
 ## :books: Documentation 
 
