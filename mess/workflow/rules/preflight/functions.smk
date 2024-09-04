@@ -7,6 +7,11 @@ from Bio import SeqIO
 import random
 
 
+wildcard_constraints:
+    sample="[^/]+",
+    contig="[^/]+",
+
+
 def list_reads(wildcards):
     if PAIRED:
         reads = expand(

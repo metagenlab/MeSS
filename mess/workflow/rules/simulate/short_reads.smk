@@ -16,7 +16,7 @@ if PAIRED:
 
 
 if BAM:
-    art_args += "-sam"
+    art_args += "-sam -M"
 
 
 sam_out = temp(os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}.txt"))

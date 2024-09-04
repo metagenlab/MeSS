@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.description="Snakemake pipeline for simulating sh
 LABEL org.opencontainers.image.licenses=MIT
 
 USER root
-ENV APT_PKGS="squashfuse fuse2fs gocryptfs"
+ENV APT_PKGS="squashfuse fuse2fs gocryptfs procps"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ${APT_PKGS} \
     && apt-get clean \
