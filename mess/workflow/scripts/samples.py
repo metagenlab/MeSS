@@ -11,6 +11,8 @@ else:
 dfs = []
 for file in files:
     df = pd.read_csv(file, sep="\t")
+    df.columns = df.columns.str.replace(" ", "")
+    df = df.map(lambda x: x.replace(" ", "") if isinstance(x, str) else x)
     dfs.append(df)
     try:
         samples = list(set(df["sample"]))
