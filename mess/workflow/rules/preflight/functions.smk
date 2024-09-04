@@ -69,16 +69,21 @@ fasta_cache = {}
 
 def fasta_input(wildcards):
     table = checkpoints.calculate_genome_coverages.get(**wildcards).output[0]
-    if table not in fasta_cache:
-        df = pd.read_csv(table, sep="\t", index_col="fasta")
-        fasta_cache[table] = df
-    df = fasta_cache[table]
-    return df.loc[wildcards.fasta]["path"]
+
+    df = pd.read_csv(table, sep="\t", index_col="fasta")
+    try:
+        return df.loc[wildcards.fasta]["path"].drop_duplicates()
+    except AttributeError:
+        return df.loc[wildcards.fasta]["path"]
+    # some samples use the same genome path, drop duplicates to avoid duplicate paths when processing fasta
 
 
 def list_fastas(wildcards):
     table = checkpoints.calculate_genome_coverages.get(**wildcards).output[0]
-    df = pd.read_csv(table, sep="\t")
+    if table not in fasta_cache:
+        df = pd.read_csv(table, sep="\t")
+        fasta_cache[table] = df
+    df = fasta_cache[table]
     fastas = list(set(df["fasta"]))
     return expand(os.path.join(dir.out.processing, "{fasta}.fasta"), fasta=fastas)
 
