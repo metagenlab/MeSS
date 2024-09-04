@@ -15,7 +15,7 @@
 
 The Metagenomic Sequence Simulator (MeSS) is a [Snakemake](https://github.com/snakemake/snakemake) pipeline, implemented using [Snaketool](https://github.com/beardymcjohnface/Snaketool), for simulating illumina, Oxford Nanopore (ONT) and Pacific Bioscience (PacBio) shotgun metagenomic samples.
 
-## :memo: Overview
+## :mag: Overview
 
 MeSS takes as input NCBI taxa or local genome assemblies to generate either long (PacBio or ONT) or short (illumina) reads. In addition to reads, MeSS optionally generates bam alignment files and taxonomic + sequence abundances in [CAMI format](https://github.com/bioboxes/rfc/blob/master/data-format/profiling.mkd).
 
@@ -70,7 +70,7 @@ class community_design red
 More details can be found in the [documentation](https://metagenlab.github.io/MeSS/)
 
 ## :zap: Quick start 
-### Installation
+### :gear: Installation
 Mamba
 ```sh
 mamba create -n mess mess
@@ -87,7 +87,7 @@ git clone https://github.com/metagenlab/MeSS.git
 pip install -e MeSS
 ```
 
-### Usage
+### :page_facing_up: Usage
 #### :arrow_right: Input
 Let's simulate two metagenomic samples with the following taxa and read counts in `samples.tsv`:
 | sample   | taxon | reads  |
@@ -104,6 +104,35 @@ Let's run MeSS (using apptainer as the software deployment method) !
 ```sh
 mess run -i samples.tsv --sdm apptainer 
 ```
+#### :card_index_dividers: Outputs
+
+```sh
+📦mess_out
+ ┣ 📂assembly_finder
+ ┃ ┣ 📂download
+ ┃ ┃ ┣ 📂GCF_000144405.1
+ ┃ ┃ ┃ ┗ 📜GCF_000144405.1_ASM14440v1_genomic.fna.gz
+ ┃ ┃ ┣ 📂GCF_001298465.1
+ ┃ ┃ ┃ ┗ 📜GCF_001298465.1_ASM129846v1_genomic.fna.gz
+ ┃ ┃ ┣ 📂GCF_016127215.1
+ ┃ ┃ ┃ ┗ 📜GCF_016127215.1_ASM1612721v1_genomic.fna.gz
+ ┃ ┃ ┣ 📂GCF_020736045.1
+ ┃ ┃ ┃ ┗ 📜GCF_020736045.1_ASM2073604v1_genomic.fna.gz
+ ┃ ┃ ┣ 📂GCF_022869645.1
+ ┃ ┃ ┃ ┗ 📜GCF_022869645.1_ASM2286964v1_genomic.fna.gz
+ ┃ ┃ ┗ 📜.snakemake_timestamp
+ ┣ 📂fastq
+ ┃ ┣ 📜sample1_R1.fq.gz
+ ┃ ┣ 📜sample1_R2.fq.gz
+ ┃ ┣ 📜sample2_R1.fq.gz
+ ┃ ┗ 📜sample2_R2.fq.gz
+ ┣ 📜config.yaml
+ ┣ 📜coverages.tsv
+ ┗ 📜mess.log
+```
+
+Outputs described in more details [here](https://metagenlab.github.io/MeSS/guide/output/)
+
 #### :bar_chart: Resources usage
 Average resources usage measured 3 times with one CPU (within a [nextflow](https://github.com/nextflow-io/nextflow) process):
 
@@ -118,7 +147,7 @@ Average resources usage measured 3 times with one CPU (within a [nextflow](https
 > [!NOTE]
 > Resources usage was measured exluding dependencies deployement time (conda env creation or container pulling)
 
-More details on resource usage in the [doc](https://metagenlab.github.io/MeSS/benchmarks/resource-usage/)
+More details on resource usage in the [documentation](https://metagenlab.github.io/MeSS/benchmarks/resource-usage/)
 
 
 ## :sos: Help
