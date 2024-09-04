@@ -2,6 +2,7 @@
 
 [![](https://img.shields.io/static/v1?label=CLI&message=Snaketool&color=blueviolet)](https://github.com/beardymcjohnface/Snaketool)
 [![license](https://img.shields.io/github/license/metagenlab/mess.svg)](https://github.com/metagenlab/MeSS/blob/main/LICENSE)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/mess/README.html)
 [![version](https://img.shields.io/conda/vn/bioconda/mess?color=blue)](http://bioconda.github.io/recipes/mess/README.html)
 [![downloads](https://img.shields.io/conda/dn/bioconda/mess.svg)](https://anaconda.org/bioconda/mess)
 
@@ -25,7 +26,7 @@ input["samples.tsv
 or 
 samples/*.tsv"] --> taxons
 
-subgraph genome_download["genome download"]
+subgraph genome_download["`**genome download**`"]
 dlchoice{download ?}
 taxons["taxons or
 accesions"] --> dlchoice
@@ -35,7 +36,7 @@ assembly_finder --> fasta
 end
 
 input --> distchoice
-subgraph community_design["community design"]
+subgraph community_design["`**community design**`"]
 distchoice{draw distribution ?}
 distchoice -->|yes| dist["distribution 
 (lognormal, even)"]
@@ -58,9 +59,7 @@ simulator --> bam
 simulator --> fastq
 simulator --> CAMI-profile
 
-%% colors
-style genome_download color:black
-style community_design color:black
+%% subgraph color fills
 classDef red fill:#faeaea,color:#fff,stroke:#333;
 classDef blue fill:#eaecfa,color:#fff,stroke:#333;
 class genome_download blue
@@ -72,46 +71,55 @@ More details can be found in the [documentation](https://metagenlab.github.io/Me
 
 ## :zap: Quick start 
 ### Installation
-
-#### Mamba
-
-[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/mess/README.html)
-
+Mamba
 ```sh
 mamba create -n mess mess
 ```
 
-#### Docker
-
+Docker
 ```sh
 docker pull ghcr.io/metagenlab/mess:latest
 ```
 
-#### From source 
-
+From source 
 ```sh
 git clone https://github.com/metagenlab/MeSS.git
 pip install -e MeSS
 ```
 
 ### Usage
+#### :arrow_right: Input
+Let's simulate two metagenomic samples with the following taxa and read counts in `samples.tsv`:
+| sample   | taxon | reads  |
+| ---      | ---   | ---    |
+| sample1  |  487  | 174840 |
+| sample1  |  727  | 90679  |
+| sample1  |  729  | 13129  |
+| sample2  | 28132 | 147863 |
+| sample2  | 199   | 147545 |
+| sample2  | 729   | 131300 |
 
-
-#### Download and simulate
-
-Using the following file [minimal_test.tsv](https://github.com/metagenlab/MeSS/blob/main/mess/test_data/minimal_test.tsv)
-
+#### :rocket: Command
+Let's run MeSS (using apptainer as the software deployment method) !
 ```sh
-mess run -i minimal_test.tsv 
+mess run -i samples.tsv --sdm apptainer 
 ```
+#### :bar_chart: Resources usage
+Average resources usage measured 3 times with one CPU (within a [nextflow](https://github.com/nextflow-io/nextflow) process):
 
-#### Simulate from local fasta
+| task_id | hash      | native_id | name     | status    | exit | submit                  | duration | realtime | %cpu   | peak_rss | peak_vmem | rchar  | wchar  |
+| ------- | --------- | --------- | -------- | --------- | ---- | ----------------------- | -------- | -------- | ------ | -------- | --------- | ------ | ------ |
+| 1       | fe/03c2bc | 62286     | MESS (1) | COMPLETED | 0    | 2024-09-04 12:41:15.820 | 1m 50s   | 1m 50s   | 111.5% | 1.8 GB   | 9 GB      | 3.5 GB | 2.4 GB |
+| 1       | ff/0d03b1 | 73355     | MESS (1) | COMPLETED | 0    | 2024-09-04 12:55:12.903 | 1m 52s   | 1m 52s   | 112.6% | 1.7 GB   | 8.8 GB    | 3.5 GB | 2.4 GB |
+| 1       | 07/d352bf | 83576     | MESS (1) | COMPLETED | 0    | 2024-09-04 12:57:30.600 | 1m 50s   | 1m 50s   | 113.2% | 1.7 GB   | 8.9 GB    | 3.5 GB | 2.4 GB |
 
-Download the [fasta directory](https://github.com/metagenlab/MeSS/tree/main/mess/test_data/fastas) and [table](https://github.com/metagenlab/MeSS/blob/main/mess/test_data/simulate_test.tsv)
+> On average, using `samples.tsv`, MeSS runs in under 2min, while using around 1.8GB of physical RAM
 
-```sh
-mess simulate -i simulate_test.tsv --fasta fasta 
-```
+> [!NOTE]
+> Resources usage was measured exluding dependencies deployement time (conda env creation or container pulling)
+
+More details on resource usage in the [doc](https://metagenlab.github.io/MeSS/benchmarks/resource-usage/)
+
 
 ## :sos: Help
 
