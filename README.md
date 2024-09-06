@@ -134,6 +134,9 @@ mess run -i samples.tsv --sdm apptainer
 Outputs described in more details [here](https://metagenlab.github.io/MeSS/guide/output/)
 
 #### :bar_chart: Resources usage
+
+> On average, using `samples.tsv` (see [Usage](https://github.com/metagenlab/MeSS/edit/main/README.md#page_facing_up-usage)), MeSS runs in under 2min, while using around 1.8GB of physical RAM
+
 Average resources usage measured 3 times with one CPU (within a [nextflow](https://github.com/nextflow-io/nextflow) process):
 
 | task_id | hash      | native_id | name     | status    | exit | submit                  | duration | realtime | %cpu   | peak_rss | peak_vmem | rchar  | wchar  |
@@ -142,7 +145,7 @@ Average resources usage measured 3 times with one CPU (within a [nextflow](https
 | 1       | ff/0d03b1 | 73355     | MESS (1) | COMPLETED | 0    | 2024-09-04 12:55:12.903 | 1m 52s   | 1m 52s   | 112.6% | 1.7 GB   | 8.8 GB    | 3.5 GB | 2.4 GB |
 | 1       | 07/d352bf | 83576     | MESS (1) | COMPLETED | 0    | 2024-09-04 12:57:30.600 | 1m 50s   | 1m 50s   | 113.2% | 1.7 GB   | 8.9 GB    | 3.5 GB | 2.4 GB |
 
-> On average, using `samples.tsv`, MeSS runs in under 2min, while using around 1.8GB of physical RAM
+
 
 > [!NOTE]
 > Resources usage was measured exluding dependencies deployement time (conda env creation or container pulling)
