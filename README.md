@@ -135,7 +135,7 @@ Outputs described in more details [here](https://metagenlab.github.io/MeSS/guide
 
 #### :bar_chart: Resources usage
 
-> On average, using `samples.tsv` (see [Usage](https://github.com/metagenlab/MeSS/edit/main/README.md#page_facing_up-usage)), MeSS runs in under 2min, while using around 1.8GB of physical RAM
+> On average, using `samples.tsv` (see [Usage](https://github.com/metagenlab/mess#page_facing_up-usage)), MeSS runs in under 2min, while using around 1.8GB of physical RAM
 
 Average resources usage measured 3 times with one CPU (within a [nextflow](https://github.com/nextflow-io/nextflow) process):
 
