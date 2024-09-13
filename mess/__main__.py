@@ -291,7 +291,9 @@ mess hmp-template --site buccal_mucosa --sample SRS013506 -o SRS013506
     "-i",
     "--input",
     help="Path to input table(s)",
-    type=click.Path(exists=True, file_okay=True, dir_okay=True, readable=True),
+    type=click.Path(
+        exists=True, file_okay=True, dir_okay=True, readable=True, resolve_path=True
+    ),
     required=True,
 )
 @download_options
@@ -323,7 +325,9 @@ def run(
     "-i",
     "--input",
     help="Path to input table(s)",
-    type=click.Path(exists=True, file_okay=True, dir_okay=True, readable=True),
+    type=click.Path(
+        exists=True, file_okay=True, dir_okay=True, readable=True, resolve_path=True
+    ),
     required=True,
 )
 @download_options
@@ -353,7 +357,9 @@ def download(
     "-i",
     "--input",
     help="Path to input table(s)",
-    type=click.Path(exists=True, file_okay=True, dir_okay=True, readable=True),
+    type=click.Path(
+        exists=True, file_okay=True, dir_okay=True, readable=True, resolve_path=True
+    ),
     required=True,
 )
 @sim_options
