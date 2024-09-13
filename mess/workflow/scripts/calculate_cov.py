@@ -100,12 +100,12 @@ elif snakemake.params.dist == "lognormal":
     df["seq_abundance"] = df["bases"] / df["sum_bases"]
 else:
     if "tax_abundance" in entry_df.columns:
-        df["cov_obtained"] = bases / df["total_sequence_length"] 
-        df["sum_cov_obtained"] = df.groupby("samplename")["cov_obtained"].transform("sum")
-        df["cov_sim"] = df["tax_abundance"] * df["sum_cov_obtained"]
+        df["genome_bases"] = df["total_sequence_length"] * df["tax_abundance"]
+        df["sum_bases"] = df.groupby("samplename")["genome_bases"].transform("sum")
+        df["cov_obtained"] = bases / df["sum_bases"]
+        df["cov_sim"] = df["tax_abundance"] * df["cov_obtained"]
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
         df["bases"] = df["cov_sim"] * df["total_sequence_length"]
-        df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["seq_abundance"] = df["bases"] / df["sum_bases"]
 
