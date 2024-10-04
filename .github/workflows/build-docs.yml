@@ -7,14 +7,13 @@ on:
       - ".github/workflows/build-docs.yml"
       - "docs/**"
       - "mkdocs.yml"
-    paths-ignore:
-      - "Dockerfile"
-      - ".github/workflows/docker-publish.yml"
-      - ".github/workflows/unit-tests.yml"
-      - "tests/**"
-      - "mess/**"
-      - "setup.py"
-      - "README.md"
+      - "!Dockerfile"
+      - "!.github/workflows/docker-publish.yml"
+      - "!.github/workflows/unit-tests.yml"
+      - "!tests/**"
+      - "!mess/**"
+      - "!setup.py"
+      - "!README.md"
 # Cancel if a newer run is started
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

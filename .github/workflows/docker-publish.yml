@@ -9,10 +9,9 @@ on:
       - "tests/**"
       - "mess/**"
       - "setup.py"
-    paths-ignore:
-      - docs/**
-      - README.md
-      
+      - "!docs/**"
+      - "!README.md"
+
   release:
     types: [published]
 
