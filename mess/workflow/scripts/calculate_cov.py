@@ -14,23 +14,28 @@ def get_lognormal_dist(df, mu, sigma):
     """
     function for simulating lognormal sequence distribution
     """
-    df["lognormal"] = np.random.lognormal(mean=mu, sigma=sigma, size=len(df))
-    df["seq_abundance"] = df["lognormal"] / df["lognormal"].sum()
-    return df
+    dfs = []
+    for sample in set(df["samplename"]):
+        subdf = df[df["samplename"] == sample]
+        subdf.loc[:, "lognormal"] = np.random.lognormal(
+            mean=mu, sigma=sigma, size=len(subdf)
+        )
+        subdf.loc[:, "seq_abundance"] = subdf["lognormal"] / subdf["lognormal"].sum()
+        dfs.append(subdf)
+    return pd.concat(dfs)
 
 
-def get_even_dist(table, cols):
+def get_even_dist(table):
     """
     function that calculates even abundances across taxonomy
     """
     abundances = (
-        table[cols]
+        table.groupby(["samplename"])["tax_id"]
         .value_counts(normalize=True)
         .reset_index()
-        .rename(columns={"proportion": "tax_abundance"})
     )
-
-    return table.merge(abundances)
+    counts = table.groupby("samplename")["tax_id"].value_counts().reset_index()
+    return table.merge(abundances).merge(counts)
 
 
 """
@@ -78,18 +83,27 @@ df = pd.merge(entry_df, asm_df, how="left", on=same_cols)
 # Get total bases
 bases = parse_size(snakemake.params.bases)
 
+
+if "fasta" not in df.columns:
+    df["fasta"] = df["accession"]
+
 # Calculate prportion with dist
 if snakemake.params.dist == "even":
-    df = get_even_dist(df, ["tax_id"])
-    df["sum_seq_length"] = df.groupby("samplename")["total_sequence_length"].transform(
-        "sum"
-    )
-    df["sum_cov"] = bases / df["sum_seq_length"]
-    df["cov_sim"] = df["sum_cov"] * df["tax_abundance"]
+    df = get_even_dist(df)
+    df["tax_abundance"] = df["proportion"] / df["count"]
+    df["genome_bases"] = df["total_sequence_length"] * df["tax_abundance"]
+    df["sum_genome_bases"] = df.groupby("samplename")["genome_bases"].transform("sum")
+    df["cov_obtained"] = bases / df["sum_genome_bases"]
+    df["cov_sim"] = df["tax_abundance"] * df["cov_obtained"]
+    df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
+    df["bases"] = df["cov_sim"] * df["total_sequence_length"]
+    df["reads"] = df["bases"] / (snakemake.params.read_len * p)
+    df["sum_bases"] = df.groupby("samplename")["bases"].transform("sum")
+    df["seq_abundance"] = df["bases"] / df["sum_bases"]
 
 
 elif snakemake.params.dist == "lognormal":
-    df = get_lognormal_dist(df, snakemake.params.mu, snakemake.params.sigma)
+    df = get_lognormal_dist(df, mu=snakemake.params.mu, sigma=snakemake.params.sigma)
     df["bases"] = df["seq_abundance"] * bases
     df["reads"] = df["bases"] / (snakemake.params.read_len * p)
     df["cov_sim"] = df["bases"] / df["total_sequence_length"]
@@ -101,7 +115,9 @@ elif snakemake.params.dist == "lognormal":
 else:
     if "tax_abundance" in entry_df.columns:
         df["genome_bases"] = df["total_sequence_length"] * df["tax_abundance"]
-        df["sum_genome_bases"] = df.groupby("samplename")["genome_bases"].transform("sum")
+        df["sum_genome_bases"] = df.groupby("samplename")["genome_bases"].transform(
+            "sum"
+        )
         df["cov_obtained"] = bases / df["sum_genome_bases"]
         df["cov_sim"] = df["tax_abundance"] * df["cov_obtained"]
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
@@ -141,8 +157,6 @@ else:
         df["reads"] = df["bases"] / (snakemake.params.read_len * p)
         df["seq_abundance"] = df["bases"] / df["sum_bases"]
 
-if "fasta" not in df.columns:
-    df["fasta"] = df["accession"]
 
 df["seed"] = random.sample(range(1, 1000000), len(df))
 
