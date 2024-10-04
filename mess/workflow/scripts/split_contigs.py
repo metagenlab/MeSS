@@ -25,5 +25,5 @@ id2fa = list(chain.from_iterable(id2fa))
 contig_df = pd.DataFrame.from_records(id2fa)
 df = pd.merge(contig_df, cov_df, how="left", on="fasta")
 df[["samplename", "fasta", "contig", "tax_id", "seed", "cov_sim"]].to_csv(
-    snakemake.output.tsv, sep="\t", index=None
+    snakemake.output.tsv, sep="\t", index=False
 )
