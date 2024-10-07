@@ -334,7 +334,7 @@ rule get_tax_profile:
                 out = output.seq_abundance
             elif col == "meandepth":
                 out = output.tax_abundance
-            df = merge_df.groupby("tax_id")[col].mean().reset_index()
+            df = merge_df.groupby("tax_id")[col].sum().reset_index()
             df["abundance"] = df[col] / df[col].sum()
             df[["tax_id", "abundance"]].to_csv(
                 out, sep="\t", header=False, index=False
