@@ -165,7 +165,6 @@ cols = [
     "path",
     "tax_id",
     "total_sequence_length",
-    "number_of_contigs",
     "reads",
     "bases",
     "seq_abundance",
@@ -179,7 +178,5 @@ df["bases"] = df["bases"].apply(lambda x: int(round(x)))
 df["tax_abundance"] = df["tax_abundance"].apply(lambda x: round(x, 3))
 df["seq_abundance"] = df["seq_abundance"].apply(lambda x: round(x, 3))
 
-df = df.astype(
-    {"seed": int, "tax_id": int, "total_sequence_length": int, "number_of_contigs": int}
-)
+df = df.astype({"seed": int, "tax_id": int, "total_sequence_length": int})
 df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
