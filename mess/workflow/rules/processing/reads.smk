@@ -309,6 +309,7 @@ rule get_tax_profile:
         paired=PAIRED,
     run:
         tax_df = pd.read_csv(input.tax, sep="\t")
+        tax_df = tax_df[tax_df.samplename == wildcards.sample]
         cov_df = pd.read_csv(input.cov, sep="\t")
         cov_df.rename(columns={"#rname": "contig"}, inplace=True)
         merge_df = tax_df.merge(cov_df)
@@ -332,9 +333,10 @@ rule get_tax_profile:
         for col in ["numreads", "meandepth"]:
             if col == "numreads":
                 out = output.seq_abundance
+                df = merge_df.groupby("tax_id")[col].sum().reset_index()
             elif col == "meandepth":
                 out = output.tax_abundance
-            df = merge_df.groupby("tax_id")[col].sum().reset_index()
+                df = merge_df.groupby("tax_id")[col].mean().reset_index()
             df["abundance"] = df[col] / df[col].sum()
             df[["tax_id", "abundance"]].to_csv(
                 out, sep="\t", header=False, index=False
