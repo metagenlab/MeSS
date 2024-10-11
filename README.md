@@ -52,6 +52,8 @@ abundances["abundances
 (sequence, taxonomic)"] --> depth 
 end
 style community_design color:#15161a
+style community_design color:#15161a
+
 fasta --> simulator
 depth --> simulator
 
@@ -138,10 +140,7 @@ Outputs described in more details [here](https://metagenlab.github.io/MeSS/guide
 
 #### :bar_chart: Resources usage
 
-
 On average, using `samples.tsv` (see [table](#arrow_right-input)), MeSS runs in under 2min, while using around 1.8GB of physical RAM
-
-
 
 | task_id | hash      | native_id | name     | status    | exit | submit                  | duration | realtime | %cpu   | peak_rss | peak_vmem | rchar  | wchar  |
 | ------- | --------- | --------- | -------- | --------- | ---- | ----------------------- | -------- | -------- | ------ | -------- | --------- | ------ | ------ |
@@ -152,10 +151,7 @@ On average, using `samples.tsv` (see [table](#arrow_right-input)), MeSS runs in 
 
 
 > [!NOTE]
-
 > Average resources usage measured 3 times with one CPU (within a [nextflow](https://github.com/nextflow-io/nextflow) process)
-
-> 
 
 > Resources usage was measured exluding dependencies deployement time (conda env creation or container pulling)
 
