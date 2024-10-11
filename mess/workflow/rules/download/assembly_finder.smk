@@ -23,31 +23,35 @@ rule get_unique_entries:
 af_args = ""
 if TAXON:
     af_args += "--taxon "
+    if LIMIT:
+        af_args += f"--limit {LIMIT} "
+
+    if RANK and NRANK:
+        af_args += f"--rank {RANK} --nrank {NRANK}"
+
+    if ASM_LVL:
+        af_args += f"--assembly-level {ASM_LVL} "
+    if INCLUDE:
+        f"--include {INCLUDE} "
+    if SOURCE:
+        f"--source {SOURCE} "
+    if REFERENCE:
+        f"--reference {REFERENCE} "
+    if ANNOTATED:
+        f"--annotated {ANNOTATED} "
+    if ATYPICAL:
+        f"--atypical {ATYPICAL} "
+    if MAG:
+        f"--mag {MAG}"
+
 else:
     af_args += "--accession "
-
-if LIMIT:
-    af_args += f"--limit {LIMIT} "
-
-if RANK and NRANK:
-    af_args += f"--rank {RANK} --nrank {NRANK}"
-
-if ASM_LVL:
-    af_args += f"--assembly-level {ASM_LVL} "
 
 if API_KEY:
     af_args += f"--api-key {API_KEY} "
 
-
-af_args += (
-    f"--compressed {COMPRESSED} "
-    f"--include {INCLUDE} "
-    f"--source {SOURCE} "
-    f"--reference {REFERENCE} "
-    f"--annotated {ANNOTATED} "
-    f"--atypical {ATYPICAL} "
-    f"--mag {MAG}"
-)
+if COMPRESSED:
+    af_args += f"--compressed {COMPRESSED} "
 
 
 checkpoint download_assemblies:
