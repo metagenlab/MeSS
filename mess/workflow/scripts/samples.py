@@ -21,4 +21,4 @@ for file in files:
         df["sample"] = [sample] * len(df)
 
 dfs = pd.concat(dfs).reset_index(drop=True).sort_values("sample")
-dfs.to_csv(snakemake.output[0], sep="\t", index=None)
+dfs.to_csv(snakemake.output[0], sep="\t", index=False)

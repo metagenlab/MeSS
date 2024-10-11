@@ -12,7 +12,7 @@ samples_df = df.reindex(df.index.repeat(len(snakemake.params.replicates)))
 if len(snakemake.params.replicates) < 2:
     samples_df.rename(columns={"sample": "samplename"}, inplace=True)
 else:
-    samples_df["rep"] = snakemake.params.replicates * len(samples_df)
+    samples_df["rep"] = snakemake.params.replicates * len(df)
     samples_df["samplename"] = [
         sample + "-" + str(rep)
         for sample, rep in zip(samples_df["sample"], samples_df["rep"])
@@ -30,4 +30,4 @@ for col in accepted_cols:
         continue
 
 samples_df.reset_index(inplace=True, drop=True)
-samples_df.to_csv(snakemake.output[0], sep="\t", index=None)
+samples_df.to_csv(snakemake.output[0], sep="\t", index=False)

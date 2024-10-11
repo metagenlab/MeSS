@@ -128,7 +128,7 @@ def aggregate(wildcards, outdir, level, ext):
         if isinstance(contigs, str):
             contigs = [contigs]
         else:
-            contigs = list(contigs)
+            contigs = list(set(contigs))
         if PAIRED and ext != "bam":
             return expand(
                 os.path.join(outdir, "{sample}", "{fasta}", "{contig}{p}.{ext}"),

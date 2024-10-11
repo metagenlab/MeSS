@@ -9,6 +9,9 @@ on:
       - "tests/**"
       - "mess/**"
       - "setup.py"
+      - "!docs/**"
+      - "!README.md"
+
   release:
     types: [published]
 

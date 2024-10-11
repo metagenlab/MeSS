@@ -12,11 +12,11 @@ rule get_unique_entries:
             if "nb" not in df.columns:
                 df["nb"] = [params.nb] * len(df)
             df[["taxon", "nb"]].drop_duplicates().to_csv(
-                output[0], sep="\t", index=None
+                output[0], sep="\t", index=False
             )
         else:
             df[["accession"]].drop_duplicates().to_csv(
-                output[0], sep="\t", index=None, header=False
+                output[0], sep="\t", index=False, header=False
             )
 
 

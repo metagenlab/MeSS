@@ -309,13 +309,13 @@ def sim_options(func):
         click.option(
             "--mu",
             help="Mu of lognormal dist",
-            type=int,
+            type=float,
             default=1,
         ),
         click.option(
             "--sigma",
             help="Sigma of lognormal dist",
-            type=int,
+            type=float,
             default=0,
         ),
         click.option(

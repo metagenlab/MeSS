@@ -26,7 +26,7 @@ input["samples.tsv
 or 
 samples/*.tsv"] --> taxons
 
-subgraph genome_download["`**genome download**`"]
+subgraph genome_download["genome download"]
 dlchoice{download ?}
 taxons["taxons or
 accesions"] --> dlchoice
@@ -52,6 +52,7 @@ abundances["abundances
 (sequence, taxonomic)"] --> depth 
 end
 style community_design color:#15161a
+style community_design color:#15161a
 
 fasta --> simulator
 depth --> simulator
@@ -66,6 +67,7 @@ simulator --> CAMI-profile
 classDef red fill:#faeaea,color:#fff,stroke:#333;
 classDef blue fill:#eaecfa,color:#fff,stroke:#333;
 class genome_download blue
+
 class community_design red
 ```
 ## :books: Documentation 
@@ -146,10 +148,14 @@ On average, using `samples.tsv` (see [table](#arrow_right-input)), MeSS runs in 
 | 1       | ff/0d03b1 | 73355     | MESS (1) | COMPLETED | 0    | 2024-09-04 12:55:12.903 | 1m 52s   | 1m 52s   | 112.6% | 1.7 GB   | 8.8 GB    | 3.5 GB | 2.4 GB |
 | 1       | 07/d352bf | 83576     | MESS (1) | COMPLETED | 0    | 2024-09-04 12:57:30.600 | 1m 50s   | 1m 50s   | 113.2% | 1.7 GB   | 8.9 GB    | 3.5 GB | 2.4 GB |
 
+
+
 > [!NOTE]
 > Average resources usage measured 3 times with one CPU (within a [nextflow](https://github.com/nextflow-io/nextflow) process)
-> 
+
 > Resources usage was measured exluding dependencies deployement time (conda env creation or container pulling)
+
+
 
 More details on resource usage in the [documentation](https://metagenlab.github.io/MeSS/benchmarks/resource-usage/)
 
