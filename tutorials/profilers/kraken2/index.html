@@ -1,0 +1,1580 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="Farid Chaabane">
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../bracken/">
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.40">
+    
+    
+      
+        <title>Kraken2 - MeSS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.8c3ca2c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#input" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MeSS" class="md-header__button md-logo" aria-label="MeSS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 14.27 10.64 13A11.24 11.24 0 0 0 5 10.18v6.95c2.61.34 5 1.34 7 2.82 2-1.48 4.39-2.48 7-2.82v-6.95c-2.16.39-4.09 1.39-5.64 2.82M19 8.15c.65-.1 1.32-.15 2-.15v11c-3.5 0-6.64 1.35-9 3.54C9.64 20.35 6.5 19 3 19V8c.68 0 1.35.05 2 .15 2.69.41 5.1 1.63 7 3.39 1.9-1.76 4.31-2.98 7-3.39M12 6c.27 0 .5-.1.71-.29.19-.21.29-.44.29-.71s-.1-.5-.29-.71C12.5 4.11 12.27 4 12 4s-.5.11-.71.29c-.18.21-.29.45-.29.71s.11.5.29.71c.21.19.45.29.71.29m2.12 1.12a2.997 2.997 0 1 1-4.24-4.24 2.997 2.997 0 1 1 4.24 4.24"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MeSS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Kraken2
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/metagenlab/MeSS" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    metagenlab/mess
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MeSS" class="md-nav__button md-logo" aria-label="MeSS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 14.27 10.64 13A11.24 11.24 0 0 0 5 10.18v6.95c2.61.34 5 1.34 7 2.82 2-1.48 4.39-2.48 7-2.82v-6.95c-2.16.39-4.09 1.39-5.64 2.82M19 8.15c.65-.1 1.32-.15 2-.15v11c-3.5 0-6.64 1.35-9 3.54C9.64 20.35 6.5 19 3 19V8c.68 0 1.35.05 2 .15 2.69.41 5.1 1.63 7 3.39 1.9-1.76 4.31-2.98 7-3.39M12 6c.27 0 .5-.1.71-.29.19-.21.29-.44.29-.71s-.1-.5-.29-.71C12.5 4.11 12.27 4 12 4s-.5.11-.71.29c-.18.21-.29.45-.29.71s.11.5.29.71c.21.19.45.29.71.29m2.12 1.12a2.997 2.997 0 1 1-4.24-4.24 2.997 2.997 0 1 1 4.24 4.24"/></svg>
+
+    </a>
+    MeSS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/metagenlab/MeSS" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    metagenlab/mess
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../motivation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Motivation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../citation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Citation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../getting_started/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Getting started
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Getting started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../install/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Install
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    <a href="../../../guide/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    Step-by-step guide
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../commands/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Commands
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Commands
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../commands/download/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    download
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../commands/simulate/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    simulate
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../commands/run/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    run
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../commands/hmp-template/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    hmp-template
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Tutorials
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_2" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Taxonomic profiles as input
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_2" id="__nav_6_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6_2">
+            <span class="md-nav__icon md-icon"></span>
+            Taxonomic profiles as input
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Kraken2
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Kraken2
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#input" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Input">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#download-an-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Download an example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#format-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format report
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sort-and-filter-taxids" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sort and filter taxids
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-taxids" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update taxids
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#replace-unclassified-taxids" class="md-nav__link">
+    <span class="md-ellipsis">
+      Replace unclassified taxids
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subsample" class="md-nav__link">
+    <span class="md-ellipsis">
+      Subsample
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulate" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastq" class="md-nav__link">
+    <span class="md-ellipsis">
+      fastq
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#taxonomic-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      Taxonomic profile
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bracken/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Bracken
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    <a href="../../seqtech/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    Sequencing technologies
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../benchmarks/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Benchmarks
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Benchmarks
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../benchmarks/species-composition/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Species composition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../benchmarks/resource-usage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Resource usage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#input" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Input">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#download-an-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Download an example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#format-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format report
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sort-and-filter-taxids" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sort and filter taxids
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-taxids" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update taxids
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#replace-unclassified-taxids" class="md-nav__link">
+    <span class="md-ellipsis">
+      Replace unclassified taxids
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subsample" class="md-nav__link">
+    <span class="md-ellipsis">
+      Subsample
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulate" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastq" class="md-nav__link">
+    <span class="md-ellipsis">
+      fastq
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#taxonomic-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      Taxonomic profile
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>Kraken2</h1>
+
+<h2 id="input">Input</h2>
+<h3 id="download-an-example">Download an example</h3>
+<p>We can use a kraken report <a href="https://github.com/jenniferlu717/Bracken/blob/master/sample_data/sample_output_bracken.report">from bracken's sample data</a></p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>https://raw.githubusercontent.com/jenniferlu717/Bracken/master/sample_data/sample_output_bracken.report<span class="w"> </span>-o<span class="w"> </span>kreport.txt
+</span></code></pre></div>
+<h3 id="format-report">Format report</h3>
+<p>We can use <a href="https://github.com/taxprofiler/taxpasta">taxpasta</a> to convert kraken reports (and others) to a format compatible with <code>mess</code></p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>taxpasta<span class="w"> </span>standardise<span class="w"> </span>--profiler<span class="w"> </span>kraken2<span class="w"> </span>--output<span class="w"> </span>sample.tsv<span class="w"> </span>kreport.txt
+</span></code></pre></div>
+<h3 id="sort-and-filter-taxids">Sort and filter taxids</h3>
+<p>Sort by descending read count, filter zero counts and unclassified taxids with <a href="https://github.com/shenwei356/csvtk">csvtk</a></p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cat<span class="w"> </span>sample.tsv<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>csvtk<span class="w"> </span>filter2<span class="w"> </span>-t<span class="w"> </span>-f<span class="w"> </span><span class="s1">&#39;$taxonomy_id &gt; 0 &amp;&amp; $count &gt; 0&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>csvtk<span class="w"> </span>rename<span class="w"> </span>-t<span class="w"> </span>-f<span class="w"> </span><span class="m">1</span>,2<span class="w"> </span>-n<span class="w"> </span>taxon,reads<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>csvtk<span class="w"> </span>sort<span class="w"> </span>-t<span class="w"> </span>-k<span class="w"> </span>reads:nr<span class="w"> </span>&gt;<span class="w"> </span>filtered.tsv
+</span></code></pre></div>
+<h3 id="update-taxids">Update taxids</h3>
+<p>Update taxids and add their lineage with <a href="https://github.com/shenwei356/taxonkit">taxonkit</a></p>
+<p><div class="language-sh highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>csvtk<span class="w"> </span>cut<span class="w"> </span>-t<span class="w"> </span>-U<span class="w"> </span>-f<span class="w"> </span>taxon<span class="w"> </span>filtered.tsv<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>taxonkit<span class="w"> </span>lineage<span class="w"> </span>--show-status-code<span class="w"> </span><span class="m">2</span>&gt;<span class="w"> </span>tax.log<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>csvtk<span class="w"> </span>-t<span class="w"> </span>add-header<span class="w"> </span>-n<span class="w"> </span>old_taxid,updated_taxid,lineage<span class="w"> </span><span class="m">1</span>&gt;<span class="w"> </span>lineage.tsv
+</span></code></pre></div>
+Checking the tax.log (as of may 2024)</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>$<span class="w"> </span>cat<span class="w"> </span>tax.log
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="m">17</span>:07:59.845<span class="w"> </span><span class="o">[</span>WARN<span class="o">]</span><span class="w"> </span>taxid<span class="w"> </span><span class="m">86662</span><span class="w"> </span>was<span class="w"> </span>merged<span class="w"> </span>into<span class="w"> </span><span class="m">1405</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="m">17</span>:07:59.845<span class="w"> </span><span class="o">[</span>WARN<span class="o">]</span><span class="w"> </span>taxid<span class="w"> </span><span class="m">62928</span><span class="w"> </span>was<span class="w"> </span>merged<span class="w"> </span>into<span class="w"> </span><span class="m">418699</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="m">17</span>:07:59.845<span class="w"> </span><span class="o">[</span>WARN<span class="o">]</span><span class="w"> </span>taxid<span class="w"> </span><span class="m">1172</span><span class="w"> </span>was<span class="w"> </span>merged<span class="w"> </span>into<span class="w"> </span><span class="m">264691</span>
+</span></code></pre></div>
+<p>Join updated taxids with read counts</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>csvtk<span class="w"> </span>join<span class="w"> </span>-t<span class="w"> </span>filtered.tsv<span class="w"> </span>lineage.tsv<span class="w"> </span>-f<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>csvtk<span class="w"> </span>cut<span class="w"> </span>-t<span class="w"> </span>-f<span class="w"> </span>updated_taxid,reads<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>csvtk<span class="w"> </span>rename<span class="w"> </span>-t<span class="w"> </span>-f<span class="w"> </span><span class="m">1</span>,2<span class="w"> </span>-n<span class="w"> </span>taxon,reads<span class="w"> </span>&gt;<span class="w"> </span>updated.tsv
+</span></code></pre></div>
+<h3 id="replace-unclassified-taxids">Replace unclassified taxids</h3>
+<div class="admonition failure">
+<p class="admonition-title">Failure</p>
+<p>Some taxids have no genome data available !</p>
+<p>For example, 60481, 164757 and 189918 correspond to unclassified Shewanella sp. MR-7, Mycobacterium sp. JLS and Mycobacterium sp. KMS, repsectively. </p>
+<p>We can replace unclassified species with other species from the same genus. </p>
+<p>We also add the nb column to tell mess to download one genome per taxon.</p>
+</div>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>cat<span class="w"> </span>updated.tsv<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>csvtk<span class="w"> </span>replace<span class="w"> </span>-t<span class="w"> </span>-f<span class="w"> </span>taxon<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;60481&quot;</span><span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;211586&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>csvtk<span class="w"> </span>replace<span class="w"> </span>-t<span class="w"> </span>-f<span class="w"> </span>taxon<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;164757&quot;</span><span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;83332&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="p">|</span><span class="w"> </span>csvtk<span class="w"> </span>replace<span class="w"> </span>-t<span class="w"> </span>-f<span class="w"> </span>taxon<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;189918&quot;</span><span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;557599&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span>&gt;<span class="w"> </span>clean.tsv
+</span></code></pre></div>
+<h3 id="subsample">Subsample</h3>
+<p>For a quick run (~ 5 min with 10 threads), we can subset the top 10 most abundant taxa for our simulation.</p>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>csvtk<span class="w"> </span>head<span class="w"> </span>-t<span class="w"> </span>-n<span class="w"> </span><span class="m">10</span><span class="w"> </span>clean.tsv<span class="w"> </span>&gt;<span class="w"> </span>subsample.tsv
+</span></code></pre></div>
+<details class="example">
+<summary>subsample.tsv</summary>
+<table>
+<thead>
+<tr>
+<th>taxon</th>
+<th>reads</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>562</td>
+<td>1449813</td>
+</tr>
+<tr>
+<td>1396</td>
+<td>1288824</td>
+</tr>
+<tr>
+<td>1280</td>
+<td>1212241</td>
+</tr>
+<tr>
+<td>1076</td>
+<td>824296</td>
+</tr>
+<tr>
+<td>83332</td>
+<td>699935</td>
+</tr>
+<tr>
+<td>148447</td>
+<td>656706</td>
+</tr>
+<tr>
+<td>132919</td>
+<td>622314</td>
+</tr>
+<tr>
+<td>272131</td>
+<td>590648</td>
+</tr>
+<tr>
+<td>303</td>
+<td>515978</td>
+</tr>
+<tr>
+<td>32046</td>
+<td>466493</td>
+</tr>
+</tbody>
+</table>
+</details>
+<h2 id="simulate">Simulate</h2>
+<p>Now that we cleaned up and subsampled bracken's taxonomic profile we can use it for <code>mess run</code>.</p>
+<p>By default, mess downloads 1 reference genome per taxon and excludes atypical genomes (see <a href="../guide/download.md">download guide</a>.
+)
+For read simulation, the default parameters generate paired 150 bp illumina reads using art_illumina's HiSeq 2500 error profile.</p>
+<p>Using the <code>--bam</code> flag yields an alignment file and a ground truth taxonomic profile. 
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>mess<span class="w"> </span>run<span class="w"> </span>-i<span class="w"> </span>subsample.tsv<span class="w"> </span>--bam<span class="w"> </span>--threads<span class="w"> </span><span class="m">10</span>
+</span></code></pre></div></p>
+<h2 id="output">Output</h2>
+<h3 id="fastq">fastq</h3>
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>$<span class="w"> </span>seqkit<span class="w"> </span>stats<span class="w"> </span>mess_out/fastq/*.fq.gz<span class="w"> </span>--all
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>processed<span class="w"> </span>files:<span class="w">  </span><span class="m">2</span><span class="w"> </span>/<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">[======================================]</span><span class="w"> </span>ETA:<span class="w"> </span>0s.<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>file<span class="w">                               </span>format<span class="w">  </span><span class="nb">type</span><span class="w">   </span>num_seqs<span class="w">        </span>sum_len<span class="w">  </span>min_len<span class="w">  </span>avg_len<span class="w">  </span>max_len<span class="w">   </span>Q1<span class="w">   </span>Q2<span class="w">   </span>Q3<span class="w">  </span>sum_gap<span class="w">  </span>N50<span class="w">  </span>Q20<span class="o">(</span>%<span class="o">)</span><span class="w">  </span>Q30<span class="o">(</span>%<span class="o">)</span><span class="w">  </span>AvgQual<span class="w">  </span>GC<span class="o">(</span>%<span class="o">)</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>mess_out/fastq/subsample_R1.fq.gz<span class="w">  </span>FASTQ<span class="w">   </span>DNA<span class="w">   </span><span class="m">8</span>,326,992<span class="w">  </span><span class="m">1</span>,249,048,800<span class="w">      </span><span class="m">150</span><span class="w">      </span><span class="m">150</span><span class="w">      </span><span class="m">150</span><span class="w">  </span><span class="m">150</span><span class="w">  </span><span class="m">150</span><span class="w">  </span><span class="m">150</span><span class="w">        </span><span class="m">0</span><span class="w">  </span><span class="m">150</span><span class="w">   </span><span class="m">98</span>.01<span class="w">   </span><span class="m">91</span>.67<span class="w">    </span><span class="m">27</span>.79<span class="w">  </span><span class="m">50</span>.76
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>mess_out/fastq/subsample_R2.fq.gz<span class="w">  </span>FASTQ<span class="w">   </span>DNA<span class="w">   </span><span class="m">8</span>,326,992<span class="w">  </span><span class="m">1</span>,249,048,800<span class="w">      </span><span class="m">150</span><span class="w">      </span><span class="m">150</span><span class="w">      </span><span class="m">150</span><span class="w">  </span><span class="m">150</span><span class="w">  </span><span class="m">150</span><span class="w">  </span><span class="m">150</span><span class="w">        </span><span class="m">0</span><span class="w">  </span><span class="m">150</span><span class="w">   </span><span class="m">97</span>.31<span class="w">   </span><span class="m">89</span>.64<span class="w">    </span><span class="m">26</span>.51<span class="w">  </span><span class="m">50</span>.76
+</span></code></pre></div>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Total read count correspond to the one requested in the input (256 reads difference) </li>
+</ul>
+<h3 id="taxonomic-profile">Taxonomic profile</h3>
+<p>Kraken2 composition</p>
+<table>
+<thead>
+<tr>
+<th>taxon</th>
+<th>reads</th>
+<th>seq_abundance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>562</td>
+<td>1449813</td>
+<td>0.17410469821482438</td>
+</tr>
+<tr>
+<td>1396</td>
+<td>1288824</td>
+<td>0.15477190063271803</td>
+</tr>
+<tr>
+<td>1280</td>
+<td>1212241</td>
+<td>0.14557522485219607</td>
+</tr>
+<tr>
+<td>1076</td>
+<td>824296</td>
+<td>0.09898780485461704</td>
+</tr>
+<tr>
+<td>83332</td>
+<td>699935</td>
+<td>0.08405357928573762</td>
+</tr>
+<tr>
+<td>148447</td>
+<td>656706</td>
+<td>0.07886230841209485</td>
+</tr>
+<tr>
+<td>132919</td>
+<td>622314</td>
+<td>0.07473225248005103</td>
+</tr>
+<tr>
+<td>272131</td>
+<td>590648</td>
+<td>0.07092955559868037</td>
+</tr>
+<tr>
+<td>303</td>
+<td>515978</td>
+<td>0.06196260757455525</td>
+</tr>
+<tr>
+<td>32046</td>
+<td>466493</td>
+<td>0.056020068094525345</td>
+</tr>
+</tbody>
+</table>
+<p>Simulated composition </p>
+<p>I calculated sequence abundances from true read counts in <code>logs/coverage/subsample.tsv</code>, and added each genomes taxid at species level (with <code>taxonkit reformat --show-lineage-taxids</code>).</p>
+<table>
+<thead>
+<tr>
+<th>taxon</th>
+<th>reads</th>
+<th>seq_abundance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>562</td>
+<td>1449799</td>
+<td>0.1741083695048584</td>
+</tr>
+<tr>
+<td>1396</td>
+<td>1288786</td>
+<td>0.1547720953736955</td>
+</tr>
+<tr>
+<td>1280</td>
+<td>1212160</td>
+<td>0.1455699729265982</td>
+</tr>
+<tr>
+<td>1076</td>
+<td>824275</td>
+<td>0.0989883261566721</td>
+</tr>
+<tr>
+<td>1773</td>
+<td>699930</td>
+<td>0.0840555629211604</td>
+</tr>
+<tr>
+<td>148447</td>
+<td>656686</td>
+<td>0.0788623310794582</td>
+</tr>
+<tr>
+<td>132919</td>
+<td>622291</td>
+<td>0.0747317879013213</td>
+</tr>
+<tr>
+<td>272131</td>
+<td>590622</td>
+<td>0.0709286138379861</td>
+</tr>
+<tr>
+<td>303</td>
+<td>515970</td>
+<td>0.0619635517843658</td>
+</tr>
+<tr>
+<td>32046</td>
+<td>466473</td>
+<td>0.0560193885138835</td>
+</tr>
+</tbody>
+</table>
+<p>I used a wilcoxon test to compare abundances
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">wilcoxon</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">delta</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">real_df</span><span class="p">[</span><span class="s2">&quot;seq_abundance&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">sim_df</span><span class="p">[</span><span class="s2">&quot;seq_abundance&quot;</span><span class="p">])</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">wilcoxon</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">WilcoxonResult</span><span class="p">(</span><span class="n">statistic</span><span class="o">=</span><span class="mf">24.0</span><span class="p">,</span> <span class="n">pvalue</span><span class="o">=</span><span class="mf">0.76953125</span><span class="p">)</span>
+</span></code></pre></div></p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Non significant difference in sequence abundance between the simulated and real sample (mean delta = <span class="arithmatex">\({1.47}^{-06}\)</span>, <span class="arithmatex">\(p=0.77\)</span>) </li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "navigation.sections", "navigation.prune", "navigation.indexes", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.525ec568.min.js"></script>
+      
+        <script src="../../../javascripts/katex.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.js"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/auto-render.min.js"></script>
+      
+    
+  </body>
+</html>
