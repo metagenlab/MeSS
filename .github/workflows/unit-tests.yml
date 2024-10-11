@@ -11,15 +11,6 @@ on:
       - "!.github/workflows/build-docs.yml"
       - "!docs/**"
       - "!mkdocs.yml"
-  pull_request:
-    paths:
-      - ".github/workflows/unit-tests.yml"
-      - "tests/**"
-      - "mess/**"
-      - "setup.py"
-      - "!.github/workflows/build-docs.yml"
-      - "!docs/**"
-      - "!mkdocs.yml"
 
 permissions:
   contents: read
