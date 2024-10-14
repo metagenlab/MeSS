@@ -249,6 +249,13 @@ def sim_options(func):
             required=False,
         ),
         click.option(
+            "--rotate",
+            help="Number of times to shuffle genome breakpoints for circular genomes",
+            type=int,
+            default=1,
+            show_default=True,
+        ),
+        click.option(
             "--tech",
             help="Sequencing technology",
             type=click.Choice(["illumina", "pacbio", "nanopore"], case_sensitive=False),
