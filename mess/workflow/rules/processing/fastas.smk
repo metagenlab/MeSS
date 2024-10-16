@@ -64,31 +64,25 @@ if ROTATE > 1:
 
     rule rotate_contigs:
         input:
-            os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna"),
+            fa=os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna"),
+            df=get_cov_table,
         output:
-            os.path.join(
-                dir.out.processing, "split", "{sample}", "{fasta}_{contig}_{n}.fna"
-            ),
+            os.path.join(dir.out.processing, "rotate", "{fasta}_{contig}_{n}.fna"),
         params:
-            lambda wildcards: get_value("contig_start", wildcards),
-        log:
-            os.path.join(
-                dir.out.logs,
-                "seqkit",
-                "restart",
-                "{sample}",
-                "{fasta}_{contig}_{n}.log",
-            ),
+            random_start=get_random_start,
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
-        threads: config.resources.sml.cpu
-        conda:
-            os.path.join(dir.conda, "seqkit.yml")
-        container:
-            containers.seqkit
-        shell:
-            """
-            seqkit restart -i {params} {input} > {output}
-            """
+        run:
+            for record in SeqIO.parse(input[0], "fasta"):
+                header = record.id + "_" + wildcards.n
+                record.name = header
+                record.id = header
+                record.description = header
+                record.seq = (
+                    record.seq[params.random_start :]
+                    + record.seq[: params.random_start]
+                )
+                SeqIO.write(record, output[0], "fasta")
+
