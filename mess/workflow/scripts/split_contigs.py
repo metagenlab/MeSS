@@ -7,7 +7,7 @@ import random
 
 def get_random_start(seed, contig_length, n):
     random.seed(seed)
-    return [random.randint(1, contig_length) for _ in range(n)]
+    return [random.randint(0, contig_length - 1) for _ in range(n)]
 
 
 def split_fasta(fa, outdir):
@@ -36,14 +36,14 @@ df = pd.merge(contig_df, cov_df, how="left", on="fasta")
 cols = ["samplename", "fasta", "contig", "contig_length", "tax_id", "seed", "cov_sim"]
 
 if snakemake.params.rotate > 1:
-    cols += ["n", "contig_start"]
-    df["contig_start"] = df.apply(
+    cols += ["n", "random_start"]
+    df["random_start"] = df.apply(
         lambda row: get_random_start(
             row["seed"], row["contig_length"], snakemake.params.rotate
         ),
         axis=1,
     )
-    df_expanded = df.explode("contig_start").reset_index(drop=True)
+    df_expanded = df.explode("random_start").reset_index(drop=True)
     df_expanded["n"] = df_expanded.groupby(["samplename", "contig"]).cumcount() + 1
     df = df_expanded
     df["cov_sim"] = df["cov_sim"] / snakemake.params.rotate
