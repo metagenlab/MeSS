@@ -1,20 +1,25 @@
 prefix = os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}")
+fasta = os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna")
+if ROTATE > 1:
+    prefix = os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_{n}")
+    fasta = os.path.join(dir.out.processing, "rotate", "{fasta}_{contig}_{n}.fna")
+id_prefix = os.path.basename(prefix)
+
 if PASSES > 1:
-    pbsim3_out = temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.sam"))
+    pbsim3_out = temp(prefix + ".sam")
     rename = f"mv {prefix}_0001.sam {prefix}.sam"
 else:
-    pbsim3_out = temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.fq"))
+    pbsim3_out = temp(prefix + ".fq")
     rename = f"mv {prefix}_0001.fastq {prefix}.fq"
 
 
 rule pbsim3:
     input:
-        fa=os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna"),
-        df=get_cov_table,
+        fa=fasta,
     output:
         pbsim3_out,
-        temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.maf")),
-        temp(os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.ref")),
+        temp(prefix + ".maf"),
+        temp(prefix + ".ref"),
     params:
         model=os.path.join(MODEL_PATH, f"{MODEL}.model"),
         ratio=RATIO,
@@ -24,14 +29,17 @@ rule pbsim3:
         maxlen=MAX_LEN,
         passes=PASSES,
         accuracy=ACCURACY,
-        cov=lambda wildcards, input: get_value(input.df, wildcards, "cov_sim"),
-        seed=lambda wildcards, input: int(get_value(input.df, wildcards, "seed")),
+        cov=lambda wildcards: get_value("cov_sim", wildcards),
+        seed=lambda wildcards: int(get_value("seed", wildcards)),
         prefix=prefix,
+        id_prefix=id_prefix,
         reads_rename=rename,
-    benchmark:
-        os.path.join(dir.out.bench, "pbsim3", "{sample}", "{fasta}", "{contig}.txt")
     log:
-        os.path.join(dir.out.logs, "pbsim3", "{sample}", "{fasta}", "{contig}.log"),
+        os.path.join(dir.out.logs, "pbsim3", "{sample}", "{fasta}", "{contig}.log")
+        if ROTATE == 1
+        else os.path.join(
+            dir.out.logs, "pbsim3", "{sample}", "{fasta}", "{contig}_{n}.log"
+        ),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -43,7 +51,7 @@ rule pbsim3:
     shell:
         """
         pbsim --strategy wgs --method qshmm \\
-        --id-prefix {wildcards.contig} \\
+        --id-prefix {params.id_prefix} \\
         --difference-ratio {params.ratio} \\
         --length-min {params.minlen} \\
         --length-max {params.maxlen} \\
