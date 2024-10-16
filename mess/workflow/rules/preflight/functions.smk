@@ -89,8 +89,6 @@ def list_fastas(wildcards):
 
 
 table_cache = {}
-
-
 def get_value(value, wildcards):
 
     vals = (
@@ -114,6 +112,24 @@ def get_value(value, wildcards):
         table_cache[table] = df
     df = table_cache[table]
     return df.loc[vals, value]
+
+
+fa_table_cache = {}
+def get_random_start(wildcards):
+    table = checkpoints.split_contigs.get(**wildcards).output[0]
+    if table not in fa_table_cache:
+        df = pd.read_csv(
+            table,
+            sep="\t",
+            index_col=["fasta","contig","n"]
+        )
+        fa_table_cache[table] = df
+    vals=(f"{wildcards.fasta}",f"{wildcards.contig}",int(wildcards.n))
+    df = fa_table_cache[table]
+    return df.loc[vals, "random_start"]
+
+
+
 
 
 def get_asm_summary(wildcards):
@@ -165,13 +181,23 @@ def aggregate(wildcards, outdir, level, ext):
                 )
 
         else:
-            return expand(
-                os.path.join(outdir, "{sample}", "{fasta}", "{contig}.{ext}"),
-                sample=wildcards.sample,
-                fasta=wildcards.fasta,
-                contig=contigs,
-                ext=ext,
-            )
+            if ROTATE > 1:
+                return expand(
+                    os.path.join(outdir, "{sample}", "{fasta}", "{contig}_{n}.{ext}"),
+                    sample=wildcards.sample,
+                    fasta=wildcards.fasta,
+                    contig=contigs,
+                    n=list(range(1, ROTATE + 1)),
+                    ext=ext,
+                )
+            else:
+                return expand(
+                    os.path.join(outdir, "{sample}", "{fasta}", "{contig}.{ext}"),
+                    sample=wildcards.sample,
+                    fasta=wildcards.fasta,
+                    contig=contigs,
+                    ext=ext,
+                )
     if level == "fasta":
         df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
         fastas = list(set(df.loc[wildcards.sample].index))
