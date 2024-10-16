@@ -38,14 +38,13 @@ if not PAIRED:
 
 fasta = os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna")
 if ROTATE > 1:
-    fasta = os.path.join(
-        dir.out.processing, "split", "{sample}", "{fasta}_{contig}_{n}.fna"
-    )
+    fasta = os.path.join(dir.out.processing, "rotate", "{fasta}_{contig}_{n}.fna")
 
 
 rule art_illumina:
     input:
         fa=fasta,
+        df=get_cov_table,
     output:
         sam=sam_out,
         fastqs=fastq_out,
