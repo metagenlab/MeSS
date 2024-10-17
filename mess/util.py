@@ -116,7 +116,6 @@ def run_snakemake(
             if prefix:
                 snake_command += ["--conda-prefix", prefix]
         if sdm == "apptainer":
-
             snake_command += [
                 f"--sdm apptainer --apptainer-args '-B {workflow_basedir}:{workflow_basedir}'"
             ]
@@ -250,7 +249,7 @@ def sim_options(func):
         ),
         click.option(
             "--rotate",
-            help="Number of times to shuffle genome breakpoints for circular genomes",
+            help="Number of times to shuffle genome start for circular assemblies (2 or more for circular)",
             type=int,
             default=1,
             show_default=True,

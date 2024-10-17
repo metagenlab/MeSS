@@ -105,7 +105,11 @@ cmd_sim_options = (
 local_sim_options = (
     {
         "name": "Local genomes options",
-        "options": ["--asm-summary", "--fasta"],
+        "options": [
+            "--asm-summary",
+            "--fasta",
+            "--rotate",
+        ],
     },
 )
 
