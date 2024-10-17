@@ -12,7 +12,7 @@ def tmp_dir(tmpdir_factory):
 
 test_data_path = Path("mess/test_data")
 outdir = Path("test_out")
-threads = 2
+threads = 4
 
 
 def remove_directory(dir_path):
@@ -77,6 +77,6 @@ def test_simulate_nanopore():
 
 
 def test_simulate_pacbio():
-    """mess simulate pacbio reads"""
-    exec_command(" ".join(cmd) + " --tech pacbio --bam")
+    """mess simulate pacbio hifi reads"""
+    exec_command(" ".join(cmd) + " --tech pacbio --error hifi --bam")
     remove_directory(outdir)
