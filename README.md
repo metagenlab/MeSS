@@ -76,9 +76,9 @@ More details can be found in the [documentation](https://metagenlab.github.io/Me
 
 ## :zap: Quick start 
 ### :gear: Installation
-Mamba
+[Conda](https://github.com/conda-forge/miniforge)
 ```sh
-mamba create -n mess mess
+conda create -n mess mess
 ```
 
 Docker
@@ -152,7 +152,6 @@ On average, using `samples.tsv` (see [table](#arrow_right-input)), MeSS runs in 
 
 > [!NOTE]
 > Average resources usage measured 3 times with one CPU (within a [nextflow](https://github.com/nextflow-io/nextflow) process)
-
 > Resources usage was measured exluding dependencies deployement time (conda env creation or container pulling)
 
 
