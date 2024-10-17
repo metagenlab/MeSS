@@ -98,7 +98,10 @@ include: os.path.join("rules", "preflight", "setup.smk")
 include: os.path.join("rules", "download", "assembly_finder.smk")
 # calculate coverages
 include: os.path.join("rules", "processing", "coverages.smk")
-# fasta processing rules
+
+
+# fasta processing options
+ROTATE = config.args.rotate
 include: os.path.join("rules", "processing", "fastas.smk")
 
 
