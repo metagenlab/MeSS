@@ -69,20 +69,26 @@ if ROTATE > 1:
         output:
             os.path.join(dir.out.processing, "rotate", "{fasta}_{contig}_{n}.fna"),
         params:
-            random_start=get_random_start,
+            get_random_start,
+        log:
+            os.path.join(
+                dir.out.logs,
+                "seqkit",
+                "restart",
+                "{fasta}_{contig}_{n}.log",
+            ),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
-        run:
-            for record in SeqIO.parse(input[0], "fasta"):
-                header = record.id + "_" + wildcards.n
-                record.name = header
-                record.id = header
-                record.description = header
-                record.seq = (
-                    record.seq[params.random_start :]
-                    + record.seq[: params.random_start]
-                )
-                SeqIO.write(record, output[0], "fasta")
-
+        threads: config.resources.sml.cpu
+        conda:
+            os.path.join(dir.conda, "seqkit.yml")
+        container:
+            containers.seqkit
+        shell:
+            """
+            seqkit restart -i {params} {input.fa} | \
+            seqkit seq -i | \
+            seqkit replace -p .+ -r {wildcards.contig}_{wildcards.n} > {output}
+            """
