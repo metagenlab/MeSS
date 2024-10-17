@@ -76,7 +76,7 @@ More details can be found in the [documentation](https://metagenlab.github.io/Me
 
 ## :zap: Quick start 
 ### :gear: Installation
-[Conda](https://github.com/conda-forge/miniforge)
+Conda ([Miniforge](https://github.com/conda-forge/miniforge))
 ```sh
 conda create -n mess mess
 ```
@@ -105,38 +105,45 @@ Let's simulate two metagenomic samples with the following taxa and read counts i
 | sample2  | 729   | 131300 |
 
 #### :rocket: Command
-Let's run MeSS (using apptainer as the software deployment method) !
+Let's run MeSS !
 ```sh
-mess run -i samples.tsv --sdm apptainer 
+mess run -i samples.tsv
 ```
+> [!NOTE]
+> [Apptainer](https://apptainer.org/) is the default and recommended dependency deployment method for maximum reproducibility ! If you would like to use conda you can specify `--sdm conda`.
+
 #### :card_index_dividers: Outputs
 
+* Genomes
+
+`mess_out/assembly_finder/download`
+
 ```sh
-📦mess_out
- ┣ 📂assembly_finder
- ┃ ┣ 📂download
- ┃ ┃ ┣ 📂GCF_000144405.1
- ┃ ┃ ┃ ┗ 📜GCF_000144405.1_ASM14440v1_genomic.fna.gz
- ┃ ┃ ┣ 📂GCF_001298465.1
- ┃ ┃ ┃ ┗ 📜GCF_001298465.1_ASM129846v1_genomic.fna.gz
- ┃ ┃ ┣ 📂GCF_016127215.1
- ┃ ┃ ┃ ┗ 📜GCF_016127215.1_ASM1612721v1_genomic.fna.gz
- ┃ ┃ ┣ 📂GCF_020736045.1
- ┃ ┃ ┃ ┗ 📜GCF_020736045.1_ASM2073604v1_genomic.fna.gz
- ┃ ┃ ┣ 📂GCF_022869645.1
- ┃ ┃ ┃ ┗ 📜GCF_022869645.1_ASM2286964v1_genomic.fna.gz
- ┃ ┃ ┗ 📜.snakemake_timestamp
- ┣ 📂fastq
- ┃ ┣ 📜sample1_R1.fq.gz
- ┃ ┣ 📜sample1_R2.fq.gz
- ┃ ┣ 📜sample2_R1.fq.gz
- ┃ ┗ 📜sample2_R2.fq.gz
- ┣ 📜config.yaml
- ┣ 📜coverages.tsv
- ┗ 📜mess.log
+┣ 📂GCF_000144405.1
+┃ ┗ 📜GCF_000144405.1_ASM14440v1_genomic.fna.gz
+┣ 📂GCF_001298465.1
+┃ ┗ 📜GCF_001298465.1_ASM129846v1_genomic.fna.gz
+┣ 📂GCF_016127215.1
+┃ ┗ 📜GCF_016127215.1_ASM1612721v1_genomic.fna.gz
+┣ 📂GCF_020736045.1
+┃ ┗ 📜GCF_020736045.1_ASM2073604v1_genomic.fna.gz
+┣ 📂GCF_022869645.1
+ ┗ 📜GCF_022869645.1_ASM2286964v1_genomic.fna.gz
 ```
 
-Outputs described in more details [here](https://metagenlab.github.io/MeSS/guide/output/)
+* Reads
+
+`mess_out/fastq`
+```sh
+┣ 📜sample1_R1.fq.gz
+┣ 📜sample1_R2.fq.gz
+┣ 📜sample2_R1.fq.gz
+┗ 📜sample2_R2.fq.gz
+```
+
+
+> [!TIP]
+> By default `mess` outputs paired illumina reads with the Hiseq25k error profile. Other outputs, and error profiles are described [here](https://metagenlab.github.io/MeSS/guide/output/) and [here](https://metagenlab.github.io/MeSS/tutorials/seqtech/)
 
 #### :bar_chart: Resources usage
 
@@ -149,18 +156,49 @@ On average, using `samples.tsv` (see [table](#arrow_right-input)), MeSS runs in 
 | 1       | 07/d352bf | 83576     | MESS (1) | COMPLETED | 0    | 2024-09-04 12:57:30.600 | 1m 50s   | 1m 50s   | 113.2% | 1.7 GB   | 8.9 GB    | 3.5 GB | 2.4 GB |
 
 
-
 > [!NOTE]
-> Average resources usage measured 3 times with one CPU (within a [nextflow](https://github.com/nextflow-io/nextflow) process)
-> Resources usage was measured exluding dependencies deployement time (conda env creation or container pulling)
+> Average resources usage measured 3 times with one CPU (using [nextflow](https://github.com/nextflow-io/nextflow), excluding  dependency deployment time).
+
+More details in the [resource usage documentation](https://metagenlab.github.io/MeSS/benchmarks/resource-usage/)
+
+## :fire: Features
+### :dna: Multi sequencing technology choice 
+
+#### Illumina
+
+```sh
+mess test --tech illumina
+```
+
+#### Nanopore
+
+```sh
+mess test --tech nanopore
+```
+
+#### PacBio
+
+```sh
+mess test --tech pacbio
+```
+
+### :white_check_mark: Ground truth BAM and taxonomic profiles 
+
+```sh
+mess test --bam 
+```
+
+### :o: Circular genomes
+
+```sh
+mess test --rotate 3 
+```
 
 
-
-More details on resource usage in the [documentation](https://metagenlab.github.io/MeSS/benchmarks/resource-usage/)
 
 
 ## :sos: Help
 
-More details on command-line options in the [doc](https://metagenlab.github.io/MeSS/commands/)
+All command-line options at described [here](https://metagenlab.github.io/MeSS/commands/)
 
 ![`mess -h`](docs/images/mess-help.svg)
