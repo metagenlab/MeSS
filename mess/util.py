@@ -193,8 +193,8 @@ def common_options(func):
         ),
         click.option(
             "--sdm",
-            type=click.Choice(["conda", "apptainer"]),
-            default="conda",
+            type=click.Choice(["apptainer", "conda"]),
+            default="apptainer",
             help="Software deplolyment method",
             show_default=True,
         ),
