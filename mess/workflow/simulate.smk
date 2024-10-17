@@ -77,6 +77,12 @@ MEAN_LEN = config.args.mean_len
 
 # calculate coverages
 include: os.path.join("rules", "processing", "coverages.smk")
+
+
+# fasta processing options
+ROTATE = config.args.rotate
+
+
 include: os.path.join("rules", "processing", "fastas.smk")
 
 

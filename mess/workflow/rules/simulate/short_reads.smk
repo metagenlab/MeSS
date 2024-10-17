@@ -19,25 +19,31 @@ if BAM:
     art_args += "-sam -M"
 
 
-sam_out = temp(os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}.txt"))
+fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}")
+if ROTATE > 1:
+    fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}_{n}")
+
+sam_out = temp(fq_prefix + ".txt")
 if BAM:
-    sam_out = temp(os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}.sam"))
+    sam_out = temp(temp(fq_prefix + ".sam"))
 
 
 fastq_out = [
-    temp(os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}1.fq")),
-    temp(os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}2.fq")),
+    temp(fq_prefix + "1.fq"),
+    temp(fq_prefix + "2.fq"),
 ]
 
-fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}")
-
 if not PAIRED:
-    fastq_out = temp(os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}.fq"))
+    fastq_out = temp(fq_prefix + ".fq")
+
+fasta = os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna")
+if ROTATE > 1:
+    fasta = os.path.join(dir.out.processing, "rotate", "{fasta}_{contig}_{n}.fna")
 
 
 rule art_illumina:
     input:
-        fa=os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna"),
+        fa=fasta,
         df=get_cov_table,
     output:
         sam=sam_out,
@@ -45,13 +51,15 @@ rule art_illumina:
     params:
         args=art_args,
         read_len=MEAN_LEN,
-        cov=lambda wildcards, input: get_value(input.df, wildcards, "cov_sim"),
-        seed=lambda wildcards, input: int(get_value(input.df, wildcards, "seed")),
+        cov=lambda wildcards: get_value("cov_sim", wildcards),
+        seed=lambda wildcards: int(get_value("seed", wildcards)),
         prefix=fq_prefix,
-    benchmark:
-        os.path.join(dir.out.bench, "art", "{sample}", "{fasta}", "{contig}.txt")
     log:
-        os.path.join(dir.out.logs, "art", "{sample}", "{fasta}", "{contig}.log"),
+        os.path.join(dir.out.logs, "art", "{sample}", "{fasta}", "{contig}.log")
+        if ROTATE == 1
+        else os.path.join(
+            dir.out.logs, "art", "{sample}", "{fasta}", "{contig}_{n}.log"
+        ),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",

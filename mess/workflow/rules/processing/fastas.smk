@@ -50,9 +50,45 @@ checkpoint split_contigs:
     output:
         tsv=os.path.join(dir.out.processing, "cov.tsv"),
         dir=directory(os.path.join(dir.out.processing, "split")),
+    params:
+        rotate=ROTATE,
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
     script:
         os.path.join(dir.scripts, "split_contigs.py")
+
+
+if ROTATE > 1:
+
+    rule rotate_contigs:
+        input:
+            fa=os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna"),
+            df=get_cov_table,
+        output:
+            os.path.join(dir.out.processing, "rotate", "{fasta}_{contig}_{n}.fna"),
+        params:
+            get_random_start,
+        log:
+            os.path.join(
+                dir.out.logs,
+                "seqkit",
+                "restart",
+                "{fasta}_{contig}_{n}.log",
+            ),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.sml.cpu
+        conda:
+            os.path.join(dir.conda, "seqkit.yml")
+        container:
+            containers.seqkit
+        shell:
+            """
+            seqkit restart -i {params} {input.fa} | \
+            seqkit seq -i | \
+            seqkit replace -p .+ -r {wildcards.contig}_{wildcards.n} > {output}
+            """

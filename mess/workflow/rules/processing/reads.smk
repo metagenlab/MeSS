@@ -1,8 +1,11 @@
 fastq_dir = dir.out.long
-sam_in = os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.sam")
+contig = "{contig}"
+if ROTATE > 1:
+    contig = "{contig}_{n}"
+sam_in = os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".sam")
 if SEQ_TECH == "illumina":
     fastq_dir = dir.out.short
-    sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fixed")
+    sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".fixed")
 
 fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq")
 fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq.gz"))
@@ -15,7 +18,7 @@ if PASSES > 1:
 
     rule ccs_sam_to_bam:
         input:
-            os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.sam"),
+            os.path.join(dir.out.long, "{sample}", "{fasta}", contig + ".sam"),
         output:
             temp(
                 os.path.join(
@@ -23,19 +26,11 @@ if PASSES > 1:
                     "ccs",
                     "{sample}",
                     "{fasta}",
-                    "{contig}.ccs.bam",
+                    contig + ".ccs.bam",
                 )
             ),
-        benchmark:
-            os.path.join(
-                dir.out.bench,
-                "samtools",
-                "sam2bam",
-                "{sample}",
-                "{fasta}_{contig}.txt",
-            )
         log:
-            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
+            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", contig + ".log"),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
@@ -53,14 +48,16 @@ if PASSES > 1:
 
     rule ccs_bam_to_fastq:
         input:
-            os.path.join(dir.out.base, "ccs", "{sample}", "{fasta}", "{contig}.ccs.bam"),
+            os.path.join(
+                dir.out.base, "ccs", "{sample}", "{fasta}", contig + ".ccs.bam"
+            ),
         output:
             fq=temp(
                 os.path.join(
                     dir.out.long,
                     "{sample}",
                     "{fasta}",
-                    "{contig}.fq.gz",
+                    contig + ".fq.gz",
                 )
             ),
             json=temp(
@@ -68,13 +65,11 @@ if PASSES > 1:
                     dir.out.long,
                     "{sample}",
                     "{fasta}",
-                    "{contig}.zmw_metrics.json.gz",
+                    contig + ".zmw_metrics.json.gz",
                 )
             ),
-        benchmark:
-            os.path.join(dir.out.bench, "ccs", "{sample}", "{fasta}", "{contig}.txt")
         log:
-            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", "{contig}.log"),
+            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", contig + ".log"),
         params:
             passes=PASSES,
             accuracy=ACCURACY,
@@ -100,10 +95,10 @@ if BAM:
 
     rule add_reference_name:
         input:
-            maf=os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.maf"),
-            fa=os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}.ref"),
+            maf=os.path.join(dir.out.long, "{sample}", "{fasta}", contig + ".maf"),
+            fa=os.path.join(dir.out.long, "{sample}", "{fasta}", contig + ".ref"),
         output:
-            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.maf")),
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".maf")),
         params:
             seqname=lambda wildcards, input: get_header(input.fa),
         resources:
@@ -117,24 +112,16 @@ if BAM:
 
     rule convert_maf_to_sam:
         input:
-            os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.maf"),
+            os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".maf"),
         output:
-            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.sam")),
-        benchmark:
-            os.path.join(
-                dir.out.logs,
-                "bioconvert",
-                "maf2sam",
-                "{sample}",
-                "{fasta}_{contig}.txt",
-            )
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".sam")),
         log:
             os.path.join(
                 dir.out.logs,
                 "bioconvert",
                 "maf2sam",
                 "{sample}",
-                "{fasta}_{contig}.log",
+                "{fasta}" + "_" + contig + ".log",
             ),
         resources:
             mem_mb=config.resources.sml.mem,
@@ -157,9 +144,9 @@ rule fix_art_sam:
     Fixes truncated art_illumina SAM files with some genomes
     """
     input:
-        os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.sam"),
+        os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".sam"),
     output:
-        temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fixed")),
+        temp(os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".fixed")),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -178,10 +165,14 @@ rule convert_sam_to_bam:
     input:
         sam_in,
     output:
-        temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", "{contig}.bam")),
+        temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".bam")),
     log:
         os.path.join(
-            dir.out.logs, "bioconvert", "sam2bam", "{sample}", "{fasta}{contig}.log"
+            dir.out.logs,
+            "bioconvert",
+            "sam2bam",
+            "{sample}",
+            "{fasta}" + contig + ".log",
         ),
     resources:
         mem_mb=config.resources.sml.mem,
@@ -288,7 +279,7 @@ rule get_bam_coverage:
         containers.bioconvert
     shell:
         """
-        samtools coverage {input} | tee {output} {log}
+        samtools coverage {input} > {output} 2> {log}
         """
 
 
@@ -306,10 +297,12 @@ rule get_tax_profile:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     params:
-        paired=PAIRED,
+        rotate=ROTATE,
     run:
         tax_df = pd.read_csv(input.tax, sep="\t")
         tax_df = tax_df[tax_df.samplename == wildcards.sample]
+        if params.rotate > 1:
+            tax_df["contig"] = tax_df["contig"] + "_" + tax_df["n"].astype(str)
         cov_df = pd.read_csv(input.cov, sep="\t")
         cov_df.rename(columns={"#rname": "contig"}, inplace=True)
         merge_df = tax_df.merge(cov_df)
