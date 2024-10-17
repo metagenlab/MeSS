@@ -9,6 +9,8 @@ on:
       - "tests/**"
       - "mess/**"
       - "setup.py"
+      - "!.github/workflows/build-docs.yml"
+      - "!mkdocs.yml"
       - "!docs/**"
       - "!README.md"
 
