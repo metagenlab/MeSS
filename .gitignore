@@ -16,4 +16,5 @@ tests/__pycache__
 .snakemake
 *.sif
 mess_out
+test_out
 .taxonkit
