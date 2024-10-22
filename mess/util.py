@@ -429,7 +429,7 @@ def sim_options(func):
             "--errfree",
             help="Generate a zero sequencing errors SAM file",
             is_flag=True,
-            default=True,
+            default=False,
             show_default=True,
         ),
     ]
