@@ -425,6 +425,13 @@ def sim_options(func):
             default=1,
             show_default=True,
         ),
+        click.option(
+            "--errfree",
+            help="Generate a zero sequencing errors SAM file",
+            is_flag=True,
+            default=True,
+            show_default=True,
+        ),
     ]
 
     for option in reversed(options):

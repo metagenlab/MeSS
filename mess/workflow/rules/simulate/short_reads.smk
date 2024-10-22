@@ -16,17 +16,18 @@ if PAIRED:
 
 
 if BAM:
-    art_args += "-sam -M"
+    art_args += "-sam -M "
+
+if ERRFREE:
+    art_args += "-ef "
 
 
 fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}")
 if ROTATE > 1:
     fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}_{n}")
 
-sam_out = temp(fq_prefix + ".txt")
-if BAM:
-    sam_out = temp(temp(fq_prefix + ".sam"))
-
+sam_out = temp(fq_prefix + ".sam") if BAM else temp(fq_prefix + ".txt")
+sam_ef_out = temp(fq_prefix + "_ef.sam") if ERRFREE else temp(fq_prefix + "_ef.txt")
 
 fastq_out = [
     temp(fq_prefix + "1.fq"),
@@ -48,6 +49,7 @@ rule art_illumina:
     output:
         sam=sam_out,
         fastqs=fastq_out,
+        sam_ef=sam_ef_out,
     params:
         args=art_args,
         read_len=MEAN_LEN,
@@ -75,4 +77,5 @@ rule art_illumina:
         -f {params.cov} -na {params.args} \\
         -o {params.prefix} &> {log}
         touch {output.sam}
+        touch {output.sam_ef}
         """

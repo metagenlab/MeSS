@@ -109,6 +109,7 @@ include: os.path.join("rules", "processing", "fastas.smk")
 CUSTOM_ERR = config.args.custom_err
 ERROR = config.args.error
 BAM = config.args.bam
+ERRFREE = config.args.errfree
 MIN_LEN = config.args.min_len
 MAX_LEN = config.args.max_len
 SD_LEN = config.args.sd_len
