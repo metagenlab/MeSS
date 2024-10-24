@@ -547,7 +547,7 @@ if ERRFREE:
         Fixes truncated art_illumina SAM files with some genomes
         """
         input:
-            os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_ef.sam"),
+            os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
         output:
             temp(os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_ef.fixed")),
         resources:
