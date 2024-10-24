@@ -27,7 +27,7 @@ if ROTATE > 1:
     fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}_{n}")
 
 sam_out = temp(fq_prefix + ".sam") if BAM else temp(fq_prefix + ".txt")
-sam_ef_out = temp(fq_prefix + "_ef.sam") if ERRFREE else temp(fq_prefix + "_ef.txt")
+sam_ef_out = temp(fq_prefix + "_errFree.sam") if ERRFREE else temp(fq_prefix + "_errFree.txt")
 
 fastq_out = [
     temp(fq_prefix + "1.fq"),
