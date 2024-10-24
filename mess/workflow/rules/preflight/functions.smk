@@ -38,6 +38,13 @@ def list_reads(wildcards):
         )
         reads = reads + bams + tax
 
+    if ERRFREE:
+        bams_ef = expand(
+            os.path.join(dir.out.ef, "{sample}.{bam}"),
+            sample=SAMPLES,
+            bam=["bam", "bam.bai"],
+        )
+        reads = reads + bams_ef
     return reads
 
 
