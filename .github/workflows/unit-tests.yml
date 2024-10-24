@@ -2,7 +2,8 @@ name: Tests
 
 on:
   push:
-    branches: [main, dev]
+    branches:
+      - main
     paths:
       - ".github/workflows/unit-tests.yml"
       - "tests/**"
@@ -11,6 +12,17 @@ on:
       - "!.github/workflows/build-docs.yml"
       - "!docs/**"
       - "!mkdocs.yml"
+      - "!README.md"
+  pull_request:
+    paths:
+      - ".github/workflows/unit-tests.yml"
+      - "tests/**"
+      - "mess/**"
+      - "setup.py"
+      - "!.github/workflows/build-docs.yml"
+      - "!docs/**"
+      - "!mkdocs.yml"
+      - "!README.md"
 
 permissions:
   contents: read
