@@ -114,24 +114,6 @@ def get_value(value, wildcards):
     return df.loc[vals, value]
 
 
-fa_table_cache = {}
-def get_random_start(wildcards):
-    table = checkpoints.split_contigs.get(**wildcards).output[0]
-    if table not in fa_table_cache:
-        df = pd.read_csv(
-            table,
-            sep="\t",
-            index_col=["fasta","contig","n"]
-        )
-        fa_table_cache[table] = df
-    vals=(f"{wildcards.fasta}",f"{wildcards.contig}",int(wildcards.n))
-    df = fa_table_cache[table]
-    return df.loc[vals, "random_start"]
-
-
-
-
-
 def get_asm_summary(wildcards):
     try:
         table = checkpoints.download_assemblies.get(**wildcards).output[0]

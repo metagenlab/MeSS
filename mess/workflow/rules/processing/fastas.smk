@@ -64,17 +64,19 @@ if ROTATE > 1:
 
     rule rotate_contigs:
         input:
-            fa=os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna"),
-            df=get_cov_table,
+            os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna"),
         output:
-            os.path.join(dir.out.processing, "rotate", "{fasta}_{contig}_{n}.fna"),
+            os.path.join(
+                dir.out.processing, "rotate", "{sample}", "{fasta}_{contig}_{n}.fna"
+            ),
         params:
-            get_random_start,
+            lambda wildcards: get_value("random_start", wildcards),
         log:
             os.path.join(
                 dir.out.logs,
                 "seqkit",
                 "restart",
+                "{sample}",
                 "{fasta}_{contig}_{n}.log",
             ),
         resources:
@@ -88,7 +90,6 @@ if ROTATE > 1:
             containers.seqkit
         shell:
             """
-            seqkit restart -i {params} {input.fa} | \
-            seqkit seq -i | \
+            seqkit restart -i {params} {input} | \\
             seqkit replace -p .+ -r {wildcards.contig}_{wildcards.n} > {output}
             """

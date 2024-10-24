@@ -2,7 +2,9 @@ prefix = os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}")
 fasta = os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna")
 if ROTATE > 1:
     prefix = os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_{n}")
-    fasta = os.path.join(dir.out.processing, "rotate", "{fasta}_{contig}_{n}.fna")
+    fasta = os.path.join(
+        dir.out.processing, "rotate", "{sample}", "{fasta}_{contig}_{n}.fna"
+    )
 id_prefix = os.path.basename(prefix)
 
 if PASSES > 1:

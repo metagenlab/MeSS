@@ -38,7 +38,9 @@ if not PAIRED:
 
 fasta = os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna")
 if ROTATE > 1:
-    fasta = os.path.join(dir.out.processing, "rotate", "{fasta}_{contig}_{n}.fna")
+    fasta = os.path.join(
+        dir.out.processing, "rotate", "{sample}", "{fasta}_{contig}_{n}.fna"
+    )
 
 
 rule art_illumina:
@@ -56,7 +58,7 @@ rule art_illumina:
         prefix=fq_prefix,
     log:
         os.path.join(dir.out.logs, "art", "{sample}", "{fasta}", "{contig}.log")
-        if ROTATE == 1
+        if not ROTATE == 1
         else os.path.join(
             dir.out.logs, "art", "{sample}", "{fasta}", "{contig}_{n}.log"
         ),
