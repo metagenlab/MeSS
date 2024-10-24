@@ -3,9 +3,12 @@ contig = "{contig}"
 if ROTATE > 1:
     contig = "{contig}_{n}"
 sam_in = os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".sam")
+sam_in_ef = os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".sam")
+
 if SEQ_TECH == "illumina":
     fastq_dir = dir.out.short
     sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".fixed")
+    sam_in_ef = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".fixed")
 
 fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq")
 fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq.gz"))
@@ -535,6 +538,146 @@ if not SKIP_SHUFFLE:
             seqkit seq {input} | seqkit replace \\
             -p .+ -r "{params}" -o {output} 2> {log[0]}
             paste -d '\t' <(seqkit seq -n {output}) <(seqkit seq -n {input}) > {log[1]} 
+            """
+
+if ERRFREE:
+    rule fix_art_sam_ef:
+        """
+        rule to replace SAM cigar string with read length + M
+        Fixes truncated art_illumina SAM files with some genomes
+        """
+        input:
+            os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_ef.sam"),
+        output:
+            temp(os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_ef.fixed")),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        params:
+            maxlen=MEAN_LEN,
+        shell:
+            """
+            awk 'BEGIN {{OFS="\t"}} {{ if ($1 ~ /^@/) {{ print $0 }} \\
+            else {{ $6 = "{params.maxlen}M"; print $0 }} }}' \\
+            {input} > {output}
+            """
+    
+    rule convert_sam_to_bam_ef:
+        input:
+            sam_in_ef,
+        output:
+            temp(os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".bam")),
+        log:
+            os.path.join(
+                dir.out.logs,
+                "bioconvert",
+                "sam2bam",
+                "{sample}",
+                "{fasta}" + contig + "_ef.log",
+            ),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.sml.cpu
+        conda:
+            os.path.join(dir.conda, "bioconvert.yml")
+        container:
+            containers.bioconvert
+        shell:
+            """
+            bioconvert sam2bam {input} {output} -t {threads} 2> {log}
+            """
+    
+    rule merge_contig_bams_ef:
+        input:
+            lambda wildcards: aggregate(wildcards, dir.out.ef, "contig", "bam"),
+        output:
+            temp(os.path.join(dir.out.ef, "{sample}", "{fasta}.bam")),
+        benchmark:
+            os.path.join(dir.out.bench, "samtools", "merge", "{sample}", "{fasta}_ef.txt")
+        log:
+            os.path.join(dir.out.logs, "samtools", "merge", "{sample}", "{fasta}_ef.log"),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.sml.cpu
+        conda:
+            os.path.join(dir.conda, "bioconvert.yml")
+        container:
+            containers.bioconvert
+        shell:
+            """
+            samtools merge -@ {threads} -o {output} {input} 2> {log}
+            """
+    
+    rule merge_sample_bams_ef:
+        input:
+            lambda wildcards: aggregate(wildcards, dir.out.ef, "fasta", "bam"),
+        output:
+            temp(os.path.join(dir.out.ef, "{sample}.unsorted")),
+        benchmark:
+            os.path.join(dir.out.bench, "samtools", "merge", "{sample}_ef.txt")
+        log:
+            os.path.join(dir.out.logs, "samtools", "merge", "{sample}_ef.log"),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.conda, "bioconvert.yml")
+        container:
+            containers.bioconvert
+        shell:
+            """
+            samtools merge -@ {threads} -o {output} {input} 2> {log}
+            """
+
+    rule sort_bams_ef:
+        input:
+            os.path.join(dir.out.ef, "{sample}.unsorted"),
+        output:
+            os.path.join(dir.out.ef, "{sample}.bam"),
+        benchmark:
+            os.path.join(dir.out.bench, "samtools", "sort", "{sample}_ef.txt"),
+        log:
+            os.path.join(dir.out.logs, "samtools", "sort", "{sample}_ef.log"),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.conda, "bioconvert.yml")
+        container:
+            containers.bioconvert
+        shell:
+            """
+            samtools sort -@ {threads} {input} -o {output} 2> {log}
+            """
+
+    rule index_bams_ef:
+        input:
+            os.path.join(dir.out.ef, "{sample}.bam"),
+        output:
+            os.path.join(dir.out.ef, "{sample}.bam.bai"),
+        benchmark:
+            os.path.join(dir.out.bench, "samtools", "index", "{sample}_ef.txt")
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.conda, "bioconvert.yml")
+        container:
+            containers.bioconvert
+        shell:
+            """
+            samtools index -@ {threads} {input}
             """
 
 
