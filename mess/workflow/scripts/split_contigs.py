@@ -35,17 +35,17 @@ df = pd.merge(contig_df, cov_df, how="left", on="fasta")
 
 cols = ["samplename", "fasta", "contig", "contig_length", "tax_id", "seed", "cov_sim"]
 
-if snakemake.params.rotate > 1:
-    cols += ["n", "random_start"]
+if snakemake.params.circular:
+    cols += ["n", "random_start", "rotate"]
+    if "rotate" not in df.columns:
+        df.loc[:, "rotate"] = [snakemake.params.rotate] * len(df)
     df["random_start"] = df.apply(
-        lambda row: get_random_start(
-            row["seed"], row["contig_length"], snakemake.params.rotate
-        ),
+        lambda row: get_random_start(row["seed"], row["contig_length"], row["rotate"]),
         axis=1,
     )
     df_expanded = df.explode("random_start").reset_index(drop=True)
     df_expanded["n"] = df_expanded.groupby(["samplename", "contig"]).cumcount() + 1
     df = df_expanded
-    df["cov_sim"] = df["cov_sim"] / snakemake.params.rotate
+    df["cov_sim"] = df["cov_sim"] / df["rotate"]
 
 df[cols].to_csv(snakemake.output.tsv, sep="\t", index=False)
