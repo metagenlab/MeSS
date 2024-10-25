@@ -8,7 +8,7 @@ sam_in_ef = os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".sam")
 if SEQ_TECH == "illumina":
     fastq_dir = dir.out.short
     sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".fixed")
-    sam_in_ef = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".fixed")
+    sam_in_ef = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_ef.fixed")
 
 fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq")
 fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq.gz"))
