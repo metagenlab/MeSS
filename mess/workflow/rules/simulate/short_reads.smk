@@ -20,12 +20,12 @@ if BAM:
 
 
 fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}")
-if ROTATE > 1:
+if CIRCULAR:
     fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}_{n}")
 
 sam_out = temp(fq_prefix + ".txt")
 if BAM:
-    sam_out = temp(temp(fq_prefix + ".sam"))
+    sam_out = temp(fq_prefix + ".sam")
 
 
 fastq_out = [
@@ -37,14 +37,15 @@ if not PAIRED:
     fastq_out = temp(fq_prefix + ".fq")
 
 fasta = os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna")
-if ROTATE > 1:
-    fasta = os.path.join(dir.out.processing, "rotate", "{fasta}_{contig}_{n}.fna")
+if CIRCULAR:
+    fasta = os.path.join(
+        dir.out.processing, "rotate", "{sample}", "{fasta}_{contig}_{n}.fna"
+    )
 
 
 rule art_illumina:
     input:
-        fa=fasta,
-        df=get_cov_table,
+        fasta,
     output:
         sam=sam_out,
         fastqs=fastq_out,
@@ -56,7 +57,7 @@ rule art_illumina:
         prefix=fq_prefix,
     log:
         os.path.join(dir.out.logs, "art", "{sample}", "{fasta}", "{contig}.log")
-        if ROTATE == 1
+        if not CIRCULAR
         else os.path.join(
             dir.out.logs, "art", "{sample}", "{fasta}", "{contig}_{n}.log"
         ),
@@ -70,7 +71,7 @@ rule art_illumina:
         containers.art
     shell:
         """
-        art_illumina -i {input.fa} \\
+        art_illumina -i {input} \\
         -rs {params.seed} -l {params.read_len} \\
         -f {params.cov} -na {params.args} \\
         -o {params.prefix} &> {log}

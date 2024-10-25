@@ -93,7 +93,7 @@ if snakemake.params.dist == "even":
     df["tax_abundance"] = df["proportion"] / df["count"]
     df["genome_bases"] = df["total_sequence_length"] * df["tax_abundance"]
     df["sum_genome_bases"] = df.groupby("samplename")["genome_bases"].transform("sum")
-    df["cov_obtained"] = bases / df["sum_genome_bases"] 
+    df["cov_obtained"] = bases / df["sum_genome_bases"]
     df["cov_sim"] = df["tax_abundance"] * df["cov_obtained"]
     df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
     df["bases"] = df["cov_sim"] * df["total_sequence_length"]
@@ -117,7 +117,7 @@ else:
         df["sum_genome_bases"] = df.groupby("samplename")["genome_bases"].transform(
             "sum"
         )
-        df["cov_obtained"] = bases / df["sum_genome_bases"] 
+        df["cov_obtained"] = bases / df["sum_genome_bases"]
         df["cov_sim"] = df["tax_abundance"] * df["cov_obtained"]
         df["sum_cov"] = df.groupby("samplename")["cov_sim"].transform("sum")
         df["bases"] = df["cov_sim"] * df["total_sequence_length"]
@@ -173,6 +173,8 @@ cols = [
     "tax_abundance",
     "seed",
 ]
+if "rotate" in entry_df.columns:
+    cols.append("rotate")
 
 df["reads"] = df["reads"].apply(lambda x: int(round(x)))
 df["bases"] = df["bases"].apply(lambda x: int(round(x)))
@@ -182,4 +184,4 @@ df["seq_abundance"] = df["seq_abundance"].apply(lambda x: round(x, 3))
 df = df.astype(
     {"seed": int, "tax_id": int, "total_sequence_length": int, "number_of_contigs": int}
 )
-df[cols].set_index(["samplename", "fasta"]).to_csv(snakemake.output[0], sep="\t")  # type: ignore
+df[cols].to_csv(snakemake.output[0], sep="\t", index=False)  # type: ignore
