@@ -45,6 +45,7 @@ def list_reads(wildcards):
             bam=["bam", "bam.bai"],
         )
         reads = reads + bams_ef
+        
     return reads
 
 
