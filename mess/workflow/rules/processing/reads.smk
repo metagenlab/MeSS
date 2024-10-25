@@ -1,6 +1,6 @@
 fastq_dir = dir.out.long
 contig = "{contig}"
-if ROTATE > 1:
+if CIRCULAR:
     contig = "{contig}_{n}"
 sam_in = os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".sam")
 sam_in_ef = os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".sam")
@@ -300,11 +300,11 @@ rule get_tax_profile:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     params:
-        rotate=ROTATE,
+        circular=CIRCULAR,
     run:
         tax_df = pd.read_csv(input.tax, sep="\t")
         tax_df = tax_df[tax_df.samplename == wildcards.sample]
-        if params.rotate > 1:
+        if params.circular:
             tax_df["contig"] = tax_df["contig"] + "_" + tax_df["n"].astype(str)
         cov_df = pd.read_csv(input.cov, sep="\t")
         cov_df.rename(columns={"#rname": "contig"}, inplace=True)

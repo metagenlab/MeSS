@@ -249,7 +249,7 @@ def sim_options(func):
         ),
         click.option(
             "--rotate",
-            help="Number of times to shuffle genome start for circular assemblies (2 or more for circular)",
+            help="Number of times to shuffle genome start for circular assemblies (2 or more to circularize)",
             type=int,
             default=1,
             show_default=True,
