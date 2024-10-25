@@ -1,6 +1,6 @@
 prefix = os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}")
 fasta = os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna")
-if ROTATE > 1:
+if CIRCULAR:
     prefix = os.path.join(dir.out.long, "{sample}", "{fasta}", "{contig}_{n}")
     fasta = os.path.join(
         dir.out.processing, "rotate", "{sample}", "{fasta}_{contig}_{n}.fna"
@@ -38,7 +38,7 @@ rule pbsim3:
         reads_rename=rename,
     log:
         os.path.join(dir.out.logs, "pbsim3", "{sample}", "{fasta}", "{contig}.log")
-        if ROTATE == 1
+        if not CIRCULAR
         else os.path.join(
             dir.out.logs, "pbsim3", "{sample}", "{fasta}", "{contig}_{n}.log"
         ),

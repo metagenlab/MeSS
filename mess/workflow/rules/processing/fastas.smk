@@ -51,6 +51,7 @@ checkpoint split_contigs:
         tsv=os.path.join(dir.out.processing, "cov.tsv"),
         dir=directory(os.path.join(dir.out.processing, "split")),
     params:
+        circular=CIRCULAR,
         rotate=ROTATE,
     resources:
         mem_mb=config.resources.sml.mem,
@@ -60,7 +61,7 @@ checkpoint split_contigs:
         os.path.join(dir.scripts, "split_contigs.py")
 
 
-if ROTATE > 1:
+if CIRCULAR:
 
     rule rotate_contigs:
         input:
