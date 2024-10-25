@@ -26,15 +26,8 @@ fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}")
 if CIRCULAR:
     fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}_{n}")
 
-<<<<<<< HEAD
 sam_out = temp(fq_prefix + ".sam") if BAM else temp(fq_prefix + ".txt")
 sam_ef_out = temp(fq_prefix + "_errFree.sam") if ERRFREE else temp(fq_prefix + "_errFree.txt")
-=======
-sam_out = temp(fq_prefix + ".txt")
-if BAM:
-    sam_out = temp(fq_prefix + ".sam")
-
->>>>>>> upstream/main
 
 fastq_out = [
     temp(fq_prefix + "1.fq"),
