@@ -89,6 +89,8 @@ def list_fastas(wildcards):
 
 
 table_cache = {}
+
+
 def get_value(value, wildcards):
 
     vals = (
@@ -98,7 +100,7 @@ def get_value(value, wildcards):
     )
     idx_col = ["samplename", "fasta", "contig"]
 
-    if ROTATE > 1:
+    if CIRCULAR:
         idx_col += ["n"]
         vals += (int(wildcards.n),)
 
@@ -108,7 +110,7 @@ def get_value(value, wildcards):
             table,
             sep="\t",
             index_col=idx_col,
-        )
+        ).sort_index()
         table_cache[table] = df
     df = table_cache[table]
     return df.loc[vals, value]
@@ -130,24 +132,41 @@ def get_cov_table(wildcards):
     return checkpoints.split_contigs.get(**wildcards).output[0]
 
 
+def is_circular():
+    if os.path.isfile(INPUT):
+        files = [INPUT]
+    else:
+        files = glob.glob(f"{INPUT}/*.tsv")
+    df = pd.concat([pd.read_csv(file, sep="\t") for file in files])
+    if ROTATE > 1 or "rotate" in df.columns:
+        return True
+    else:
+        return False
+
+
 def aggregate(wildcards, outdir, level, ext):
     table = checkpoints.split_contigs.get(**wildcards).output[0]
+    df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"]).sort_index()
     if level == "contig":
-        df = pd.read_csv(table, sep="\t", index_col="fasta")
-        contigs = df.loc[wildcards.fasta]["contig"]
-        if isinstance(contigs, str):
-            contigs = [contigs]
-        else:
-            contigs = list(set(contigs))
+        contigs = list(
+            df.loc[(wildcards.sample, wildcards.fasta)]["contig"].drop_duplicates()
+        )
+        if "rotate" in df.columns:
+            rotates = int(
+                df.loc[(wildcards.sample, wildcards.fasta)]["rotate"]
+                .drop_duplicates()
+                .values
+            )
+
         if PAIRED and ext != "bam":
-            if ROTATE > 1:
+            if "rotate" in df.columns:
                 return expand(
                     os.path.join(
                         outdir, "{sample}", "{fasta}", "{contig}_{n}{p}.{ext}"
                     ),
                     sample=wildcards.sample,
                     fasta=wildcards.fasta,
-                    n=list(range(1, ROTATE + 1)),
+                    n=list(range(1, rotates + 1)),
                     p=wildcards.p,
                     contig=contigs,
                     ext=ext,
@@ -163,13 +182,13 @@ def aggregate(wildcards, outdir, level, ext):
                 )
 
         else:
-            if ROTATE > 1:
+            if "rotate" in df.columns:
                 return expand(
                     os.path.join(outdir, "{sample}", "{fasta}", "{contig}_{n}.{ext}"),
                     sample=wildcards.sample,
                     fasta=wildcards.fasta,
                     contig=contigs,
-                    n=list(range(1, ROTATE + 1)),
+                    n=list(range(1, rotates + 1)),
                     ext=ext,
                 )
             else:
@@ -181,7 +200,6 @@ def aggregate(wildcards, outdir, level, ext):
                     ext=ext,
                 )
     if level == "fasta":
-        df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"])
         fastas = list(set(df.loc[wildcards.sample].index))
         if PAIRED and ext != "bam":
             return expand(
