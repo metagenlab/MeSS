@@ -7,3 +7,4 @@ pbccs: docker://quay.io/biocontainers/pbccs:6.4.0--h9ee0642_0
 pbsim3: docker://quay.io/biocontainers/pbsim3:3.0.4--h4ac6f70_0
 seqkit: docker://quay.io/biocontainers/seqkit:2.8.2--h9ee0642_0
 taxonkit: docker://quay.io/biocontainers/taxonkit:0.17.0--h9ee0642_1
+sambamba: docker://quay.io/biocontainers/sambamba:1.0.1--h6f6fda4_2
