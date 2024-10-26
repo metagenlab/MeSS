@@ -144,78 +144,45 @@ def is_circular():
         return False
 
 
-def aggregate(wildcards, outdir, level, ext):
+def aggregate(wildcards, outdir, ext):
     table = checkpoints.split_contigs.get(**wildcards).output[0]
-    df = pd.read_csv(table, sep="\t", index_col=["samplename", "fasta"]).sort_index()
-    if level == "contig":
-        contigs = list(
-            df.loc[(wildcards.sample, wildcards.fasta)]["contig"].drop_duplicates()
+    df = pd.read_csv(
+        table,
+        sep="\t",
+        index_col=["samplename", "fasta"],
+    ).sort_index()
+    fastas = list(set(df.loc[wildcards.sample].index))
+    contigs = list(
+        chain(*[list(df.loc[(wildcards.sample, fasta), "contig"]) for fasta in fastas])
+    )
+
+    collect_args = {
+        "sample": wildcards.sample,
+        "fasta": fastas,
+        "contig": contigs,
+        "ext": ext,
+    }
+    path = os.path.join(outdir, "{sample}", "{fasta}", "{contig}.{ext}")
+    if CIRCULAR:
+        path = os.path.join(outdir, "{sample}", "{fasta}", "{contig}_{n}.{ext}")
+        rotates = list(
+            chain(*[list(df.loc[(wildcards.sample, fasta), "n"]) for fasta in fastas])
         )
-        if "rotate" in df.columns:
-            rotates = int(
-                df.loc[(wildcards.sample, wildcards.fasta)]["rotate"]
-                .drop_duplicates()
-                .values
-            )
-
-        if PAIRED and ext != "bam":
-            if "rotate" in df.columns:
-                return expand(
-                    os.path.join(
-                        outdir, "{sample}", "{fasta}", "{contig}_{n}{p}.{ext}"
-                    ),
-                    sample=wildcards.sample,
-                    fasta=wildcards.fasta,
-                    n=list(range(1, rotates + 1)),
-                    p=wildcards.p,
-                    contig=contigs,
-                    ext=ext,
-                )
-            else:
-                return expand(
-                    os.path.join(outdir, "{sample}", "{fasta}", "{contig}{p}.{ext}"),
-                    sample=wildcards.sample,
-                    fasta=wildcards.fasta,
-                    p=wildcards.p,
-                    contig=contigs,
-                    ext=ext,
-                )
-
-        else:
-            if "rotate" in df.columns:
-                return expand(
-                    os.path.join(outdir, "{sample}", "{fasta}", "{contig}_{n}.{ext}"),
-                    sample=wildcards.sample,
-                    fasta=wildcards.fasta,
-                    contig=contigs,
-                    n=list(range(1, rotates + 1)),
-                    ext=ext,
-                )
-            else:
-                return expand(
-                    os.path.join(outdir, "{sample}", "{fasta}", "{contig}.{ext}"),
-                    sample=wildcards.sample,
-                    fasta=wildcards.fasta,
-                    contig=contigs,
-                    ext=ext,
-                )
-    if level == "fasta":
-        fastas = list(set(df.loc[wildcards.sample].index))
-        if PAIRED and ext != "bam":
-            return expand(
-                os.path.join(outdir, "{sample}", "{fasta}{p}.{ext}"),
-                sample=wildcards.sample,
-                fasta=fastas,
-                p=wildcards.p,
-                ext=ext,
-            )
-        else:
-            return expand(
-                os.path.join(outdir, "{sample}", "{fasta}.{ext}"),
-                sample=wildcards.sample,
-                fasta=fastas,
-                ext=ext,
-            )
+        collect_args.update(
+            {
+                "n": rotates,
+            }
+        )
+    if PAIRED and ext != "bam":
+        path = os.path.join(outdir, "{sample}", "{fasta}", "{contig}{p}.{ext}")
+        collect_args.update(
+            {
+                "p": wildcards.p,
+            }
+        )
+        if CIRCULAR:
+            path = os.path.join(outdir, "{sample}", "{fasta}", "{contig}_{n}{p}.{ext}")
+    return collect(path, **collect_args)
 
 
 def get_header(fa):
