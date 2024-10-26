@@ -1,4 +1,4 @@
-art_args = ""
+art_args = "-k 0 "
 if CUSTOM_ERR == None:
     art_args += f"-ss {ERROR} "
 if CUSTOM_ERR:
@@ -16,7 +16,7 @@ if PAIRED:
 
 
 if BAM:
-    art_args += "-sam -M"
+    art_args += "-sam"
 
 
 fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}")
