@@ -143,42 +143,22 @@ def is_circular():
 
 
 def aggregate(wildcards, outdir, ext):
-    agg_df = get_cov_table(wildcards, "aggregate", ["samplename", "fasta"])
-    fastas = list(set(agg_df.loc[wildcards.sample].index))
-    contigs = list(
-        chain(
-            *[list(agg_df.loc[(wildcards.sample, fasta), "contig"]) for fasta in fastas]
-        )
-    )
-    collect_args = {
-        "sample": wildcards.sample,
-        "fasta": fastas,
-        "contig": contigs,
-        "ext": ext,
-    }
-    path = os.path.join(outdir, "{sample}", "{fasta}", "{contig}.{ext}")
-    if CIRCULAR:
-        path = os.path.join(outdir, "{sample}", "{fasta}", "{contig}_{n}.{ext}")
-        rotates = list(
-            chain(
-                *[list(agg_df.loc[(wildcards.sample, fasta), "n"]) for fasta in fastas]
-            )
-        )
-        collect_args.update(
-            {
-                "n": rotates,
-            }
-        )
-    if PAIRED and ext != "bam":
-        path = os.path.join(outdir, "{sample}", "{fasta}", "{contig}{p}.{ext}")
-        collect_args.update(
-            {
-                "p": wildcards.p,
-            }
-        )
+    df = get_cov_table(wildcards, "aggregate", ["samplename"])
+    files = [
+        os.path.join(outdir, wildcards.sample, row.fasta, f"{row.contig}.{ext}")
+        for row in df.loc[wildcards.sample].itertuples()
+    ]
+    files = []
+    for row in df.loc[wildcards.sample].itertuples():
+        prefix = f"{row.contig}"
         if CIRCULAR:
-            path = os.path.join(outdir, "{sample}", "{fasta}", "{contig}_{n}{p}.{ext}")
-    return collect(path, zip, **collect_args)
+            prefix += f"_{row.n}"
+        if PAIRED and ext != "bam":
+            prefix += f"{wildcards.p}"
+        files.append(
+            os.path.join(outdir, wildcards.sample, row.fasta, f"{prefix}.{ext}")
+        )
+    return files
 
 
 def get_header(fa):
