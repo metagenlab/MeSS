@@ -1,5 +1,5 @@
 art: docker://quay.io/biocontainers/art:2016.06.05--heacdb12_11
-assembly_finder: docker://ghcr.io/metagenlab/assembly_finder:v0.7.7
+assembly_finder: docker://ghcr.io/metagenlab/assembly_finder:v0.8.0
 bioconvert: docker://quay.io/biocontainers/bioconvert:1.1.1--pyhdfd78af_0
 curl: docker://quay.io/biocontainers/curl:7.80.0
 pigz: docker://quay.io/biocontainers/pigz:2.8
