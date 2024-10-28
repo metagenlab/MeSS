@@ -34,7 +34,7 @@ if PASSES > 1:
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.norm.time,
+            time=config.resources.sml.time,
         threads: config.resources.norm.cpu
         conda:
             os.path.join(dir.conda, "samtools.yml")
@@ -142,18 +142,11 @@ rule convert_sam_to_bam:
         sam_in,
     output:
         temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".bam")),
-    log:
-        os.path.join(
-            dir.out.logs,
-            "sam2bam",
-            "{sample}",
-            "{fasta}" + contig + ".log",
-        ),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
-    threads: config.resources.sml.cpu
+    threads: config.resources.norm.cpu
     conda:
         os.path.join(dir.conda, "samtools.yml")
     container:
@@ -170,10 +163,6 @@ rule merge_bams:
         lambda wildcards: aggregate(wildcards, dir.out.bam, "bam"),
     output:
         os.path.join(dir.out.bam, "{sample}.bam"),
-    benchmark:
-        os.path.join(dir.out.bench, "merge", "{sample}.txt")
-    log:
-        os.path.join(dir.out.logs, "merge", "{sample}.log"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -214,8 +203,6 @@ rule get_bam_coverage:
         os.path.join(dir.out.bam, "{sample}.bam"),
     output:
         temp(os.path.join(dir.out.bam, "{sample}.txt")),
-    log:
-        os.path.join(dir.out.logs, "coverage", "{sample}.log"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -291,10 +278,6 @@ rule tax_profile_to_biobox:
         dmp=os.path.join(TAXONKIT, "names.dmp"),
     output:
         os.path.join(dir.out.tax, "{sample}_{abundance}.txt"),
-    log:
-        os.path.join(
-            dir.out.logs, "taxonkit", "profile2cami", "{sample}_{abundance}.log"
-        ),
     params:
         dir=TAXONKIT,
         ranks=RANKS,
@@ -378,12 +361,6 @@ if not SKIP_SHUFFLE:
             else temp(os.path.join(dir.out.shuffle, "{sample}.fq.gz")),
         params:
             lambda wildcards: SHUFFLE[wildcards.sample],
-        benchmark:
-            (
-                os.path.join(dir.out.bench, "seqkit", "shuffle", "{sample}_R{p}.txt")
-                if PAIRED
-                else os.path.join(dir.out.bench, "seqkit", "shuffle", "{sample}.txt")
-            )
         log:
             os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}_R{p}.log")
             if PAIRED
@@ -415,12 +392,6 @@ if not SKIP_SHUFFLE:
             os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz")
             if PAIRED
             else os.path.join(dir.out.fastq, "{sample}.fq.gz"),
-        benchmark:
-            (
-                os.path.join(dir.out.bench, "seqkit", "anonymize", "{sample}_R{p}.txt")
-                if PAIRED
-                else os.path.join(dir.out.bench, "seqkit", "anonymize", "{sample}.txt")
-            )
         log:
             os.path.join(dir.out.logs, "seqkit", "replace", "{sample}_R{p}.log")
             if PAIRED

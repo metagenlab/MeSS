@@ -65,8 +65,6 @@ checkpoint download_assemblies:
         args=af_args,
         taxonkit=TAXONKIT,
         out=os.path.join(dir.out.base, "assembly_finder"),
-    benchmark:
-        os.path.join(dir.out.bench, "assembly_finder.txt")
     log:
         os.path.join(dir.out.logs, "assembly_finder.log"),
     resources:
