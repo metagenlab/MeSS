@@ -1,7 +1,0 @@
-name: wgatools
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - wgatools =0.1.1

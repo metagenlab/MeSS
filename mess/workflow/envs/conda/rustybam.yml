@@ -1,7 +1,0 @@
-name: rustybam
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - rustybam =0.1.33
