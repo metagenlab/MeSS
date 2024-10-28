@@ -150,7 +150,6 @@ def aggregate(wildcards, outdir, ext):
             *[list(agg_df.loc[(wildcards.sample, fasta), "contig"]) for fasta in fastas]
         )
     )
-
     collect_args = {
         "sample": wildcards.sample,
         "fasta": fastas,
@@ -179,7 +178,7 @@ def aggregate(wildcards, outdir, ext):
         )
         if CIRCULAR:
             path = os.path.join(outdir, "{sample}", "{fasta}", "{contig}_{n}{p}.{ext}")
-    return collect(path, **collect_args)
+    return collect(path, zip, **collect_args)
 
 
 def get_header(fa):
