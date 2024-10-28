@@ -37,13 +37,13 @@ if PASSES > 1:
             time=config.resources.norm.time,
         threads: config.resources.norm.cpu
         conda:
-            os.path.join(dir.conda, "sambamba.yml")
+            os.path.join(dir.conda, "samtools.yml")
         container:
-            containers.sambamba
+            containers.samtools
         shell:
             """
-            sambamba view -t {threads} -S -f bam {input} | \
-            sambamba sort -t {threads} > {output} 2> {log}
+            samtools view -@ {threads} -bS {input} | \\
+            samtools sort -@ {threads} > {output} 2> {log}
             """
 
     rule ccs_bam_to_fastq:
@@ -155,13 +155,13 @@ rule convert_sam_to_bam:
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     conda:
-        os.path.join(dir.conda, "sambamba.yml")
+        os.path.join(dir.conda, "samtools.yml")
     container:
-        containers.sambamba
+        containers.samtools
     shell:
         """
-        sambamba view -S -f bam {input} 2> {log} | \\
-        sambamba sort -o {output} /dev/stdin 2>> {log} 
+        samtools view -@ {threads} -bS {input} | \\
+        samtools sort -@ {threads} > {output} 2> {log}
         """
 
 
@@ -169,7 +169,7 @@ rule merge_bams:
     input:
         lambda wildcards: aggregate(wildcards, dir.out.bam, "bam"),
     output:
-        temp(os.path.join(dir.out.bam, "{sample}.bam")),
+        os.path.join(dir.out.bam, "{sample}.bam"),
     benchmark:
         os.path.join(dir.out.bench, "merge", "{sample}.txt")
     log:
@@ -180,12 +180,32 @@ rule merge_bams:
         time=config.resources.sml.time,
     threads: config.resources.norm.cpu
     conda:
-        os.path.join(dir.conda, "sambamba.yml")
+        os.path.join(dir.conda, "samtools.yml")
     container:
-        containers.sambamba
+        containers.samtools
     shell:
         """
-        sambamba merge -t {threads} {output} {input} 2> {log}
+        samtools merge -@ {threads} -o {output} {input} 2> {log}
+        """
+
+
+rule index_bams:
+    input:
+        os.path.join(dir.out.bam, "{sample}.bam"),
+    output:
+        os.path.join(dir.out.bam, "{sample}.bam.bai"),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.norm.time,
+    threads: config.resources.norm.cpu
+    conda:
+        os.path.join(dir.conda, "samtools.yml")
+    container:
+        containers.samtools
+    shell:
+        """
+        samtools index -@ {threads} {input}
         """
 
 
@@ -214,7 +234,7 @@ rule get_bam_coverage:
 rule get_tax_profile:
     input:
         cov=os.path.join(dir.out.bam, "{sample}.txt"),
-        tax=get_cov_table,
+        tax=os.path.join(dir.out.processing, "cov.tsv"),
     output:
         counts=os.path.join(dir.out.tax, "{sample}.tsv"),
         seq_abundance=temp(os.path.join(dir.out.tax, "{sample}_seq.tsv")),
@@ -294,28 +314,6 @@ rule tax_profile_to_biobox:
         -j {threads} --data-dir {params.dir} \\
         -r {params.ranks} \\
         -s {wildcards.sample} {input.tsv} > {output}
-        """
-
-
-rule index_bams:
-    input:
-        os.path.join(dir.out.bam, "{sample}.bam"),
-    output:
-        os.path.join(dir.out.bam, "{sample}.bam.bai"),
-    log:
-        os.path.join(dir.out.logs, "index", "{sample}.txt"),
-    resources:
-        mem_mb=config.resources.sml.mem,
-        mem=str(config.resources.sml.mem) + "MB",
-        time=config.resources.norm.time,
-    threads: config.resources.norm.cpu
-    conda:
-        os.path.join(dir.conda, "sambamba.yml")
-    container:
-        containers.sambamba
-    shell:
-        """
-        sambamba index -t {threads} {input} {output} 2> {log}
         """
 
 
