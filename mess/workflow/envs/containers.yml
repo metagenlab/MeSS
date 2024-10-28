@@ -9,3 +9,5 @@ seqkit: docker://quay.io/biocontainers/seqkit:2.8.2--h9ee0642_0
 taxonkit: docker://quay.io/biocontainers/taxonkit:0.17.0--h9ee0642_1
 sambamba: docker://quay.io/biocontainers/sambamba:1.0.1--h6f6fda4_2
 samtools: docker://quay.io/biocontainers/samtools:1.21--h50ea8bc_0
+wgatools: docker://quay.io/biocontainers/wgatools:0.1.1--h7c767d4_0
+rustybam: docker://quay.io/biocontainers/rustybam:0.1.33--h0d9f037_1

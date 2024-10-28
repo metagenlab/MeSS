@@ -110,15 +110,15 @@ if BAM:
             sed 's/ref/{params.seqname}/g' {input.maf} > {output}
             """
 
-    rule convert_maf_to_sam:
+    rule convert_maf_to_paf:
         input:
             os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".maf"),
         output:
-            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".sam")),
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".paf")),
         log:
             os.path.join(
                 dir.out.logs,
-                "maf2sam",
+                "maf2paf",
                 "{sample}",
                 "{fasta}" + "_" + contig + ".log",
             ),
@@ -128,12 +128,38 @@ if BAM:
             time=config.resources.sml.time,
         threads: config.resources.sml.cpu
         conda:
-            os.path.join(dir.conda, "bioconvert.yml")
+            os.path.join(dir.conda, "wgatools.yml")
         container:
-            containers.bioconvert
+            containers.wgatools
         shell:
             """
-            bioconvert {input} {output} 2> {log}
+            wgatools maf2paf {input} > {output} 2> {log}
+            """
+
+    rule convert_paf_to_sam:
+        input:
+            os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".paf"),
+        output:
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".sam")),
+        log:
+            os.path.join(
+                dir.out.logs,
+                "paf2sam",
+                "{sample}",
+                "{fasta}" + "_" + contig + ".log",
+            ),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.sml.cpu
+        conda:
+            os.path.join(dir.conda, "rustybam.yml")
+        container:
+            containers.rustybam
+        shell:
+            """
+            rustybam paf2sam {input} > {output} 2> {log}
             """
 
 
@@ -227,7 +253,7 @@ rule get_bam_coverage:
         containers.samtools
     shell:
         """
-        samtools coverage {input} 1> {output} 2> {log}
+        samtools coverage {input} > {output} 2> {log}
         """
 
 
