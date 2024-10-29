@@ -129,7 +129,7 @@ def get_asm_summary(wildcards):
 
     except AttributeError:
         if FASTA and not ASM_SUMMARY:
-            table = "seqkit_stats.tsv"
+            table = os.path.join(dir.out.processing, "seqkit_stats.tsv")
         else:
             table = ASM_SUMMARY
     return table
@@ -149,12 +149,8 @@ def is_circular():
 
 def aggregate(wildcards, outdir, ext):
     df = get_cov_table(wildcards, "aggregate", ["samplename"])
-    files = [
-        os.path.join(outdir, wildcards.sample, row.fasta, f"{row.contig}.{ext}")
-        for row in df.loc[wildcards.sample].itertuples()
-    ]
     files = []
-    for row in df.loc[wildcards.sample].itertuples():
+    for row in df.loc[[wildcards.sample]].itertuples():
         prefix = f"{row.contig}"
         if CIRCULAR:
             prefix += f"_{row.n}"
