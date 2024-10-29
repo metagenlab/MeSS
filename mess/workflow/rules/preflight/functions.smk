@@ -10,6 +10,7 @@ import random
 wildcard_constraints:
     sample="[^/]+",
     contig="[^/]+",
+    fasta="[^/]+",
 
 
 def list_reads(wildcards):
@@ -120,7 +121,7 @@ def get_asm_summary(wildcards):
 
     except AttributeError:
         if FASTA and not ASM_SUMMARY:
-            table = os.path.join(dir.out.processing, "seqkit_stats.tsv")
+            table = "seqkit_stats.tsv"
         else:
             table = ASM_SUMMARY
     return table
