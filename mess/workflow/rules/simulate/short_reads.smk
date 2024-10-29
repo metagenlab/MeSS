@@ -1,4 +1,4 @@
-art_args = ""
+art_args = "-k 0 "
 if CUSTOM_ERR == None:
     art_args += f"-ss {ERROR} "
 if CUSTOM_ERR:
