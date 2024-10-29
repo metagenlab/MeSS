@@ -455,7 +455,7 @@ if ERRFREE:
         input:
             lambda wildcards: aggregate(wildcards, dir.out.ef, "bam"),
         output:
-            os.path.join(dir.out.ef, "{sample}", "{fasta}.bam"),
+            os.path.join(dir.out.ef, "{sample}.bam"),
         log:
             os.path.join(
                 dir.out.logs,
@@ -477,52 +477,6 @@ if ERRFREE:
             samtools merge -@ {threads} -o {output} {input} 2> {log}
             """
     
-    rule merge_sample_bams_ef:
-        input:
-            lambda wildcards: aggregate(wildcards, dir.out.ef, "bam"),
-        output:
-            temp(os.path.join(dir.out.ef, "{sample}.unsorted")),
-        benchmark:
-            os.path.join(dir.out.bench, "samtools", "merge", "{sample}_ef.txt")
-        log:
-            os.path.join(dir.out.logs, "samtools", "merge", "{sample}_ef.log"),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        threads: config.resources.norm.cpu
-        conda:
-            os.path.join(dir.conda, "bioconvert.yml")
-        container:
-            containers.bioconvert
-        shell:
-            """
-            samtools merge -@ {threads} -o {output} {input} 2> {log}
-            """
-
-    rule sort_bams_ef:
-        input:
-            os.path.join(dir.out.ef, "{sample}.unsorted"),
-        output:
-            os.path.join(dir.out.ef, "{sample}.bam"),
-        benchmark:
-            os.path.join(dir.out.bench, "samtools", "sort", "{sample}_ef.txt"),
-        log:
-            os.path.join(dir.out.logs, "samtools", "sort", "{sample}_ef.log"),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        threads: config.resources.norm.cpu
-        conda:
-            os.path.join(dir.conda, "bioconvert.yml")
-        container:
-            containers.bioconvert
-        shell:
-            """
-            samtools sort -@ {threads} {input} -o {output} 2> {log}
-            """
-
     rule index_bams_ef:
         input:
             os.path.join(dir.out.ef, "{sample}.bam"),
@@ -536,12 +490,31 @@ if ERRFREE:
             time=config.resources.norm.time,
         threads: config.resources.norm.cpu
         conda:
-            os.path.join(dir.conda, "bioconvert.yml")
+            os.path.join(dir.conda, "samtools.yml")
         container:
-            containers.bioconvert
+            containers.samtools
         shell:
             """
             samtools index -@ {threads} {input}
+            """
+
+    rule get_bam_coverage_ef:
+        input:
+            os.path.join(dir.out.ef, "{sample}.bam"),
+        output:
+            temp(os.path.join(dir.out.ef, "{sample}.txt")),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.sml.cpu
+        conda:
+            os.path.join(dir.conda, "samtools.yml")
+        container:
+            containers.samtools
+        shell:
+            """
+            samtools coverage {input} > {output}
             """
 
 
