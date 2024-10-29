@@ -132,6 +132,7 @@ else:
 
 
 # reads post-processsing options
+random.seed(SEED)
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
 RANKS = config.args.ranks
