@@ -7,6 +7,7 @@ if CIRCULAR:
     )
 id_prefix = os.path.basename(prefix)
 
+
 if PASSES > 1:
     pbsim3_out = temp(prefix + ".sam")
     rename = f"mv {prefix}_0001.sam {prefix}.sam"
@@ -17,7 +18,7 @@ else:
 
 rule pbsim3:
     input:
-        fa=fasta,
+        fasta,
     output:
         pbsim3_out,
         temp(prefix + ".maf"),
@@ -35,7 +36,7 @@ rule pbsim3:
         seed=lambda wildcards: int(get_value("seed", wildcards)),
         prefix=prefix,
         id_prefix=id_prefix,
-        reads_rename=rename,
+        rename=rename,
     log:
         os.path.join(dir.out.logs, "pbsim3", "{sample}", "{fasta}", "{contig}.log")
         if not CIRCULAR
@@ -64,9 +65,10 @@ rule pbsim3:
         --qshmm {params.model} \\
         --pass-num {params.passes} \\
         --accuracy-mean {params.accuracy} \\
-        --depth {params.cov} --genome {input.fa} &> {log}
+        --depth {params.cov} \\
+        --genome {input} &> {log}
         
         mv {params.prefix}_0001.maf {params.prefix}.maf
         mv {params.prefix}_0001.ref {params.prefix}.ref
-        {params.reads_rename}
+        {params.rename}
         """
