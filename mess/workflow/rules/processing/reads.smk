@@ -343,13 +343,16 @@ rule cat_fastqs:
         lambda wildcards: aggregate(wildcards, fastq_dir, "fq.gz"),
     output:
         sample_fastq_out,
+    params:
+        dir=os.path.join(fastq_dir, "{sample}"),
+        name="*{p}.fq.gz" if PAIRED else "*.fq.gz",
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.norm.time,
     shell:
         """
-        cat {input} > {output}
+        find {params.dir} -name "{params.name}" | xargs cat > {output}
         """
 
 
