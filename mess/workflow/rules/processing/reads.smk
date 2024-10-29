@@ -349,10 +349,13 @@ rule cat_fastqs:
     params:
         dir=os.path.join(fastq_dir, "{sample}"),
         name="*{p}.fq.gz" if PAIRED else "*.fq.gz",
+        head=lambda wildcards, input: list(input)[:3],
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.norm.time,
+    message:
+        "Concatenating {wildcards.sample} reads : {params.head} ... "
     shell:
         """
         find {params.dir} -name "{params.name}" | xargs cat > {output}
