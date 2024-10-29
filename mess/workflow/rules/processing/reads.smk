@@ -44,7 +44,7 @@ if PASSES > 1:
         shell:
             """
             samtools view -@ {threads} -Sb {input} | \\
-            samtools sort -@ {threads} -o {output} 2> {log}
+            samtools sort -@ {threads} -o {output}
             """
 
     rule ccs_bam_to_fastq:
