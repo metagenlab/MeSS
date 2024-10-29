@@ -13,25 +13,21 @@ wildcard_constraints:
 
 
 def list_reads(wildcards):
+    fastqs = "{sample}.fq.gz"
+    args = {"sample": SAMPLES}
+
     if PAIRED:
-        reads = expand(
-            os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz"),
-            sample=SAMPLES,
-            p=PAIRS,
-        )
-    else:
-        reads = expand(
-            os.path.join(dir.out.fastq, "{sample}.fq.gz"),
-            sample=SAMPLES,
-        )
+        fastqs = "{sample}_R{p}.fq.gz"
+        args.update({"p": PAIRS})
+    reads = collect(os.path.join(dir.out.fastq, fastqs), **args)
 
     if BAM:
-        bams = expand(
+        bams = collect(
             os.path.join(dir.out.bam, "{sample}.{bam}"),
             sample=SAMPLES,
             bam=["bam", "bam.bai"],
         )
-        tax = expand(
+        tax = collect(
             os.path.join(dir.out.tax, "{sample}_{abundance}.txt"),
             sample=SAMPLES,
             abundance=["seq", "tax"],
