@@ -451,24 +451,27 @@ if ERRFREE:
             samtools sort -@ {threads} -o {output}
             """
     
-    rule merge_contig_bams_ef:
+    rule merge_bams_ef:
         input:
             lambda wildcards: aggregate(wildcards, dir.out.ef, "bam"),
         output:
-            temp(os.path.join(dir.out.ef, "{sample}", "{fasta}.bam")),
-        benchmark:
-            os.path.join(dir.out.bench, "samtools", "merge", "{sample}", "{fasta}_ef.txt")
+            os.path.join(dir.out.ef, "{sample}", "{fasta}.bam"),
         log:
-            os.path.join(dir.out.logs, "samtools", "merge", "{sample}", "{fasta}_ef.log"),
+            os.path.join(
+                dir.out.logs,
+                "samtools",
+                "merge",
+                "{sample}_ef.log",
+            ),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
-        threads: config.resources.sml.cpu
+        threads: config.resources.norm.cpu
         conda:
-            os.path.join(dir.conda, "bioconvert.yml")
+            os.path.join(dir.conda, "samtools.yml")
         container:
-            containers.bioconvert
+            containers.samtools
         shell:
             """
             samtools merge -@ {threads} -o {output} {input} 2> {log}
