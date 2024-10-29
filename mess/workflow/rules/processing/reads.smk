@@ -8,6 +8,7 @@ sam_in_ef = os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".sam")
 if SEQ_TECH == "illumina":
     fastq_dir = dir.out.short
     sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".sam")
+    sam_in_ef = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
 
 fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq")
 fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq.gz"))
@@ -432,29 +433,22 @@ if not SKIP_SHUFFLE:
 if ERRFREE:   
     rule convert_sam_to_bam_ef:
         input:
-            os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
+            sam_in_ef,
         output:
             temp(os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".bam")),
-        log:
-            os.path.join(
-                dir.out.logs,
-                "bioconvert",
-                "sam2bam",
-                "{sample}",
-                "{fasta}" + contig + "_ef.log",
-            ),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
             time=config.resources.sml.time,
-        threads: config.resources.sml.cpu
+        threads: config.resources.norm.cpu
         conda:
-            os.path.join(dir.conda, "bioconvert.yml")
+            os.path.join(dir.conda, "samtools.yml")
         container:
-            containers.bioconvert
+            containers.samtools
         shell:
             """
-            bioconvert sam2bam {input} {output} -t {threads} 2> {log}
+            samtools view -@ {threads} -Sb {input} | \\
+            samtools sort -@ {threads} -o {output}
             """
     
     rule merge_contig_bams_ef:
