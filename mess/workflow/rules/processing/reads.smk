@@ -429,32 +429,10 @@ if not SKIP_SHUFFLE:
             paste -d '\t' <(seqkit seq -n {output}) <(seqkit seq -n {input}) > {log[1]} 
             """
 
-if ERRFREE:
-    rule fix_art_sam_ef:
-        """
-        rule to replace SAM cigar string with read length + M
-        Fixes truncated art_illumina SAM files with some genomes
-        """
-        input:
-            os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
-        output:
-            temp(os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_ef.fixed")),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        params:
-            maxlen=MEAN_LEN,
-        shell:
-            """
-            awk 'BEGIN {{OFS="\t"}} {{ if ($1 ~ /^@/) {{ print $0 }} \\
-            else {{ $6 = "{params.maxlen}M"; print $0 }} }}' \\
-            {input} > {output}
-            """
-    
+if ERRFREE:   
     rule convert_sam_to_bam_ef:
         input:
-            sam_in_ef,
+            os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
         output:
             temp(os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".bam")),
         log:
@@ -481,7 +459,7 @@ if ERRFREE:
     
     rule merge_contig_bams_ef:
         input:
-            lambda wildcards: aggregate(wildcards, dir.out.ef, "contig", "bam"),
+            lambda wildcards: aggregate(wildcards, dir.out.ef, "bam"),
         output:
             temp(os.path.join(dir.out.ef, "{sample}", "{fasta}.bam")),
         benchmark:
@@ -504,7 +482,7 @@ if ERRFREE:
     
     rule merge_sample_bams_ef:
         input:
-            lambda wildcards: aggregate(wildcards, dir.out.ef, "fasta", "bam"),
+            lambda wildcards: aggregate(wildcards, dir.out.ef, "bam"),
         output:
             temp(os.path.join(dir.out.ef, "{sample}.unsorted")),
         benchmark:
