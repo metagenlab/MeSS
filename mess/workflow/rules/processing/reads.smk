@@ -29,8 +29,6 @@ if PASSES > 1:
                     contig + ".ccs.bam",
                 )
             ),
-        log:
-            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", contig + ".log"),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
@@ -42,8 +40,8 @@ if PASSES > 1:
             containers.samtools
         shell:
             """
-            samtools view -@ {threads} -bS {input} | \\
-            samtools sort -@ {threads} > {output} 2> {log}
+            samtools view -@ {threads} -Sb {input} | \\
+            samtools sort -@ {threads} -o {output} 2> {log}
             """
 
     rule ccs_bam_to_fastq:
@@ -153,8 +151,8 @@ rule convert_sam_to_bam:
         containers.samtools
     shell:
         """
-        samtools view -@ {threads} -bS {input} | \\
-        samtools sort -@ {threads} > {output} 2> {log}
+        samtools view -@ {threads} -Sb {input} | \\
+        samtools sort -@ {threads} -o {output}
         """
 
 
@@ -163,6 +161,13 @@ rule merge_bams:
         lambda wildcards: aggregate(wildcards, dir.out.bam, "bam"),
     output:
         os.path.join(dir.out.bam, "{sample}.bam"),
+    log:
+        os.path.join(
+            dir.out.logs,
+            "samtools",
+            "merge",
+            "{sample}.log",
+        ),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -214,7 +219,7 @@ rule get_bam_coverage:
         containers.samtools
     shell:
         """
-        samtools coverage {input} > {output} 2> {log}
+        samtools coverage {input} > {output}
         """
 
 
