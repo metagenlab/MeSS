@@ -8,7 +8,9 @@ sam_in_ef = os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".sam")
 if SEQ_TECH == "illumina":
     fastq_dir = dir.out.short
     sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".sam")
-    sam_in_ef = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
+    sam_in_ef = (
+        os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
+    )
 
 fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq")
 fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq.gz"))
@@ -143,6 +145,8 @@ rule convert_sam_to_bam:
         sam_in,
     output:
         temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".bam")),
+    log:
+        os.path.join(dir.out.logs, "sam2bam", "{sample}", "{fasta}", contig + ".log"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -155,7 +159,7 @@ rule convert_sam_to_bam:
     shell:
         """
         samtools view -@ {threads} -Sb {input} | \\
-        samtools sort -@ {threads} -o {output}
+        samtools sort -@ {threads} -o {output} 2> {log}
         """
 
 
@@ -430,12 +434,18 @@ if not SKIP_SHUFFLE:
             paste -d '\t' <(seqkit seq -n {output}) <(seqkit seq -n {input}) > {log[1]} 
             """
 
-if ERRFREE:   
+
+if ERRFREE:
+
     rule convert_sam_to_bam_ef:
         input:
             sam_in_ef,
         output:
             temp(os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".bam")),
+        log:
+            os.path.join(
+                dir.out.logs, "sam2bam", "{sample}", "{fasta}", contig + ".log"
+            ),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
@@ -448,9 +458,9 @@ if ERRFREE:
         shell:
             """
             samtools view -@ {threads} -Sb {input} | \\
-            samtools sort -@ {threads} -o {output}
+            samtools sort -@ {threads} -o {output} 2> {log}
             """
-    
+
     rule merge_bams_ef:
         input:
             lambda wildcards: aggregate(wildcards, dir.out.ef, "bam"),
@@ -476,7 +486,7 @@ if ERRFREE:
             """
             samtools merge -@ {threads} -o {output} {input} 2> {log}
             """
-    
+
     rule index_bams_ef:
         input:
             os.path.join(dir.out.ef, "{sample}.bam"),
