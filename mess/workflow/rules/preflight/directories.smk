@@ -34,6 +34,7 @@ dir.out.short = os.path.join(dir.out.processing, "short")
 dir.out.long = os.path.join(dir.out.processing, "long")
 dir.out.fastq = os.path.join(dir.out.base, "fastq")
 dir.out.bam = os.path.join(dir.out.base, "bam")
+dir.out.ef = os.path.join(dir.out.base, "ef")
 dir.out.tax = os.path.join(dir.out.base, "tax")
 
 

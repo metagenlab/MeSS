@@ -3,9 +3,12 @@ contig = "{contig}"
 if CIRCULAR:
     contig = "{contig}_{n}"
 sam_in = os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".sam")
+sam_in_ef = os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".sam")
+
 if SEQ_TECH == "illumina":
     fastq_dir = dir.out.short
     sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".sam")
+    sam_in_ef = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
 
 fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq")
 fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq.gz"))
@@ -425,6 +428,93 @@ if not SKIP_SHUFFLE:
             seqkit seq {input} | seqkit replace \\
             -p .+ -r "{params}" -o {output} 2> {log[0]}
             paste -d '\t' <(seqkit seq -n {output}) <(seqkit seq -n {input}) > {log[1]} 
+            """
+
+if ERRFREE:   
+    rule convert_sam_to_bam_ef:
+        input:
+            sam_in_ef,
+        output:
+            temp(os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".bam")),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.conda, "samtools.yml")
+        container:
+            containers.samtools
+        shell:
+            """
+            samtools view -@ {threads} -Sb {input} | \\
+            samtools sort -@ {threads} -o {output}
+            """
+    
+    rule merge_bams_ef:
+        input:
+            lambda wildcards: aggregate(wildcards, dir.out.ef, "bam"),
+        output:
+            os.path.join(dir.out.ef, "{sample}.bam"),
+        log:
+            os.path.join(
+                dir.out.logs,
+                "samtools",
+                "merge",
+                "{sample}_ef.log",
+            ),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.conda, "samtools.yml")
+        container:
+            containers.samtools
+        shell:
+            """
+            samtools merge -@ {threads} -o {output} {input} 2> {log}
+            """
+    
+    rule index_bams_ef:
+        input:
+            os.path.join(dir.out.ef, "{sample}.bam"),
+        output:
+            os.path.join(dir.out.ef, "{sample}.bam.bai"),
+        benchmark:
+            os.path.join(dir.out.bench, "samtools", "index", "{sample}_ef.txt")
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.conda, "samtools.yml")
+        container:
+            containers.samtools
+        shell:
+            """
+            samtools index -@ {threads} {input}
+            """
+
+    rule get_bam_coverage_ef:
+        input:
+            os.path.join(dir.out.ef, "{sample}.bam"),
+        output:
+            temp(os.path.join(dir.out.ef, "{sample}.txt")),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.sml.cpu
+        conda:
+            os.path.join(dir.conda, "samtools.yml")
+        container:
+            containers.samtools
+        shell:
+            """
+            samtools coverage {input} > {output}
             """
 
 
