@@ -292,6 +292,11 @@ def sim_options(func):
             default=None,
         ),
         click.option(
+            "--errfree",
+            help="Generate error free alignments with art_illumina",
+            is_flag=True,
+        ),
+        click.option(
             "--replicates",
             help="Number of replicates per sample",
             type=int,
@@ -423,13 +428,6 @@ def sim_options(func):
             help="Seed for pseudo random number generator",
             type=int,
             default=1,
-            show_default=True,
-        ),
-        click.option(
-            "--errfree",
-            help="Generate a zero sequencing errors SAM file",
-            is_flag=True,
-            default=False,
             show_default=True,
         ),
     ]
