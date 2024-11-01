@@ -34,6 +34,10 @@ if PASSES > 1:
                     contig + ".ccs.bam",
                 )
             ),
+        log:
+            os.path.join(
+                dir.out.logs, "sam2bam", "{sample}", "{fasta}", contig + ".ccs.log"
+            ),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
@@ -46,7 +50,7 @@ if PASSES > 1:
         shell:
             """
             samtools view -@ {threads} -Sb {input} | \\
-            samtools sort -@ {threads} -o {output}
+            samtools sort -@ {threads} -o {output} 2> {log}
             """
 
     rule ccs_bam_to_fastq:
@@ -121,7 +125,7 @@ if BAM:
         log:
             os.path.join(
                 dir.out.logs,
-                "maf2paf",
+                "maf2sam",
                 "{sample}",
                 "{fasta}" + "_" + contig + ".log",
             ),
@@ -171,7 +175,6 @@ rule merge_bams:
     log:
         os.path.join(
             dir.out.logs,
-            "samtools",
             "merge",
             "{sample}.log",
         ),
@@ -444,7 +447,7 @@ if ERRFREE:
             temp(os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".bam")),
         log:
             os.path.join(
-                dir.out.logs, "sam2bam", "{sample}", "{fasta}", contig + ".log"
+                dir.out.logs, "sam2bam", "{sample}", "{fasta}", contig + "_ef.log"
             ),
         resources:
             mem_mb=config.resources.sml.mem,
@@ -506,25 +509,6 @@ if ERRFREE:
         shell:
             """
             samtools index -@ {threads} {input}
-            """
-
-    rule get_bam_coverage_ef:
-        input:
-            os.path.join(dir.out.ef, "{sample}.bam"),
-        output:
-            temp(os.path.join(dir.out.ef, "{sample}.txt")),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        threads: config.resources.sml.cpu
-        conda:
-            os.path.join(dir.conda, "samtools.yml")
-        container:
-            containers.samtools
-        shell:
-            """
-            samtools coverage {input} > {output}
             """
 
 
