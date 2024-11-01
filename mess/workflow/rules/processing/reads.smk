@@ -3,9 +3,14 @@ contig = "{contig}"
 if CIRCULAR:
     contig = "{contig}_{n}"
 sam_in = os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".sam")
+sam_in_ef = os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".sam")
+
 if SEQ_TECH == "illumina":
     fastq_dir = dir.out.short
-    sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".fixed")
+    sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".sam")
+    sam_in_ef = (
+        os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
+    )
 
 fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq")
 fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq.gz"))
@@ -30,20 +35,22 @@ if PASSES > 1:
                 )
             ),
         log:
-            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", contig + ".log"),
+            os.path.join(
+                dir.out.logs, "sam2bam", "{sample}", "{fasta}", contig + ".ccs.log"
+            ),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.norm.time,
+            time=config.resources.sml.time,
         threads: config.resources.norm.cpu
         conda:
-            os.path.join(dir.conda, "bioconvert.yml")
+            os.path.join(dir.conda, "samtools.yml")
         container:
-            containers.bioconvert
+            containers.samtools
         shell:
             """
-            samtools view -@ {threads} -bS {input} | \
-            samtools sort -@ {threads} > {output} 2> {log}
+            samtools view -@ {threads} -Sb {input} | \\
+            samtools sort -@ {threads} -o {output} 2> {log}
             """
 
     rule ccs_bam_to_fastq:
@@ -118,7 +125,6 @@ if BAM:
         log:
             os.path.join(
                 dir.out.logs,
-                "bioconvert",
                 "maf2sam",
                 "{sample}",
                 "{fasta}" + "_" + contig + ".log",
@@ -138,126 +144,72 @@ if BAM:
             """
 
 
-rule fix_art_sam:
-    """
-    rule to replace SAM cigar string with read length + M
-    Fixes truncated art_illumina SAM files with some genomes
-    """
-    input:
-        os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".sam"),
-    output:
-        temp(os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".fixed")),
-    resources:
-        mem_mb=config.resources.sml.mem,
-        mem=str(config.resources.sml.mem) + "MB",
-        time=config.resources.sml.time,
-    params:
-        maxlen=MEAN_LEN,
-    shell:
-        """
-        awk 'BEGIN {{OFS="\t"}} {{ if ($1 ~ /^@/) {{ print $0 }} \\
-        else {{ $6 = "{params.maxlen}M"; print $0 }} }}' \\
-        {input} > {output}
-        """
-
-
 rule convert_sam_to_bam:
     input:
         sam_in,
     output:
         temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".bam")),
     log:
+        os.path.join(dir.out.logs, "sam2bam", "{sample}", "{fasta}", contig + ".log"),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
+    threads: config.resources.norm.cpu
+    conda:
+        os.path.join(dir.conda, "samtools.yml")
+    container:
+        containers.samtools
+    shell:
+        """
+        samtools view -@ {threads} -Sb {input} | \\
+        samtools sort -@ {threads} -o {output} 2> {log}
+        """
+
+
+rule merge_bams:
+    input:
+        lambda wildcards: aggregate(wildcards, dir.out.bam, "bam"),
+    output:
+        os.path.join(dir.out.bam, "{sample}.bam"),
+    log:
         os.path.join(
             dir.out.logs,
-            "bioconvert",
-            "sam2bam",
-            "{sample}",
-            "{fasta}" + contig + ".log",
+            "merge",
+            "{sample}.log",
         ),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
-    threads: config.resources.sml.cpu
-    conda:
-        os.path.join(dir.conda, "bioconvert.yml")
-    container:
-        containers.bioconvert
-    shell:
-        """
-        bioconvert sam2bam {input} {output} -t {threads} 2> {log}
-        """
-
-
-rule merge_contig_bams:
-    input:
-        lambda wildcards: aggregate(wildcards, dir.out.bam, "contig", "bam"),
-    output:
-        temp(os.path.join(dir.out.bam, "{sample}", "{fasta}.bam")),
-    benchmark:
-        os.path.join(dir.out.bench, "samtools", "merge", "{sample}", "{fasta}.txt")
-    log:
-        os.path.join(dir.out.logs, "samtools", "merge", "{sample}", "{fasta}.log"),
-    resources:
-        mem_mb=config.resources.sml.mem,
-        mem=str(config.resources.sml.mem) + "MB",
-        time=config.resources.sml.time,
-    threads: config.resources.sml.cpu
-    conda:
-        os.path.join(dir.conda, "bioconvert.yml")
-    container:
-        containers.bioconvert
-    shell:
-        """
-        samtools merge -@ {threads} -o {output} {input} 2> {log}
-        """
-
-
-rule merge_sample_bams:
-    input:
-        lambda wildcards: aggregate(wildcards, dir.out.bam, "fasta", "bam"),
-    output:
-        temp(os.path.join(dir.out.bam, "{sample}.unsorted")),
-    benchmark:
-        os.path.join(dir.out.bench, "samtools", "merge", "{sample}.txt")
-    log:
-        os.path.join(dir.out.logs, "samtools", "merge", "{sample}.log"),
-    resources:
-        mem_mb=config.resources.sml.mem,
-        mem=str(config.resources.sml.mem) + "MB",
-        time=config.resources.sml.time,
     threads: config.resources.norm.cpu
     conda:
-        os.path.join(dir.conda, "bioconvert.yml")
+        os.path.join(dir.conda, "samtools.yml")
     container:
-        containers.bioconvert
+        containers.samtools
     shell:
         """
         samtools merge -@ {threads} -o {output} {input} 2> {log}
         """
 
 
-rule sort_bams:
+rule index_bams:
     input:
-        os.path.join(dir.out.bam, "{sample}.unsorted"),
-    output:
         os.path.join(dir.out.bam, "{sample}.bam"),
-    benchmark:
-        os.path.join(dir.out.bench, "samtools", "sort", "{sample}.txt")
-    log:
-        os.path.join(dir.out.logs, "samtools", "sort", "{sample}.log"),
+    output:
+        os.path.join(dir.out.bam, "{sample}.bam.bai"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
-        time=config.resources.sml.time,
+        time=config.resources.norm.time,
     threads: config.resources.norm.cpu
     conda:
-        os.path.join(dir.conda, "bioconvert.yml")
+        os.path.join(dir.conda, "samtools.yml")
     container:
-        containers.bioconvert
+        containers.samtools
     shell:
         """
-        samtools sort -@ {threads} {input} -o {output} 2> {log}
+        samtools index -@ {threads} {input}
         """
 
 
@@ -266,27 +218,25 @@ rule get_bam_coverage:
         os.path.join(dir.out.bam, "{sample}.bam"),
     output:
         temp(os.path.join(dir.out.bam, "{sample}.txt")),
-    log:
-        os.path.join(dir.out.logs, "samtools", "coverage", "{sample}.log"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
     conda:
-        os.path.join(dir.conda, "bioconvert.yml")
+        os.path.join(dir.conda, "samtools.yml")
     container:
-        containers.bioconvert
+        containers.samtools
     shell:
         """
-        samtools coverage {input} > {output} 2> {log}
+        samtools coverage {input} > {output}
         """
 
 
 rule get_tax_profile:
     input:
         cov=os.path.join(dir.out.bam, "{sample}.txt"),
-        tax=get_cov_table,
+        tax=os.path.join(dir.out.processing, "cov.tsv"),
     output:
         counts=os.path.join(dir.out.tax, "{sample}.tsv"),
         seq_abundance=temp(os.path.join(dir.out.tax, "{sample}_seq.tsv")),
@@ -343,10 +293,6 @@ rule tax_profile_to_biobox:
         dmp=os.path.join(TAXONKIT, "names.dmp"),
     output:
         os.path.join(dir.out.tax, "{sample}_{abundance}.txt"),
-    log:
-        os.path.join(
-            dir.out.logs, "taxonkit", "profile2cami", "{sample}_{abundance}.log"
-        ),
     params:
         dir=TAXONKIT,
         ranks=RANKS,
@@ -366,28 +312,6 @@ rule tax_profile_to_biobox:
         -j {threads} --data-dir {params.dir} \\
         -r {params.ranks} \\
         -s {wildcards.sample} {input.tsv} > {output}
-        """
-
-
-rule index_bams:
-    input:
-        os.path.join(dir.out.bam, "{sample}.bam"),
-    output:
-        os.path.join(dir.out.bam, "{sample}.bam.bai"),
-    benchmark:
-        os.path.join(dir.out.bench, "samtools", "index", "{sample}.txt")
-    resources:
-        mem_mb=config.resources.sml.mem,
-        mem=str(config.resources.sml.mem) + "MB",
-        time=config.resources.norm.time,
-    threads: config.resources.norm.cpu
-    conda:
-        os.path.join(dir.conda, "bioconvert.yml")
-    container:
-        containers.bioconvert
-    shell:
-        """
-        samtools index -@ {threads} {input}
         """
 
 
@@ -411,24 +335,6 @@ rule compress_contig_fastqs:
         """
 
 
-rule cat_contig_fastqs:
-    input:
-        flag=get_cov_table,
-        fq=lambda wildcards: aggregate(wildcards, fastq_dir, "contig", "fq.gz"),
-    output:
-        temp(os.path.join(fastq_dir, "{sample}", "{fasta}{p}.fq.gz"))
-        if PAIRED
-        else temp(os.path.join(fastq_dir, "{sample}", "{fasta}.fq.gz")),
-    resources:
-        mem_mb=config.resources.sml.mem,
-        mem=str(config.resources.sml.mem) + "MB",
-        time=config.resources.sml.time,
-    shell:
-        """
-        cat {input.fq} > {output}
-        """
-
-
 sample_fastq_out = []
 if SKIP_SHUFFLE:
     if PAIRED:
@@ -442,18 +348,24 @@ else:
         sample_fastq_out = temp(os.path.join(dir.out.cat, "{sample}.fq.gz"))
 
 
-rule cat_sample_fastqs:
+rule cat_fastqs:
     input:
-        lambda wildcards: aggregate(wildcards, fastq_dir, "fasta", "fq.gz"),
+        lambda wildcards: aggregate(wildcards, fastq_dir, "fq.gz"),
     output:
         sample_fastq_out,
+    params:
+        dir=os.path.join(fastq_dir, "{sample}"),
+        name="*{p}.fq.gz" if PAIRED else "*.fq.gz",
+        head=lambda wildcards, input: list(input)[:3],
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.norm.time,
+    message:
+        "Concatenating {wildcards.sample} reads : {params.head} ... "
     shell:
         """
-        cat {input} > {output}
+        find {params.dir} -name "{params.name}" | xargs cat > {output}
         """
 
 
@@ -470,12 +382,6 @@ if not SKIP_SHUFFLE:
             else temp(os.path.join(dir.out.shuffle, "{sample}.fq.gz")),
         params:
             lambda wildcards: SHUFFLE[wildcards.sample],
-        benchmark:
-            (
-                os.path.join(dir.out.bench, "seqkit", "shuffle", "{sample}_R{p}.txt")
-                if PAIRED
-                else os.path.join(dir.out.bench, "seqkit", "shuffle", "{sample}.txt")
-            )
         log:
             os.path.join(dir.out.logs, "seqkit", "shuffle", "{sample}_R{p}.log")
             if PAIRED
@@ -507,12 +413,6 @@ if not SKIP_SHUFFLE:
             os.path.join(dir.out.fastq, "{sample}_R{p}.fq.gz")
             if PAIRED
             else os.path.join(dir.out.fastq, "{sample}.fq.gz"),
-        benchmark:
-            (
-                os.path.join(dir.out.bench, "seqkit", "anonymize", "{sample}_R{p}.txt")
-                if PAIRED
-                else os.path.join(dir.out.bench, "seqkit", "anonymize", "{sample}.txt")
-            )
         log:
             os.path.join(dir.out.logs, "seqkit", "replace", "{sample}_R{p}.log")
             if PAIRED
@@ -535,6 +435,80 @@ if not SKIP_SHUFFLE:
             seqkit seq {input} | seqkit replace \\
             -p .+ -r "{params}" -o {output} 2> {log[0]}
             paste -d '\t' <(seqkit seq -n {output}) <(seqkit seq -n {input}) > {log[1]} 
+            """
+
+
+if ERRFREE:
+
+    rule convert_sam_to_bam_ef:
+        input:
+            sam_in_ef,
+        output:
+            temp(os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".bam")),
+        log:
+            os.path.join(
+                dir.out.logs, "sam2bam", "{sample}", "{fasta}", contig + "_ef.log"
+            ),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.conda, "samtools.yml")
+        container:
+            containers.samtools
+        shell:
+            """
+            samtools view -@ {threads} -Sb {input} | \\
+            samtools sort -@ {threads} -o {output} 2> {log}
+            """
+
+    rule merge_bams_ef:
+        input:
+            lambda wildcards: aggregate(wildcards, dir.out.ef, "bam"),
+        output:
+            os.path.join(dir.out.ef, "{sample}.bam"),
+        log:
+            os.path.join(
+                dir.out.logs,
+                "samtools",
+                "merge",
+                "{sample}_ef.log",
+            ),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.conda, "samtools.yml")
+        container:
+            containers.samtools
+        shell:
+            """
+            samtools merge -@ {threads} -o {output} {input} 2> {log}
+            """
+
+    rule index_bams_ef:
+        input:
+            os.path.join(dir.out.ef, "{sample}.bam"),
+        output:
+            os.path.join(dir.out.ef, "{sample}.bam.bai"),
+        benchmark:
+            os.path.join(dir.out.bench, "samtools", "index", "{sample}_ef.txt")
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.norm.time,
+        threads: config.resources.norm.cpu
+        conda:
+            os.path.join(dir.conda, "samtools.yml")
+        container:
+            containers.samtools
+        shell:
+            """
+            samtools index -@ {threads} {input}
             """
 
 

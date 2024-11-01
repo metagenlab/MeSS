@@ -64,7 +64,13 @@ cmd_sim_options = (
     },
     {
         "name": "art_illumina options",
-        "options": ["--custom-err", "--paired", "--frag-len", "--frag-sd"],
+        "options": [
+            "--custom-err",
+            "--errfree",
+            "--paired",
+            "--frag-len",
+            "--frag-sd",
+        ],
     },
     {
         "name": "pbsim3 options",

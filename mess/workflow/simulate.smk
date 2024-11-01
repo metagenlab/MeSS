@@ -91,6 +91,7 @@ include: os.path.join("rules", "processing", "fastas.smk")
 CUSTOM_ERR = config.args.custom_err
 ERROR = config.args.error
 BAM = config.args.bam
+ERRFREE = config.args.errfree
 MIN_LEN = config.args.min_len
 MAX_LEN = config.args.max_len
 SD_LEN = config.args.sd_len
@@ -110,6 +111,7 @@ else:
 
 
 # reads post-processsing options
+random.seed(SEED)
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
 RANKS = config.args.ranks

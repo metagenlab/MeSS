@@ -4,8 +4,8 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - assembly_finder =0.7.6
-  - ncbi-datasets-cli =16.26.2
+  - assembly_finder =0.8.0
+  - ncbi-datasets-cli =16.31.0
   - taxonkit =0.17.0
   - csvtk =0.30.0
   - rsync =3.3.0

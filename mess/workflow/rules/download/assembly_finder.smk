@@ -20,7 +20,7 @@ rule get_unique_entries:
             )
 
 
-af_args = ""
+af_args = "--no-use-conda "
 if TAXON:
     af_args += "--taxon "
     if LIMIT:
@@ -59,14 +59,11 @@ checkpoint download_assemblies:
         tsv=os.path.join(dir.out.base, "uniq_entries.tsv"),
     output:
         asm=os.path.join(dir.out.base, "assembly_finder/assembly_summary.tsv"),
-        seq=os.path.join(dir.out.base, "assembly_finder/sequence_report.tsv"),
         tax=os.path.join(dir.out.base, "assembly_finder/taxonomy.tsv"),
     params:
         args=af_args,
         taxonkit=TAXONKIT,
         out=os.path.join(dir.out.base, "assembly_finder"),
-    benchmark:
-        os.path.join(dir.out.bench, "assembly_finder.txt")
     log:
         os.path.join(dir.out.logs, "assembly_finder.log"),
     resources:
@@ -84,6 +81,5 @@ checkpoint download_assemblies:
         --taxonkit {params.taxonkit} \\
         --threads {threads} \\
         {params.args} \\
-        --no-use-conda \\
         -o {params.out} 2> {log}
         """

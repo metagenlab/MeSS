@@ -1,4 +1,4 @@
-art_args = ""
+art_args = "-k 0 "
 if CUSTOM_ERR == None:
     art_args += f"-ss {ERROR} "
 if CUSTOM_ERR:
@@ -16,16 +16,22 @@ if PAIRED:
 
 
 if BAM:
-    art_args += "-sam -M"
+    art_args += "-sam -M "
+
+if ERRFREE:
+    art_args += "-ef "
 
 
 fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}")
 if CIRCULAR:
     fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}_{n}")
 
-sam_out = temp(fq_prefix + ".txt")
+sam_out = [temp(fq_prefix + ".txt")]
+ext_cmd = f"touch {sam_out[0]} "
 if BAM:
-    sam_out = temp(fq_prefix + ".sam")
+    sam_out += [temp(fq_prefix + ".sam")]
+if ERRFREE:
+    sam_out += [temp(fq_prefix + "_errFree.sam")]
 
 
 fastq_out = [
@@ -47,14 +53,15 @@ rule art_illumina:
     input:
         fasta,
     output:
-        sam=sam_out,
         fastqs=fastq_out,
+        sam=sam_out,
     params:
         args=art_args,
         read_len=MEAN_LEN,
         cov=lambda wildcards: get_value("cov_sim", wildcards),
         seed=lambda wildcards: int(get_value("seed", wildcards)),
         prefix=fq_prefix,
+        cmd=ext_cmd,
     log:
         os.path.join(dir.out.logs, "art", "{sample}", "{fasta}", "{contig}.log")
         if not CIRCULAR
@@ -75,5 +82,5 @@ rule art_illumina:
         -rs {params.seed} -l {params.read_len} \\
         -f {params.cov} -na {params.args} \\
         -o {params.prefix} &> {log}
-        touch {output.sam}
+        {params.cmd}
         """

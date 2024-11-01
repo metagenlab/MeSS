@@ -292,6 +292,11 @@ def sim_options(func):
             default=None,
         ),
         click.option(
+            "--errfree",
+            help="Generate error free alignments with art_illumina",
+            is_flag=True,
+        ),
+        click.option(
             "--replicates",
             help="Number of replicates per sample",
             type=int,
