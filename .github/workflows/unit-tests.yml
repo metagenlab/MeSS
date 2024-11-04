@@ -59,7 +59,7 @@ jobs:
 
       - name: Install MeSS and pytest-cov
         run: |
-          pip install -e .
+          pip install . --no-build-isolation -vvv
           pip install pytest coverage
 
       - name: Cache apptainer containers
