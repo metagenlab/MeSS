@@ -10,7 +10,7 @@
 [![docs](https://github.com/metagenlab/MeSS/actions/workflows/build-docs.yml/badge.svg)](https://github.com/metagenlab/MeSS/actions/workflows/build-docs.yml)
 [![docker](https://github.com/metagenlab/MeSS/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/metagenlab/MeSS/actions/workflows/docker-publish.yml)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13365501.svg)](https://zenodo.org/doi/10.5281/zenodo.13365501)
+[![DOI](https://zenodo.org/badge/195021481.svg)](https://zenodo.org/badge/latestdoi/195021481)
 
 The Metagenomic Sequence Simulator (MeSS) is a [Snakemake](https://github.com/snakemake/snakemake) pipeline, implemented using [Snaketool](https://github.com/beardymcjohnface/Snaketool), for simulating illumina, Oxford Nanopore (ONT) and Pacific Bioscience (PacBio) shotgun metagenomic samples.
 
@@ -117,8 +117,7 @@ Let's simulate two metagenomic samples with the following taxa and read counts i
 mess run -i samples.tsv
 ```
 
-> [!IMPORTANT] 
-> [Apptainer](https://apptainer.org/) is the default and recommended dependency deployment method for maximum reproducibility ! If you would like to use conda you can specify `--sdm conda`.
+> [!IMPORTANT] > [Apptainer](https://apptainer.org/) is the default and recommended dependency deployment method for maximum reproducibility ! If you would like to use conda you can specify `--sdm conda`.
 
 #### :card_index_dividers: Outputs
 
@@ -166,38 +165,73 @@ More details in the [resource usage documentation](https://metagenlab.github.io/
 
 ## :fire: Features
 
-### :dna: Multi sequencing technology choice
+Using `phage.tsv`
+
+| sample | taxon  | cov_sim |
+| :----- | :----- | :------ |
+| phage  | 347329 | 200     |
+
+### :dna: Multi sequencing technology
 
 - Illumina
 
 ```sh
-mess test --tech illumina
+mess run -i phage.tsv --tech illumina -o mess_out/illumina
+seqkit stats --all -T -b mess_out/illumina/fastq/*
 ```
+
+| file           | num_seqs | sum_len | avg_len | N50 | Q20(%) | Q30(%) | AvgQual |
+| :------------- | :------- | :------ | :------ | :-- | :----- | :----- | :------ |
+| phage_R1.fq.gz | 44000    | 6600000 | 150.0   | 150 | 98.01  | 91.67  | 27.81   |
+| phage_R2.fq.gz | 44000    | 6600000 | 150.0   | 150 | 97.31  | 89.65  | 26.52   |
 
 - Nanopore
 
 ```sh
-mess test --tech nanopore
+mess run -i phage.tsv --tech nanopore -o mess_out/nanopore
+seqkit stats --all -T -b mess_out/nanopore/fastq/*
 ```
+
+| file        | num_seqs | sum_len  | avg_len | N50   | Q20(%) | Q30(%) | AvgQual |
+| :---------- | :------- | :------- | :------ | :---- | :----- | :----- | :------ |
+| phage.fq.gz | 1486     | 13203006 | 8884.9  | 12329 | 73.99  | 62.65  | 13.60   |
 
 - PacBio
 
 ```sh
-mess test --tech pacbio
+mess run -i phage.tsv -o mess_out/pacbio --tech pacbio --error hifi
+seqkit stats --all -T -b mess_out/pacbio/fastq/*
 ```
 
-### :white_check_mark: BAMs and taxonomic profiles
+| file        | num_seqs | sum_len  | avg_len | N50   | Q20(%) | Q30(%) | AvgQual |
+| :---------- | :------- | :------- | :------ | :---- | :----- | :----- | :------ |
+| phage.fq.gz | 1430     | 12588621 | 8803.2  | 12666 | 99.92  | 99.78  | 40.51   |
+
+### :o: Circular assemblies
+
+Inspired by [readSimulator](https://github.com/wanyuac/readSimulator)'s approach, `mess` can shuffle genome start points to get circular genome assemblies.
+
+- Linear (default, `--rotate 1`)
 
 ```sh
-mess test --bam
+mess run -i phage.tsv -o mess_out/linear
 ```
 
-### :o: Circular genomes
+<p align="center">
+<img src="https://github.com/user-attachments/assets/6dc81eb6-d20b-4564-810e-eba4e7990b4e" width=50% height=50%>
+</p>
+
+- Circular (`--rotate 3`)
 
 ```sh
-mess test --rotate 3
+mess run -i phage.tsv --rotate 3 -o mess_out/circular
 ```
 
+<p align="center">
+<img src="https://github.com/user-attachments/assets/bab7fbbd-e012-442e-bc27-ba3e893ea673" width=50% height=50%>
+</p>
+
+> Assembled using [unicycler](https://github.com/rrwick/Unicycler), visualized using [bandage](https://github.com/rrwick/Bandage)
 
 ## :sos: Help
 
