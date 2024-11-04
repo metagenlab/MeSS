@@ -49,19 +49,25 @@ jobs:
       - name: Setup apptainer
         uses: eWaterCycle/setup-apptainer@v2.0.0
 
-      - name: Setup MeSS environment
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Setup pip
+        uses: actions/setup-python@v5
         with:
-          miniforge-version: latest
-          activate-environment: mess
           python-version: ${{ matrix.python-version }}
-          auto-update-conda: true
+          cache: "pip" # caching pip dependencies
+          cache-dependency-path: setup.py
 
       - name: Install MeSS and pytest-cov
         run: |
-          pip install -e .
+          pip install -e . 
           pip install pytest coverage
 
+      - name: Cache apptainer containers
+        uses: actions/cache@v3
+        with:
+          path: .snakemake/apptainer # Cache the Apptainer containers directory
+          key: ${{ runner.os }}-apptainer-${{ hashFiles('mess/workflow/envs/containers.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apptainer-
       - name: Run tests on ${{ matrix.os }} for python ${{ matrix.python-version }}
         run: |
           coverage run -m pytest
