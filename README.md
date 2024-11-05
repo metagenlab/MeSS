@@ -163,8 +163,8 @@ Using [`samples.tsv`](#arrow_right-input), `mess` runs in under 2min, while usin
 
 > [!NOTE]
 > Average resources usage measured 3 times with one CPU (using [nextflow](https://github.com/nextflow-io/nextflow), excluding dependency deployment time).
-
-More details in the [resource usage documentation](https://metagenlab.github.io/MeSS/benchmarks/resource-usage/)
+>
+> More details in the [resource usage documentation](https://metagenlab.github.io/MeSS/benchmarks/resource-usage/)
 
 ## :fire: Features
 
@@ -209,6 +209,11 @@ seqkit stats --all -T -b mess_out/pacbio/fastq/*
 | file        | num_seqs | sum_len  | avg_len | N50   | Q20(%) | Q30(%) | AvgQual |
 | :---------- | :------- | :------- | :------ | :---- | :----- | :----- | :------ |
 | phage.fq.gz | 1430     | 12588621 | 8803.2  | 12666 | 99.92  | 99.78  | 40.51   |
+
+> [!NOTE]
+> We use [pbsim3](https://github.com/yukiteruono/pbsim3) to simulate multi-pass CLR reads which are converted to HiFi reads with [ccs](https://github.com/PacificBiosciences/ccs). 
+>
+> PacBio HiFi reads simulations usually take longer compared to other error profiles.
 
 ### :o: Circular assemblies
 
