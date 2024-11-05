@@ -117,7 +117,8 @@ Let's simulate two metagenomic samples with the following taxa and read counts i
 mess run -i samples.tsv
 ```
 
-> [!IMPORTANT] > [Apptainer](https://apptainer.org/) is the default and recommended dependency deployment method for maximum reproducibility ! If you would like to use conda you can specify `--sdm conda`.
+> [!IMPORTANT]
+> [Apptainer](https://apptainer.org/) is the default and recommended dependency deployment method for maximum reproducibility ! If you would like to use conda you can specify `--sdm conda`.
 
 #### :card_index_dividers: Outputs
 
