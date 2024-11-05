@@ -118,7 +118,9 @@ mess run -i samples.tsv
 ```
 
 > [!IMPORTANT]
-> [Apptainer](https://apptainer.org/) is the default and recommended dependency deployment method for maximum reproducibility ! If you would like to use conda you can specify `--sdm conda`.
+> [Apptainer](https://apptainer.org/) is the default and recommended dependency deployment method for maximum reproducibility ! 
+>
+> If you would like to use conda you can specify `--sdm conda`.
 
 #### :card_index_dividers: Outputs
 
@@ -197,7 +199,7 @@ seqkit stats --all -T -b mess_out/nanopore/fastq/*
 | :---------- | :------- | :------- | :------ | :---- | :----- | :----- | :------ |
 | phage.fq.gz | 1486     | 13203006 | 8884.9  | 12329 | 73.99  | 62.65  | 13.60   |
 
-- PacBio
+- PacBio HiFi
 
 ```sh
 mess run -i phage.tsv -o mess_out/pacbio --tech pacbio --error hifi
@@ -211,6 +213,9 @@ seqkit stats --all -T -b mess_out/pacbio/fastq/*
 ### :o: Circular assemblies
 
 Inspired by [readSimulator](https://github.com/wanyuac/readSimulator)'s approach, `mess` can shuffle genome start points to get circular genome assemblies.
+
+> [!WARNING]
+> All contigs in the fasta will be circularised 
 
 - Linear (default, `--rotate 1`)
 
@@ -232,6 +237,8 @@ mess run -i phage.tsv --rotate 3 -o mess_out/circular
 <img src="https://github.com/user-attachments/assets/bab7fbbd-e012-442e-bc27-ba3e893ea673" width=50% height=50%>
 </p>
 
+
+> [!NOTE]
 > Assembled using [unicycler](https://github.com/rrwick/Unicycler), visualized using [bandage](https://github.com/rrwick/Bandage)
 
 ## :sos: Help
