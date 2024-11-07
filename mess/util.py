@@ -176,6 +176,13 @@ def common_options(func):
             "--threads", help="Number of threads to use", default=1, show_default=True
         ),
         click.option(
+            "--sdm",
+            type=click.Choice(["apptainer", "conda"]),
+            default="apptainer",
+            help="Software deplolyment method",
+            show_default=True,
+        ),
+        click.option(
             "--profile",
             default=None,
             help="Snakemake profile to use",
