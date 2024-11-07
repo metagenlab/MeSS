@@ -41,21 +41,13 @@ def default_to_output(ctx, param, value):
     return value
 
 
-def get_deployment_prefix(ctx, param, value):
-    """Callback for click options; joins software deployment name and prefix dir"""
-    if not value:
-        return os.path.join(os.getcwd(), ".snakemake", ctx.params["sdm"])
-    return value
-
-
 def run_snakemake(
     configfile=None,
     system_config=None,
     snakefile_path=None,
     merge_config=None,
     threads=1,
-    sdm=None,
-    prefix=None,
+    sdm="apptainer",
     snake_default=None,
     snake_args=[],
     profile=None,
@@ -110,17 +102,15 @@ def run_snakemake(
         snake_command += ["--cores", threads]
 
     # add software deployment args
-    if sdm:
-        if sdm == "conda":
-            snake_command += ["--sdm conda"]
-            if prefix:
-                snake_command += ["--conda-prefix", prefix]
-        if sdm == "apptainer":
-            snake_command += [
-                f"--sdm apptainer --apptainer-args '-B {workflow_basedir}:{workflow_basedir}'"
-            ]
-            if prefix:
-                snake_command += ["--apptainer-prefix", prefix]
+
+    if sdm == "conda":
+        snake_command += ["--sdm conda"]
+
+    if sdm == "apptainer":
+        snake_command += [
+            f"--sdm apptainer --apptainer-args '-B {workflow_basedir}:{workflow_basedir}'"
+        ]
+
     # add snakemake default args
     if snake_default:
         snake_command += snake_default
@@ -189,21 +179,6 @@ def common_options(func):
             "--profile",
             default=None,
             help="Snakemake profile to use",
-            show_default=False,
-        ),
-        click.option(
-            "--sdm",
-            type=click.Choice(["apptainer", "conda"]),
-            default="apptainer",
-            help="Software deplolyment method",
-            show_default=True,
-        ),
-        click.option(
-            "--prefix",
-            default=None,
-            help="Custom softawre deployment directory",
-            callback=get_deployment_prefix,
-            type=click.Path(),
             show_default=False,
         ),
         click.option(
