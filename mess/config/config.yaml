@@ -69,5 +69,5 @@ resources:
     time: "00:30:00"
   sml:
     cpu: 1
-    mem: 2000
+    mem: 1000
     time: "00:00:10"
