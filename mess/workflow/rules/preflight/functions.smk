@@ -99,6 +99,10 @@ def list_fastas(wildcards):
 table_cache = {}
 
 
+def get_cov_df(wildcards):
+    return checkpoints.split_contigs.get(**wildcards).output[0]
+
+
 def get_cov_table(wildcards, key, idx_col):
     cov_table = checkpoints.split_contigs.get(**wildcards).output[0]
     if cov_table not in table_cache:
