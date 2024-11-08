@@ -1,0 +1,6 @@
+executor: slurm
+singularity-prefix: /mnt/slow_storage/containers
+default-resources:  
+  slurm_partition: short
+  runtime: 30
+jobs: 100
