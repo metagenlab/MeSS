@@ -55,6 +55,7 @@ cmd_sim_options = (
         "options": [
             "--tech",
             "--bases",
+            "--rotate",
             "--tool",
             "--error",
             "--mean-len",
@@ -114,7 +115,6 @@ local_sim_options = (
         "options": [
             "--asm-summary",
             "--fasta",
-            "--rotate",
         ],
     },
 )
@@ -137,8 +137,6 @@ snakemake_options = (
         "options": [
             "--configfile",
             "--profile",
-            "--sdm",
-            "--prefix",
             "--snake-default",
         ],
     },
