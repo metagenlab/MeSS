@@ -51,7 +51,8 @@ if CIRCULAR:
 
 rule art_illumina:
     input:
-        fasta,
+        df=get_cov_df,
+        fa=fasta,
     output:
         fastqs=fastq_out,
         sam=sam_out,
@@ -78,7 +79,7 @@ rule art_illumina:
         containers.art
     shell:
         """
-        art_illumina -i {input} \\
+        art_illumina -i {input.fa} \\
         -rs {params.seed} -l {params.read_len} \\
         -f {params.cov} -na {params.args} \\
         -o {params.prefix} &> {log}
