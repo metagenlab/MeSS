@@ -12,8 +12,6 @@ from snaketool_utils.cli_utils import (
     msg_box,
 )
 
-workflow_basedir = os.path.join(os.path.dirname(os.path.realpath(__file__)))
-
 
 def snake_base(rel_path):
     """Get the filepath to a Snaketool system file (relative to __main__.py)"""
@@ -107,9 +105,14 @@ def run_snakemake(
         snake_command += ["--sdm conda"]
 
     if sdm == "apptainer":
-        snake_command += [
-            f"--sdm apptainer --apptainer-args '-B {workflow_basedir}:{workflow_basedir}'"
+        snake_command += ["--sdm apptainer --apptainer-args"]
+        paths = [
+            os.path.join(os.path.dirname(os.path.realpath(__file__))),
+            os.path.abspath(snake_config["args"]["output"]),
         ]
+        args = " ".join([f"-B {path}:{path}" for path in paths])
+
+        snake_command += [f"'{args}'"]
 
     # add snakemake default args
     if snake_default:
@@ -174,13 +177,6 @@ def common_options(func):
         ),
         click.option(
             "--threads", help="Number of threads to use", default=1, show_default=True
-        ),
-        click.option(
-            "--sdm",
-            type=click.Choice(["apptainer", "conda"]),
-            default="apptainer",
-            help="Software deplolyment method",
-            show_default=True,
         ),
         click.option(
             "--profile",
