@@ -6,6 +6,9 @@ from itertools import product
 from Bio import SeqIO
 import random
 
+# To get rid of the setlocale warning
+os.environ["LC_ALL"] = "C.UTF-8"
+
 
 wildcard_constraints:
     sample="[^/]+",
