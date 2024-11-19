@@ -6,6 +6,9 @@ from itertools import product
 from Bio import SeqIO
 import random
 
+# To get rid of the setlocale warning
+os.environ["LC_ALL"] = "C.UTF-8"
+
 
 wildcard_constraints:
     sample="[^/]+",
@@ -97,6 +100,10 @@ def list_fastas(wildcards):
 
 
 table_cache = {}
+
+
+def get_cov_df(wildcards):
+    return checkpoints.split_contigs.get(**wildcards).output[0]
 
 
 def get_cov_table(wildcards, key, idx_col):

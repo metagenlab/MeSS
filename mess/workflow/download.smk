@@ -36,7 +36,6 @@ INPUT = os.path.abspath(str(config.args.input))
 OUTPUT = config.args.output
 LOG = os.path.join(OUTPUT, "mess.log")
 THREADS = config.args.threads
-CONDA_PREFIX = config.args.conda_prefix
 TAXONKIT = config.args.taxonkit
 API_KEY = config.args.api_key
 LIMIT = config.args.limit

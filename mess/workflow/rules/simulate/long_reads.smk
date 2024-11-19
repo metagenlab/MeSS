@@ -18,7 +18,8 @@ else:
 
 rule pbsim3:
     input:
-        fasta,
+        df=get_cov_df,
+        fa=fasta,
     output:
         pbsim3_out,
         temp(prefix + ".maf"),
@@ -66,7 +67,7 @@ rule pbsim3:
         --pass-num {params.passes} \\
         --accuracy-mean {params.accuracy} \\
         --depth {params.cov} \\
-        --genome {input} &> {log}
+        --genome {input.fa} &> {log}
         
         mv {params.prefix}_0001.maf {params.prefix}.maf
         mv {params.prefix}_0001.ref {params.prefix}.ref

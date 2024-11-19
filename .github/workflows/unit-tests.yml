@@ -64,7 +64,7 @@ jobs:
       - name: Cache apptainer containers
         uses: actions/cache@v3
         with:
-          path: .snakemake/apptainer # Cache the Apptainer containers directory
+          path: .snakemake/singularity # Cache the Apptainer containers directory
           key: ${{ runner.os }}-apptainer-${{ hashFiles('mess/workflow/envs/containers.yml') }}
           restore-keys: |
             ${{ runner.os }}-apptainer-
