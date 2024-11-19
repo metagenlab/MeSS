@@ -51,10 +51,9 @@ setup(
     data_files=get_data_files(),
     py_modules=["mess"],
     install_requires=[
-        "snakemake>=8.0.0",
+        "snakemake>=8.0.0,<=8.24.1",
         "snaketool-utils>=0.0.5",
         "attrmap>=0.0.7",
-        "pyyaml>=6.0.1",
         "pandas>=2.2.1",
         "biopython>=1.83",
         "rich-click>=1.8.3",
