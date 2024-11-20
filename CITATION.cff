@@ -38,4 +38,4 @@ url: "https://metagenlab.github.io/MeSS/"
 abstract: >-
   Snakemake pipeline for simulating shotgun metagenomic samples
 license: MIT
-version: 0.9.1
+version: 0.10.0
