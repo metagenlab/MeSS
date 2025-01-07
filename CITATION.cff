@@ -38,4 +38,17 @@ url: "https://metagenlab.github.io/MeSS/"
 abstract: >-
   Snakemake pipeline for simulating shotgun metagenomic samples
 license: MIT
-version: 0.10.0
+preferred-citation:
+  type: article
+  authors:
+    - given-names: Farid
+      family-names: Chaabane
+    - given-names: Trestan
+      family-names: Pillonel
+    - given-names: Claire
+      family-names: Bertelli
+  doi: "10.1093/bioinformatics/btae760"
+  journal: "Bioinformatics"
+  title: "MeSS and assembly_finder: A toolkit for in silico metagenomic sample generation"
+  year: 2024
+  url: "https://doi.org/10.1093/bioinformatics/btae760"
