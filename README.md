@@ -258,3 +258,17 @@ All command-line options at described [here](https://metagenlab.github.io/MeSS/c
 Please consider citing `MeSS` if you use it in your work.
 
 > Farid Chaabane, Trestan Pillonel, Claire Bertelli, MeSS and assembly_finder: A toolkit for in silico metagenomic sample generation, Bioinformatics, 2024;, btae760, https://doi.org/10.1093/bioinformatics/btae760
+
+```BibTeX
+@article{chaabane_mess_2024,
+	title = {MeSS and assembly_finder: A toolkit for in silico metagenomic sample generation},
+	issn = {1367-4811},
+	url = {https://doi.org/10.1093/bioinformatics/btae760},
+	doi = {10.1093/bioinformatics/btae760},
+	journal = {Bioinformatics},
+	author = {Chaabane, Farid and Pillonel, Trestan and Bertelli, Claire},
+	month = dec,
+	year = {2024},
+	pages = {btae760},
+}
+```
