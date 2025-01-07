@@ -11,6 +11,7 @@
 [![docker](https://github.com/metagenlab/MeSS/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/metagenlab/MeSS/actions/workflows/docker-publish.yml)
 
 [![DOI](https://zenodo.org/badge/195021481.svg)](https://zenodo.org/badge/latestdoi/195021481)
+[![paper](https://img.shields.io/badge/paper-Bioinformatics-%23167da4)](https://doi.org/10.1093/bioinformatics/btae760)
 
 The Metagenomic Sequence Simulator (MeSS) is a [Snakemake](https://github.com/snakemake/snakemake) pipeline, implemented using [Snaketool](https://github.com/beardymcjohnface/Snaketool), for simulating illumina, Oxford Nanopore (ONT) and Pacific Bioscience (PacBio) shotgun metagenomic samples.
 
@@ -251,3 +252,9 @@ mess run -i phage.tsv --rotate 3 -o mess_out/circular
 All command-line options at described [here](https://metagenlab.github.io/MeSS/commands/)
 
 ![`mess -h`](docs/images/mess-help.svg)
+
+## Citation
+
+Please consider citing `MeSS` if you use it in your work.
+
+> Farid Chaabane, Trestan Pillonel, Claire Bertelli, MeSS and assembly_finder: A toolkit for in silico metagenomic sample generation, Bioinformatics, 2024;, btae760, https://doi.org/10.1093/bioinformatics/btae760
