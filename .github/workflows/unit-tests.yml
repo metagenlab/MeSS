@@ -48,6 +48,12 @@ jobs:
 
       - name: Setup apptainer
         uses: eWaterCycle/setup-apptainer@v2.0.0
+      
+      - name: Disable apparmor namespace restrictions for apptainer
+        run: |
+          sudo sh -c 'echo kernel.apparmor_restrict_unprivileged_userns=0 \
+              >/etc/sysctl.d/90-disable-userns-restrictions.conf'
+          sudo sysctl -p /etc/sysctl.d/90-disable-userns-restrictions.conf
 
       - name: Setup pip
         uses: actions/setup-python@v5
