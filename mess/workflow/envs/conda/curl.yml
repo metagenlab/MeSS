@@ -1,6 +1,5 @@
 name: curl
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - curl =8.7.1
