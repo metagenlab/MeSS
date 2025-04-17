@@ -2,12 +2,11 @@ name: assembly_finder
 channels:
   - conda-forge
   - bioconda
-  - defaults
 dependencies:
   - assembly_finder =0.8.0
   - ncbi-datasets-cli =16.31.0
   - taxonkit =0.17.0
-  - csvtk =0.30.0
+  - csvtk >=0.30
   - rsync =3.3.0
   - curl =8.7.1
   - p7zip =16.02
