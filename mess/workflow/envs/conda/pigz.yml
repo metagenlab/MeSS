@@ -1,6 +1,5 @@
 name: pigz
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - pigz =2.8
