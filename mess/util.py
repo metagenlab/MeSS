@@ -395,6 +395,12 @@ def sim_options(func):
             show_default=True,
         ),
         click.option(
+            "--tax/--no-tax",
+            help="Generate taxonomic profile",
+            default=False,
+            show_default=True,
+        ),
+        click.option(
             "--ranks",
             help="Ranks to show in the taxonomic profile",
             type=str,
