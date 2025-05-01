@@ -4,6 +4,8 @@ from humanfriendly import parse_size
 import random
 import os
 import glob
+import re
+from snakemake.script import snakemake
 
 """
 Functions
@@ -38,6 +40,10 @@ def get_even_dist(table):
     return table.merge(abundances).merge(counts)
 
 
+def strip_fasta_ext(filename):
+    return re.sub(r"\.(fa|fna|fasta)(\.gz)?$", "", filename)
+
+
 """
 Main
 """
@@ -56,37 +62,48 @@ else:
 
 # Get table with assembly genome sizes and their taxonomy
 
-if snakemake.params.fa:
-    entry_df = pd.read_csv(snakemake.input.df, sep="\t")
+
+asm_df = pd.read_csv(snakemake.input.asm, sep="\t")
+entry_df = pd.read_csv(snakemake.input.df, sep="\t")
+
+if snakemake.params.fa_dir:
     entry_df["path"] = [
-        glob.glob(os.path.join(snakemake.params.fa, f"{fa}*"))[0]
+        glob.glob(os.path.join(snakemake.params.fa_dir, f"{fa}*"))[0]
         for fa in entry_df["fasta"]
     ]
+if snakemake.params.fa_path:
+    entry_df["fasta"] = [
+        strip_fasta_ext(os.path.basename(path)) for path in entry_df["path"]
+    ]
+
+if snakemake.params.fa_dir or snakemake.params.fa_path:
     asm_df = pd.read_csv(snakemake.input.asm, sep="\t")
     asm_df.rename(
         columns={
-            "file": "path",
+            "file": "fasta",
             "sum_len": "total_sequence_length",
             "num_seqs": "number_of_contigs",
         },
         inplace=True,
     )
+    asm_df["fasta"] = asm_df["fasta"].apply(strip_fasta_ext)
 
-else:
-    asm_df = pd.read_csv(snakemake.input.asm, sep="\t")
-    entry_df = pd.read_csv(snakemake.input.df, sep="\t")
+if "fasta" not in asm_df.columns:
+    asm_df["fasta"] = [
+        strip_fasta_ext(os.path.basename(path)) for path in asm_df["path"]
+    ]
 
 
 same_cols = list(np.intersect1d(entry_df.columns, asm_df.columns))
 df = pd.merge(entry_df, asm_df, how="left", on=same_cols)
 
+
 # Get total bases
 bases = parse_size(snakemake.params.bases)
 
 
-if "fasta" not in df.columns:
-    df["fasta"] = df["accession"]
-
+if "tax_id" in df.columns:
+    df["tax_id"] = df["tax_id"].astype(int)
 # Calculate prportion with dist
 if snakemake.params.dist == "even":
     df = get_even_dist(df)
@@ -163,7 +180,6 @@ cols = [
     "samplename",
     "fasta",
     "path",
-    "tax_id",
     "total_sequence_length",
     "number_of_contigs",
     "reads",
@@ -175,13 +191,13 @@ cols = [
 ]
 if "rotate" in entry_df.columns:
     cols.append("rotate")
+if "tax_id" in df.columns:
+    cols.append("tax_id")
 
 df["reads"] = df["reads"].apply(lambda x: int(round(x)))
 df["bases"] = df["bases"].apply(lambda x: int(round(x)))
 df["tax_abundance"] = df["tax_abundance"].apply(lambda x: round(x, 3))
 df["seq_abundance"] = df["seq_abundance"].apply(lambda x: round(x, 3))
 
-df = df.astype(
-    {"seed": int, "tax_id": int, "total_sequence_length": int, "number_of_contigs": int}
-)
+df = df.astype({"seed": int, "total_sequence_length": int, "number_of_contigs": int})
 df[cols].to_csv(snakemake.output[0], sep="\t", index=False)  # type: ignore
