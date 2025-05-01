@@ -15,7 +15,7 @@ if PAIRED:
     art_args += f"-p -m {FRAG_LEN} -s {FRAG_SD} "
 
 
-if BAM:
+if BAM or TAX:
     art_args += "-sam -M "
 
 if ERRFREE:
@@ -28,7 +28,7 @@ if CIRCULAR:
 
 sam_out = [temp(fq_prefix + ".txt")]
 ext_cmd = f"touch {sam_out[0]} "
-if BAM:
+if BAM or TAX:
     sam_out += [temp(fq_prefix + ".sam")]
 if ERRFREE:
     sam_out += [temp(fq_prefix + "_errFree.sam")]
