@@ -104,6 +104,7 @@ cmd_sim_options = (
     {
         "name": "Taxonomic profile options",
         "options": [
+            "--tax",
             "--abundance",
             "--ranks",
         ],
@@ -113,7 +114,6 @@ local_sim_options = (
     {
         "name": "Local genomes options",
         "options": [
-            "--asm-summary",
             "--fasta",
         ],
     },
@@ -266,7 +266,7 @@ mess simulate -i [input] --tech [tech] --fasta [fasta-dir] -o [output]
 \n
 or
 \n 
-mess simulate -i [input] --tech [tech] --asm-summary [asm-summary] -o [output]
+mess simulate -i [input] --tech [tech] -o [output]
 """
 help_test = """
 \n
@@ -372,13 +372,8 @@ def download(
 )
 @sim_options
 @click.option(
-    "--asm-summary",
-    help="Summary table with genome sizes, fasta paths, contig counts...",
-    type=str,
-)
-@click.option(
     "--fasta",
-    help="Path to local fasta directory if no path is set in summary or input table",
+    help="Path to local fasta directory if no path is set in input table",
     type=str,
 )
 @common_options
