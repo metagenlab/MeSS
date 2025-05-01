@@ -98,7 +98,7 @@ if PASSES > 1:
 
 
 # PBSIM3 bam pre-processing
-if BAM:
+if BAM or TAX:
 
     rule add_reference_name:
         input:
@@ -233,14 +233,29 @@ rule get_bam_coverage:
         """
 
 
+rule get_contig_taxonomy:
+    input:
+        tax=os.path.join(dir.out.base, "coverages.tsv"),
+        cov=os.path.join(dir.out.processing, "cov.tsv"),
+    output:
+        os.path.join(dir.out.processing, "tax.tsv"),
+    run:
+        taxdf = pd.read_csv(input.tax, sep="\t")
+        covdf = pd.read_csv(input.cov, sep="\t")
+        same_cols = list(np.intersect1d(taxdf.columns, covdf.columns))
+        covdf.merge(taxdf, on=same_cols, how="left").to_csv(
+            output[0], sep="\t", index=False
+        )
+
+
 rule get_tax_profile:
     input:
         cov=os.path.join(dir.out.bam, "{sample}.txt"),
-        tax=os.path.join(dir.out.processing, "cov.tsv"),
+        tax=os.path.join(dir.out.processing, "tax.tsv"),
     output:
         counts=os.path.join(dir.out.tax, "{sample}.tsv"),
-        seq_abundance=temp(os.path.join(dir.out.tax, "{sample}_seq.tsv")),
-        tax_abundance=temp(os.path.join(dir.out.tax, "{sample}_tax.tsv")),
+        seq_abundance=os.path.join(dir.out.tax, "{sample}_seq.tsv"),
+        tax_abundance=os.path.join(dir.out.tax, "{sample}_tax.tsv"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -281,18 +296,15 @@ rule get_tax_profile:
                 out = output.tax_abundance
                 df = merge_df.groupby("tax_id")[col].mean().reset_index()
             df["abundance"] = df[col] / df[col].sum()
-            df[["tax_id", "abundance"]].to_csv(
-                out, sep="\t", header=False, index=False
-            )
+            df[["tax_id", "abundance"]].to_csv(out, sep="\t", header=False, index=False)
 
 
-
-rule tax_profile_to_biobox:
+rule get_cami_profile:
     input:
         tsv=os.path.join(dir.out.tax, "{sample}_{abundance}.tsv"),
         dmp=os.path.join(TAXONKIT, "names.dmp"),
     output:
-        os.path.join(dir.out.tax, "{sample}_{abundance}.txt"),
+        os.path.join(dir.out.tax, "{sample}_{abundance}_CAMI.txt"),
     params:
         dir=TAXONKIT,
         ranks=RANKS,
