@@ -2,41 +2,11 @@
 Snakefile for downloading assemblies
 """
 
-import attrmap as ap
-import os
-import glob
+
+include: os.path.join("rules", "preflight", "config.smk")
 
 
-# Concatenate Snakemake's own log file with the master log file
-def copy_log_file():
-    files = glob.glob(os.path.join(".snakemake", "log", "*.snakemake.log"))
-    if not files:
-        return None
-    current_log = max(files, key=os.path.getmtime)
-    shell("cat " + current_log + " >> " + LOG)
-
-
-onsuccess:
-    copy_log_file()
-
-
-onerror:
-    copy_log_file()
-
-
-# config file
-configfile: os.path.join(workflow.basedir, "config", "config.yaml")
-
-
-config = ap.AttrMap(config)
-
-
-# args
-INPUT = os.path.abspath(str(config.args.input))
-OUTPUT = config.args.output
-LOG = os.path.join(OUTPUT, "mess.log")
-THREADS = config.args.threads
-TAXONKIT = config.args.taxonkit
+# assembly_finder options
 API_KEY = config.args.api_key
 LIMIT = config.args.limit
 COMPRESSED = config.args.compressed
@@ -52,16 +22,16 @@ RANK = config.args.rank
 NRANK = config.args.nrank
 
 
-# functions
-include: os.path.join("rules", "preflight", "functions.smk")
-# directories
-include: os.path.join("rules", "preflight", "directories.smk")
-# preflight setup
-include: os.path.join("rules", "preflight", "setup.smk")
-# targets
-include: os.path.join("rules", "preflight", "targets_download.smk")
-# assembly_finder
+# assembly_finder rules
 include: os.path.join("rules", "download", "assembly_finder.smk")
+
+
+# assembly_finder outputs
+TargetDownloads = [
+    os.path.join(dir.out.base, "uniq_entries.tsv"),
+    os.path.join(dir.out.base, "assembly_finder", "assembly_summary.tsv"),
+    os.path.join(dir.out.base, "assembly_finder", "taxonomy.tsv"),
+]
 
 
 # define the rule all
