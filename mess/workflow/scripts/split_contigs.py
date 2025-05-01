@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from itertools import chain
 import random
+from snakemake.script import snakemake
 
 
 def get_random_start(seed, contig_length, n):
@@ -23,7 +24,8 @@ def split_fasta(fa, outdir):
     return record_ids
 
 
-cov_df = pd.read_csv(snakemake.input.cov, sep="\t", dtype={"tax_id": int, "seed": int})
+cov_df = pd.read_csv(snakemake.input.cov, sep="\t", dtype={"seed": int})
+
 
 os.mkdir(snakemake.output.dir)
 id2fa = []
@@ -32,9 +34,7 @@ for fa in snakemake.input.fa:
 id2fa = list(chain.from_iterable(id2fa))
 contig_df = pd.DataFrame.from_records(id2fa)
 df = pd.merge(contig_df, cov_df, how="left", on="fasta")
-
-cols = ["samplename", "fasta", "contig", "contig_length", "tax_id", "seed", "cov_sim"]
-
+cols = ["samplename", "fasta", "contig", "contig_length", "seed", "cov_sim"]
 if snakemake.params.circular:
     cols += ["n", "random_start", "rotate"]
     if "rotate" not in df.columns:
@@ -47,5 +47,6 @@ if snakemake.params.circular:
     df_expanded["n"] = df_expanded.groupby(["samplename", "contig"]).cumcount() + 1
     df = df_expanded
     df["cov_sim"] = df["cov_sim"] / df["rotate"]
+
 
 df[cols].to_csv(snakemake.output.tsv, sep="\t", index=False)
