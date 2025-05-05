@@ -74,6 +74,9 @@ RATIO = config.args.ratio
 
 # taxonomic profile options
 TAX = config.args.tax
+CUSTOM_TAX = config.args.custom_tax
+if CUSTOM_TAX:
+    TAX = True
 
 if SEQ_TECH == "illumina":
 
@@ -88,7 +91,7 @@ else:
 random.seed(SEED)
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
-RANKS = config.args.ranks
+
 
 
 include: os.path.join("rules", "processing", "reads.smk")

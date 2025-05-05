@@ -401,6 +401,11 @@ def sim_options(func):
             show_default=True,
         ),
         click.option(
+            "--custom-tax",
+            help="Path to custom taxonomy table",
+            type=click.Path(),
+        ),
+        click.option(
             "--ranks",
             help="Ranks to show in the taxonomic profile",
             type=str,
