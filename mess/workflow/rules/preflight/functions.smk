@@ -1,4 +1,5 @@
 import os
+import datetime
 import pandas as pd
 import numpy as np
 import glob
@@ -128,6 +129,16 @@ def list_fastas(wildcards):
     return expand(
         os.path.join(dir.out.processing, "{fasta}.fasta"), fasta=list(set(df.index))
     )
+
+
+def get_tax_date(path):
+    timestamp = os.path.getctime(path)
+    creation_time = datetime.datetime.fromtimestamp(timestamp)
+    formatted_date = creation_time.strftime("%d-%m-%Y")
+    if CUSTOM_TAX:
+        return f"custom-taxonomy_{formatted_date}"
+    else:
+        return f"ncbi-taxonomy_{formatted_date}"
 
 
 table_cache = {}

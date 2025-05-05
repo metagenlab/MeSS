@@ -253,7 +253,8 @@ rule get_contig_taxonomy:
             taxdf.columns = ["accession", "tax_id"]
             taxdf["fasta"] = taxdf["accession"].apply(strip_fasta_ext)
         covdf = pd.read_csv(input.cov, sep="\t")
-        covdf.merge(taxdf, on="fasta", how="left").to_csv(
+        cols = list(np.intersect1d(taxdf.columns, covdf.columns))
+        covdf.merge(taxdf, on=cols, how="left").to_csv(
             output[0], sep="\t", index=False
         )
 
@@ -314,6 +315,7 @@ rule get_cami_profile:
     params:
         dir=TAXONKIT,
         ranks=RANKS,
+        date=lambda wildcards: get_tax_date(os.path.join(TAXONKIT, "names.dmp")),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -327,10 +329,13 @@ rule get_cami_profile:
         """
         taxonkit \\
         profile2cami \\
-        -j {threads} --data-dir {params.dir} \\
+        -j {threads} \\
+        --data-dir {params.dir} \\
+        -t {params.date} \\
         -r {params.ranks} \\
         -s {wildcards.sample} \\
-        {input.tsv} > {output}
+        {input.tsv} \\
+        > {output}
         """
 
 
