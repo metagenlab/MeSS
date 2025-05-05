@@ -233,6 +233,7 @@ rule get_bam_coverage:
         """
 
 
+tax = ""
 if "tax_id" in tsv_df.columns:
     tax = os.path.join(dir.out.base, "coverages.tsv")
 elif CUSTOM_TAX:
