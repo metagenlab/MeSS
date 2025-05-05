@@ -67,6 +67,7 @@ asm_df = pd.read_csv(snakemake.input.asm, sep="\t")
 entry_df = pd.read_csv(snakemake.input.df, sep="\t")
 
 if snakemake.params.fa_dir:
+    entry_df["fasta"] = entry_df["fasta"].apply(strip_fasta_ext)
     entry_df["path"] = [
         glob.glob(os.path.join(snakemake.params.fa_dir, f"{fa}*"))[0]
         for fa in entry_df["fasta"]
