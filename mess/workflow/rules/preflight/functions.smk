@@ -95,12 +95,10 @@ def strip_fasta_ext(filename):
 def get_fasta_table(wildcards):
     if "fasta_table" not in fasta_cache:
         if FASTA_DIR:
-            fastas = [
-                fa
-                for ext in ("*.fa", "*.fasta", "*.fna")
-                for fa in os.abspath(glob.glob(os.path.join(FASTA_DIR, ext)))
-            ]
-            fa_df = pd.DataFrame([{"path": fa} for fa in fastas])
+            fastas = []
+            for ext in ("fa", "fasta", "fna"):
+                fastas.extend(glob.glob(os.path.join(FASTA_DIR, f"*.{ext}*")))
+            fa_df = pd.DataFrame([{"path": os.path.abspath(fa)} for fa in fastas])
 
         elif FASTA_PATH:
             fa_df = pd.read_csv(INPUT, sep="\t")[["path"]]
@@ -177,11 +175,15 @@ if "tsv_cache" not in tsv_cache:
     if os.path.isfile(config.args.input):
         files = [config.args.input]
     else:
-        files = glob.glob(f"{config.args.input}/*.tsv")
+        files = glob.glob(os.path.join(config.args.input, "*.tsv"))
     tsv_df = pd.concat([pd.read_csv(file, sep="\t") for file in files])
     tsv_cache["tsv_cache"] = tsv_df
+if "custom_tax_df" not in tsv_cache:
+    custom_tax_df = pd.read_csv(config.args.custom_tax, sep="\t")
+    tsv_cache["custom_tax_df"] = custom_tax_df
 else:
     tsv_df = tsv_cache["tsv_cache"]
+    custom_tax_df = tsv_cache["custom_tax_df"]
 
 
 def aggregate(wildcards, outdir, ext):
