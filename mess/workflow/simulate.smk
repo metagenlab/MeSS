@@ -17,11 +17,6 @@ REP_SD = config.args.rep_sd
 FASTA_DIR = config.args.fasta
 if "path" in tsv_df.columns:
     FASTA_PATH = True
-    if config.args.sdm == "apptainer":
-        fa_dirs = set(os.path.abspath(os.path.dirname(p)) for p in tsv_df["path"])
-        for fa_dir in fa_dirs:
-            workflow.deployment_settings.apptainer_args += f" -B {fa_dir}:{fa_dir}"
-
 else:
     FASTA_PATH = False
 
@@ -91,7 +86,6 @@ else:
 random.seed(SEED)
 SHUFFLE = dict(zip(SAMPLES, random.sample(range(1, 100000), len(SAMPLES))))
 SKIP_SHUFFLE = config.args.skip_shuffle
-
 
 
 include: os.path.join("rules", "processing", "reads.smk")

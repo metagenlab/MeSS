@@ -171,19 +171,22 @@ def get_asm_summary(wildcards):
 
 
 tsv_cache = {}
-if "tsv_cache" not in tsv_cache:
+if "input_tsv" not in tsv_cache:
     if os.path.isfile(config.args.input):
         files = [config.args.input]
     else:
         files = glob.glob(os.path.join(config.args.input, "*.tsv"))
     tsv_df = pd.concat([pd.read_csv(file, sep="\t") for file in files])
-    tsv_cache["tsv_cache"] = tsv_df
-if "custom_tax_df" not in tsv_cache:
-    custom_tax_df = pd.read_csv(config.args.custom_tax, sep="\t")
-    tsv_cache["custom_tax_df"] = custom_tax_df
+    tsv_cache["input_tsv"] = tsv_df
 else:
-    tsv_df = tsv_cache["tsv_cache"]
-    custom_tax_df = tsv_cache["custom_tax_df"]
+    tsv_df = tsv_cache["input_tsv"]
+
+if config.args.custom_tax:
+    if "custom_tax_df" not in tsv_cache:
+        custom_tax_df = pd.read_csv(config.args.custom_tax, sep="\t")
+        tsv_cache["custom_tax_df"] = custom_tax_df
+    else:
+        custom_tax_df = tsv_cache["custom_tax_df"]
 
 
 def aggregate(wildcards, outdir, ext):
