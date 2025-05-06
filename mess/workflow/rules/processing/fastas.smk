@@ -17,30 +17,34 @@ rule rename_fastas:
         """
 
 
-if FASTA and not ASM_SUMMARY:
+if FASTA_DIR:
+    fa_stats = FASTA_DIR
+else:
+    fa_stats = dir.out.processing
 
-    rule get_fasta_stats:
-        input:
-            FASTA,
-        output:
-            temp(os.path.join(dir.out.processing, "seqkit_stats.tsv")),
-        params:
-            path=os.path.join(FASTA, "*"),
-        log:
-            os.path.join(dir.out.logs, "seqkit", "stats.log"),
-        resources:
-            mem_mb=config.resources.sml.mem,
-            mem=str(config.resources.sml.mem) + "MB",
-            time=config.resources.sml.time,
-        threads: config.resources.norm.cpu
-        conda:
-            os.path.join(dir.conda, "seqkit.yml")
-        container:
-            containers.seqkit
-        shell:
-            """
-            seqkit stats -T -j {threads} {params.path} > {output} 2> {log}
-            """
+
+rule get_fasta_stats:
+    input:
+        list_fastas,
+    output:
+        temp(os.path.join(dir.out.processing, "seqkit_stats.tsv")),
+    params:
+        path=os.path.join(fa_stats, "*"),
+    log:
+        os.path.join(dir.out.logs, "seqkit", "stats.log"),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
+    threads: config.resources.norm.cpu
+    conda:
+        os.path.join(dir.conda, "seqkit.yml")
+    container:
+        containers.seqkit
+    shell:
+        """
+        seqkit stats -b -T -j {threads} {params.path} > {output} 2> {log}
+        """
 
 
 checkpoint split_contigs:

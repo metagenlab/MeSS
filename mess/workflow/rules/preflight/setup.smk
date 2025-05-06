@@ -48,3 +48,40 @@ if not os.path.exists(os.path.join(TAXONKIT, "names.dmp")):
             """
             tar -xzvf {input} -C {params.dir} &> {log}
             """
+
+
+RANKS = config.args.ranks
+if config.args.custom_tax:
+    RANKS = ",".join(list(custom_tax_df.columns[1:]))
+    TAXONKIT = os.path.join(TAXONKIT, "custom")
+
+    rule create_custom_taxdump:
+        input:
+            os.path.abspath(config.args.custom_tax),
+        output:
+            os.path.join(TAXONKIT, "names.dmp"),
+            os.path.join(TAXONKIT, "nodes.dmp"),
+            os.path.join(TAXONKIT, "delnodes.dmp"),
+            os.path.join(TAXONKIT, "merged.dmp"),
+            os.path.join(TAXONKIT, "taxid.map"),
+        params:
+            outdir=TAXONKIT,
+            ranks=RANKS,
+        log:
+            os.path.join(dir.out.logs, "custom-taxdump.log"),
+        resources:
+            mem_mb=config.resources.sml.mem,
+            mem=str(config.resources.sml.mem) + "MB",
+            time=config.resources.sml.time,
+        conda:
+            os.path.join(dir.conda, "taxonkit.yml")
+        container:
+            containers.taxonkit
+        shell:
+            """
+            taxonkit create-taxdump -A 1 \\
+            -R {params.ranks} \\
+            {input} \\
+            -O {params.outdir} \\
+            2> {log}
+            """

@@ -98,7 +98,7 @@ if PASSES > 1:
 
 
 # PBSIM3 bam pre-processing
-if BAM:
+if BAM or TAX:
 
     rule add_reference_name:
         input:
@@ -233,14 +233,42 @@ rule get_bam_coverage:
         """
 
 
+tax = ""
+if "tax_id" in tsv_df.columns:
+    tax = os.path.join(dir.out.base, "coverages.tsv")
+elif CUSTOM_TAX:
+    tax = os.path.join(TAXONKIT, "taxid.map")
+
+
+rule get_contig_taxonomy:
+    input:
+        tax=tax,
+        cov=os.path.join(dir.out.processing, "cov.tsv"),
+    output:
+        os.path.join(dir.out.processing, "tax.tsv"),
+    run:
+        if input.tax.endswith("tsv"):
+            taxdf = pd.read_csv(input.tax, sep="\t")
+        else:
+            taxdf = pd.read_csv(input.tax, sep="\t", header=None)
+            taxdf.columns = ["accession", "tax_id"]
+            taxdf["fasta"] = taxdf["accession"].apply(strip_fasta_ext)
+        covdf = pd.read_csv(input.cov, sep="\t")
+        cols = list(np.intersect1d(taxdf.columns, covdf.columns))
+        covdf.merge(taxdf, on=cols, how="left").to_csv(
+            output[0], sep="\t", index=False
+        )
+
+
+
 rule get_tax_profile:
     input:
         cov=os.path.join(dir.out.bam, "{sample}.txt"),
-        tax=os.path.join(dir.out.processing, "cov.tsv"),
+        tax=os.path.join(dir.out.processing, "tax.tsv"),
     output:
-        counts=os.path.join(dir.out.tax, "{sample}.tsv"),
-        seq_abundance=temp(os.path.join(dir.out.tax, "{sample}_seq.tsv")),
-        tax_abundance=temp(os.path.join(dir.out.tax, "{sample}_tax.tsv")),
+        counts=os.path.join(dir.out.tax, "{sample}_counts.tsv"),
+        seq=temp(os.path.join(dir.out.tax, "{sample}_seq.tsv")),
+        tax=temp(os.path.join(dir.out.tax, "{sample}_tax.tsv")),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -256,46 +284,39 @@ rule get_tax_profile:
         cov_df = pd.read_csv(input.cov, sep="\t")
         cov_df.rename(columns={"#rname": "contig"}, inplace=True)
         merge_df = tax_df.merge(cov_df)
-        merge_df[
-            [
-                "samplename",
-                "fasta",
-                "contig",
-                "tax_id",
-                "startpos",
-                "endpos",
-                "numreads",
-                "covbases",
-                "coverage",
-                "cov_sim",
-                "meandepth",
-                "meanbaseq",
-                "meanmapq",
-            ]
-        ].to_csv(output.counts, sep="\t", index=False)
+        merge_df.tax_id = merge_df.tax_id.astype(int)
+        merge_df.groupby("tax_id", as_index=False).agg(
+            {"numreads": "sum", "meandepth": "mean", "coverage": "mean"}
+        ).rename(
+            columns={
+                "numreads": "reads",
+                "meandepth": "depth",
+                "coverage": "breadth",
+            }
+        ).to_csv(
+            output.counts, sep="\t", index=False
+        )
         for col in ["numreads", "meandepth"]:
             if col == "numreads":
-                out = output.seq_abundance
+                out = output.seq
                 df = merge_df.groupby("tax_id")[col].sum().reset_index()
             elif col == "meandepth":
-                out = output.tax_abundance
+                out = output.tax
                 df = merge_df.groupby("tax_id")[col].mean().reset_index()
             df["abundance"] = df[col] / df[col].sum()
-            df[["tax_id", "abundance"]].to_csv(
-                out, sep="\t", header=False, index=False
-            )
+            df[["tax_id", "abundance"]].to_csv(out, sep="\t", header=False, index=False)
 
 
-
-rule tax_profile_to_biobox:
+rule get_cami_profile:
     input:
         tsv=os.path.join(dir.out.tax, "{sample}_{abundance}.tsv"),
         dmp=os.path.join(TAXONKIT, "names.dmp"),
     output:
-        os.path.join(dir.out.tax, "{sample}_{abundance}.txt"),
+        os.path.join(dir.out.tax, "{sample}_{abundance}_CAMI.txt"),
     params:
         dir=TAXONKIT,
         ranks=RANKS,
+        date=lambda wildcards: get_tax_date(os.path.join(TAXONKIT, "names.dmp")),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -309,9 +330,13 @@ rule tax_profile_to_biobox:
         """
         taxonkit \\
         profile2cami \\
-        -j {threads} --data-dir {params.dir} \\
+        -j {threads} \\
+        --data-dir {params.dir} \\
+        -t {params.date} \\
         -r {params.ranks} \\
-        -s {wildcards.sample} {input.tsv} > {output}
+        -s {wildcards.sample} \\
+        {input.tsv} \\
+        > {output}
         """
 
 

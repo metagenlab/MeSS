@@ -1,13 +1,25 @@
 import os
+import datetime
 import pandas as pd
+import numpy as np
 import glob
 from itertools import chain
 from itertools import product
 from Bio import SeqIO
 import random
+import re
 
 # To get rid of the setlocale warning
 os.environ["LC_ALL"] = "C.UTF-8"
+
+
+# Concatenate Snakemake's own log file with the master log file
+def copy_log_file():
+    files = glob.glob(os.path.join(".snakemake", "log", "*.snakemake.log"))
+    if not files:
+        return None
+    current_log = max(files, key=os.path.getmtime)
+    shell("cat " + current_log + " >> " + LOG)
 
 
 wildcard_constraints:
@@ -25,14 +37,16 @@ def list_reads(wildcards):
         args.update({"p": PAIRS})
     reads = collect(os.path.join(dir.out.fastq, fastqs), **args)
 
-    if BAM:
+    if BAM or TAX:
         bams = collect(
             os.path.join(dir.out.bam, "{sample}.{bam}"),
             sample=SAMPLES,
             bam=["bam", "bam.bai"],
         )
+        reads = reads + bams
+    if TAX:
         tax = collect(
-            os.path.join(dir.out.tax, "{sample}_{abundance}.txt"),
+            os.path.join(dir.out.tax, "{sample}_{abundance}_CAMI.txt"),
             sample=SAMPLES,
             abundance=["seq", "tax"],
         )
@@ -75,12 +89,30 @@ def parse_samples(indir, replicates):
 fasta_cache = {}
 
 
+def strip_fasta_ext(filename):
+    return re.sub(r"\.(fa|fna|fasta)(\.gz)?$", "", filename)
+
+
 def get_fasta_table(wildcards):
-    fa_table = checkpoints.calculate_genome_coverages.get(**wildcards).output[0]
-    if fa_table not in fasta_cache:
-        fa_df = pd.read_csv(fa_table, sep="\t", index_col="fasta")
-        fasta_cache[fa_table] = fa_df
-    fa_df = fasta_cache[fa_table]
+    if "fasta_table" not in fasta_cache:
+        if FASTA_DIR:
+            fastas = []
+            for ext in ("fa", "fasta", "fna"):
+                fastas.extend(glob.glob(os.path.join(FASTA_DIR, f"*.{ext}*")))
+            fa_df = pd.DataFrame([{"path": os.path.abspath(fa)} for fa in fastas])
+
+        elif FASTA_PATH:
+            fa_df = pd.read_csv(INPUT, sep="\t")[["path"]]
+        else:
+            fa_df = pd.read_csv(
+                checkpoints.download_assemblies.get(**wildcards).output[0], sep="\t"
+            )
+        fa_df["fasta"] = [
+            strip_fasta_ext(os.path.basename(path)) for path in fa_df["path"]
+        ]
+        fa_df.set_index("fasta", inplace=True)
+        fasta_cache["fasta_table"] = fa_df
+    fa_df = fasta_cache["fasta_table"]
     return fa_df
 
 
@@ -97,6 +129,16 @@ def list_fastas(wildcards):
     return expand(
         os.path.join(dir.out.processing, "{fasta}.fasta"), fasta=list(set(df.index))
     )
+
+
+def get_tax_date(path):
+    timestamp = os.path.getctime(path)
+    creation_time = datetime.datetime.fromtimestamp(timestamp)
+    formatted_date = creation_time.strftime("%d-%m-%Y")
+    if CUSTOM_TAX:
+        return f"custom-taxonomy_{formatted_date}"
+    else:
+        return f"ncbi-taxonomy_{formatted_date}"
 
 
 table_cache = {}
@@ -133,25 +175,29 @@ def get_value(value, wildcards):
 def get_asm_summary(wildcards):
     try:
         table = checkpoints.download_assemblies.get(**wildcards).output[0]
-
     except AttributeError:
-        if FASTA and not ASM_SUMMARY:
+        if FASTA_DIR or FASTA_PATH:
             table = os.path.join(dir.out.processing, "seqkit_stats.tsv")
-        else:
-            table = ASM_SUMMARY
     return table
 
 
-def is_circular():
-    if os.path.isfile(INPUT):
-        files = [INPUT]
+tsv_cache = {}
+if "input_tsv" not in tsv_cache:
+    if os.path.isfile(config.args.input):
+        files = [config.args.input]
     else:
-        files = glob.glob(f"{INPUT}/*.tsv")
-    df = pd.concat([pd.read_csv(file, sep="\t") for file in files])
-    if ROTATE > 1 or "rotate" in df.columns:
-        return True
+        files = glob.glob(os.path.join(config.args.input, "*.tsv"))
+    tsv_df = pd.concat([pd.read_csv(file, sep="\t") for file in files])
+    tsv_cache["input_tsv"] = tsv_df
+else:
+    tsv_df = tsv_cache["input_tsv"]
+
+if config.args.custom_tax:
+    if "custom_tax_df" not in tsv_cache:
+        custom_tax_df = pd.read_csv(config.args.custom_tax, sep="\t")
+        tsv_cache["custom_tax_df"] = custom_tax_df
     else:
-        return False
+        custom_tax_df = tsv_cache["custom_tax_df"]
 
 
 def aggregate(wildcards, outdir, ext):

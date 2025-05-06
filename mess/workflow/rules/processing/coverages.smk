@@ -22,7 +22,8 @@ checkpoint calculate_genome_coverages:
     output:
         os.path.join(dir.out.base, "coverages.tsv"),
     params:
-        fa=FASTA,
+        fa_dir=FASTA_DIR,
+        fa_path=FASTA_PATH,
         dist=DIST,
         mu=MU,
         sigma=SIGMA,

@@ -1,6 +1,8 @@
 import os
 import rich_click as click
 import yaml
+import pandas as pd
+import glob
 import sys
 import subprocess
 from snaketool_utils.cli_utils import (
@@ -11,6 +13,18 @@ from snaketool_utils.cli_utils import (
     echo_click,
     msg_box,
 )
+
+
+def get_fasta_dirs(config):
+    if os.path.isfile(config["args"]["input"]):
+        files = [config["args"]["input"]]
+    else:
+        files = glob.glob(os.path.join(config["args"]["input"], "*.tsv"))
+    df = pd.concat([pd.read_csv(file, sep="\t") for file in files])
+    if "path" in df.columns:
+        return set(os.path.abspath(os.path.dirname(p)) for p in df["path"])
+    else:
+        return False
 
 
 def snake_base(rel_path):
@@ -110,6 +124,10 @@ def run_snakemake(
             os.path.join(os.path.dirname(os.path.realpath(__file__))),
             os.path.abspath(snake_config["args"]["output"]),
         ]
+        if get_fasta_dirs(snake_config):
+            for path in get_fasta_dirs(snake_config):
+                paths.append(path)
+
         args = " ".join([f"-B {path}:{path}" for path in paths])
 
         snake_command += [f"'{args}'"]
@@ -393,6 +411,17 @@ def sim_options(func):
             help="Generate gold standard bam files",
             default=False,
             show_default=True,
+        ),
+        click.option(
+            "--tax/--no-tax",
+            help="Generate taxonomic profile",
+            default=False,
+            show_default=True,
+        ),
+        click.option(
+            "--custom-tax",
+            help="Path to custom taxonomy table",
+            type=click.Path(),
         ),
         click.option(
             "--ranks",
