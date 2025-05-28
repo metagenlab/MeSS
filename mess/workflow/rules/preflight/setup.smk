@@ -85,3 +85,18 @@ if config.args.custom_tax:
             -O {params.outdir} \\
             2> {log}
             """
+
+
+rule get_primers_table:
+    output:
+        os.path.join(dir.out.processing, "primers.txt"),
+    params:
+        fw=config.args.fw,
+        rv=config.args.rv,
+    run:
+        fw = params.fw.split(",")
+        rv = params.rv.split(",")
+        names = [f"primer_{n+1}" for n in range(len(fw))]
+        pd.DataFrame(list(zip(names, fw, rv))).to_csv(
+            output[0], sep="\t", index=False, header=False
+        )
