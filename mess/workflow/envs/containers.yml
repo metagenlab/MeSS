@@ -8,3 +8,4 @@ pbsim3: docker://quay.io/biocontainers/pbsim3:3.0.4--h4ac6f70_0
 seqkit: docker://quay.io/biocontainers/seqkit:2.8.2--h9ee0642_0
 taxonkit: docker://quay.io/biocontainers/taxonkit:0.17.0--h9ee0642_1
 samtools: docker://quay.io/biocontainers/samtools:1.21--h50ea8bc_0
+emboss: docker://quay.io/biocontainers/emboss:6.6.0--hf576cfb_12
