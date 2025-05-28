@@ -94,6 +94,8 @@ if "fasta" not in asm_df.columns:
         strip_fasta_ext(os.path.basename(path)) for path in asm_df["path"]
     ]
 
+if snakemake.params.amplicons:
+    asm_df["fasta"] = asm_df["fasta"].str.replace(".amplicons", "")
 
 same_cols = list(np.intersect1d(entry_df.columns, asm_df.columns))
 df = pd.merge(entry_df, asm_df, how="left", on=same_cols)
@@ -195,10 +197,7 @@ if "rotate" in entry_df.columns:
 if "tax_id" in df.columns:
     cols.append("tax_id")
 
-df["reads"] = df["reads"].apply(lambda x: int(round(x)))
-df["bases"] = df["bases"].apply(lambda x: int(round(x)))
-df["tax_abundance"] = df["tax_abundance"].apply(lambda x: round(x, 3))
-df["seq_abundance"] = df["seq_abundance"].apply(lambda x: round(x, 3))
-
-df = df.astype({"seed": int, "total_sequence_length": int, "number_of_contigs": int})
+df = df[
+    df.total_sequence_length > 0
+].convert_dtypes()  # filter out empty fastas from amplicon sequencing
 df[cols].to_csv(snakemake.output[0], sep="\t", index=False)  # type: ignore
