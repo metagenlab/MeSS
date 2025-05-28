@@ -10,6 +10,8 @@ if CUSTOM_ERR:
     else:
         art_args += f"-1 {custom_profile[0]} "
 
+if AMPLICONS:
+    art_args += f"-amp "
 
 if PAIRED:
     art_args += f"-p -m {FRAG_LEN} -s {FRAG_SD} "
