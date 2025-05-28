@@ -17,19 +17,89 @@ rule rename_fastas:
         """
 
 
-if FASTA_DIR:
-    fa_stats = FASTA_DIR
+if PRIMERS:
+    primers = os.path.abspath(PRIMERS)
 else:
-    fa_stats = dir.out.processing
+    primers = os.path.join(dir.out.processing, "primers.txt")
+
+
+rule primersearch:
+    input:
+        primers=primers,
+        fasta=os.path.join(dir.out.processing, "{fasta}.fasta"),
+    output:
+        temp(os.path.join(dir.out.processing, "{fasta}.primersearch.txt")),
+    params:
+        mismatch=MISMATCH,
+    log:
+        os.path.join(dir.out.logs, "primersearch", "{fasta}.log"),
+    resources:
+        mem_mb=config.resources.sml.mem,
+        mem=str(config.resources.sml.mem) + "MB",
+        time=config.resources.sml.time,
+    conda:
+        os.path.join(dir.conda, "emboss.yml")
+    container:
+        containers.emboss
+    shell:
+        """
+        primersearch \\
+        -seqall {input.fasta} \\
+        -infile {input.primers} \\
+        -outfile {output} \\
+        -mismatchpercent {params.mismatch} \\
+        2> {log}
+        """
+
+
+amp_args = ""
+if CUT:
+    amp_args += "--cut "
+if ORIENT:
+    amp_args += "--orient "
+
+
+rule get_amplicons:
+    input:
+        search=os.path.join(dir.out.processing, "{fasta}.primersearch.txt"),
+        fasta=os.path.join(dir.out.processing, "{fasta}.fasta"),
+        primers=primers,
+    output:
+        temp(os.path.join(dir.out.processing, "{fasta}.amplicons.fasta")),
+    params:
+        minlen=AMP_MINLEN,
+        maxlen=AMP_MAXLEN,
+        args=amp_args,
+        script=os.path.join(dir.scripts, "get_amplicons.py"),
+    log:
+        os.path.join(dir.out.logs, "primersearch", "{fasta}_summary.log"),
+    shell:
+        """
+        python {params.script} \\
+        --input {input.search} \\
+        --fasta {input.fasta} \\
+        --primers {input.primers} \\
+        --minlen {params.minlen} \\
+        --maxlen {params.maxlen} \\
+        {params.args} \\
+        --output {output} \\
+        --log 2> {log}
+        """
+
+
+fa_ext = "*.{fasta,fa,fna}*"
+
+if AMPLICONS:
+    fa_ext = "*.amplicons.fasta"
 
 
 rule get_fasta_stats:
     input:
         list_fastas,
     output:
-        temp(os.path.join(dir.out.processing, "seqkit_stats.tsv")),
+        os.path.join(dir.out.processing, "seqkit_stats.tsv"),
     params:
-        path=os.path.join(fa_stats, "*"),
+        path=os.path.join(dir.out.processing, fa_ext),
     log:
         os.path.join(dir.out.logs, "seqkit", "stats.log"),
     resources:
@@ -43,7 +113,10 @@ rule get_fasta_stats:
         containers.seqkit
     shell:
         """
-        seqkit stats -b -T -j {threads} {params.path} > {output} 2> {log}
+        seqkit stats -b -T -j {threads} \\
+        {params.path} \\
+        > {output} \\
+        2> {log}
         """
 
 
@@ -57,6 +130,8 @@ checkpoint split_contigs:
     params:
         circular=CIRCULAR,
         rotate=ROTATE,
+        amplicons=AMPLICONS,
+        read_len=MEAN_LEN,
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -96,5 +171,6 @@ if CIRCULAR:
         shell:
             """
             seqkit restart -i {params} {input} | \\
-            seqkit replace -p .+ -r {wildcards.contig}_{wildcards.n} > {output}
+            seqkit replace -p .+ -r {wildcards.contig}_{wildcards.n} \\
+            > {output}
             """
