@@ -178,13 +178,15 @@ else:
 
 
 df["seed"] = random.sample(range(1, 1000000), len(df))
-
+df = df.rename(
+    columns={"total_sequence_length": "seq_len", "number_of_contigs": "seq_num"}
+)
 cols = [
     "samplename",
     "fasta",
     "path",
-    "total_sequence_length",
-    "number_of_contigs",
+    "seq_len",
+    "seq_num",
     "reads",
     "bases",
     "seq_abundance",
@@ -198,6 +200,6 @@ if "tax_id" in df.columns:
     cols.append("tax_id")
 
 df = df[
-    df.total_sequence_length > 0
+    df.seq_len > 0
 ].convert_dtypes()  # filter out empty fastas from amplicon sequencing
 df[cols].to_csv(snakemake.output[0], sep="\t", index=False)  # type: ignore
