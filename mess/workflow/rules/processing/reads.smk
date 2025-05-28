@@ -243,7 +243,7 @@ elif CUSTOM_TAX:
 rule get_contig_taxonomy:
     input:
         tax=tax,
-        cov=os.path.join(dir.out.processing, "cov.tsv"),
+        cov=get_cov_df,
     output:
         os.path.join(dir.out.processing, "tax.tsv"),
     run:
