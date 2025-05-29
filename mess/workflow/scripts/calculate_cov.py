@@ -199,7 +199,11 @@ if "rotate" in entry_df.columns:
 if "tax_id" in df.columns:
     cols.append("tax_id")
 
-df = df[
-    df.seq_len > 0
-].convert_dtypes()  # filter out empty fastas from amplicon sequencing
-df[cols].to_csv(snakemake.output[0], sep="\t", index=False)  # type: ignore
+# replace values with 0 for empty amplicon fastas
+df.loc[
+    df["seq_len"] == 0,
+    ["seq_num", "reads", "bases", "cov_sim", "tax_abundance", "seq_abundance", "seed"],
+] = 0
+df[cols].relace(0, np.nan).convert_dtypes().to_csv(
+    snakemake.output[0], sep="\t", index=False
+)
