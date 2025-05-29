@@ -25,8 +25,8 @@ SEQ_TECH = config.args.tech
 
 # amplicon sequencing options
 PRIMERS = config.args.primers
-FORWARD_PRIMER = config.args.forward_primer
-REVERSE_PRIMER = config.args.reverse_primer
+FORWARD_PRIMER = config.args.fw
+REVERSE_PRIMER = config.args.rv
 
 AMPLICONS = False
 if PRIMERS or (FORWARD_PRIMER and REVERSE_PRIMER):
