@@ -23,7 +23,9 @@ def split_fasta(fa, outdir, suffix):
     return record_ids
 
 
-cov_df = pd.read_csv(snakemake.input.cov, sep="\t", dtype={"seed": int})
+cov_df = (
+    pd.read_csv(snakemake.input.cov, sep="\t").dropna().convert_dtypes()
+)  # dropna for dropping empty amplicons fasta
 
 
 os.mkdir(snakemake.output.dir)
