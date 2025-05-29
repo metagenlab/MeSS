@@ -80,3 +80,18 @@ def test_simulate_pacbio():
     """mess simulate pacbio hifi reads"""
     exec_command(" ".join(cmd) + " --tech pacbio --error hifi --bam")
     remove_directory(outdir)
+
+
+amp_args = (
+    " --fw CCTACGGGNGGCWGCAG --rv GACTACHVGGGTATCTAATCC",
+    "--mean-len 250 --frag-len 500 --frag-sd 10",
+    "--mismatch 25 ",
+)
+
+
+def test_simulate_amplicons_illumina():
+    """mess simulate illumina amplicon reads"""
+    exec_command(
+        " ".join(cmd) + " ".join(amp_args) + " --tech illumina --error MSv3 --bam"
+    )
+    remove_directory(outdir)
