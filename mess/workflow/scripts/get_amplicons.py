@@ -4,6 +4,7 @@ from Bio.Emboss import PrimerSearch
 import pandas as pd
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
+from Bio.Seq import Seq
 import re
 
 
@@ -220,7 +221,7 @@ def main():
     )
     df = parse_primersearch(results, seq2strand, args.minlen, args.maxlen)
     if df.empty:
-        amplicons = SeqRecord("", id="no_amps", description="no_amps")
+        amplicons = SeqRecord(Seq(""), id="no_amps", description="no_amps")
     else:
         amplicons = df.apply(
             lambda row: get_amplicon_record(row, seqid2record, args.cut, args.orient),
@@ -232,7 +233,14 @@ def main():
         "fasta",
     )
     if args.log:
-        print(df.to_string(index=False), file=sys.stderr)
+        if df.empty:
+            print(
+                "No amplicons found ! \n"
+                "Try less stringent mismatches, minlen or maxlen parameters",
+                file=sys.stderr,
+            )
+        else:
+            print(df.to_string(index=False), file=sys.stderr)
 
 
 if __name__ == "__main__":
