@@ -204,6 +204,6 @@ df.loc[
     df["seq_len"] == 0,
     ["seq_num", "reads", "bases", "cov_sim", "tax_abundance", "seq_abundance", "seed"],
 ] = 0
-df[cols].relace(0, np.nan).convert_dtypes().to_csv(
+df[cols].replace(0, np.nan).convert_dtypes().to_csv(
     snakemake.output[0], sep="\t", index=False
 )
