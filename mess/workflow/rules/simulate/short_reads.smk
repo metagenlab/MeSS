@@ -84,6 +84,7 @@ rule art_illumina:
         art_illumina -i {input.fa} \\
         -rs {params.seed} -l {params.read_len} \\
         -f {params.cov} -na {params.args} \\
-        -o {params.prefix} &> {log}
+        -o {params.prefix} \\
+        &> {log}
         {params.cmd}
         """
