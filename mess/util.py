@@ -265,7 +265,7 @@ def sim_options(func):
         click.option(
             "--primers",
             type=click.Path(),
-            help="Primers input table for primersearch",
+            help="Primers input table for primersearch (use instead of specifying primers with --fw and --rv)",
             default=None,
         ),
         click.option(
