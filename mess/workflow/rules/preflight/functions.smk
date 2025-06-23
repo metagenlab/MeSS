@@ -110,6 +110,10 @@ def get_fasta_table(wildcards):
         fa_df["fasta"] = [
             strip_fasta_ext(os.path.basename(path)) for path in fa_df["path"]
         ]
+        if FASTA_DIR and "fasta" in tsv_df.columns:
+            tsv_df["fasta"] = [strip_fasta_ext(fa) for fa in tsv_df["fasta"]]
+            fa_df = fa_df[fa_df["fasta"].isin(tsv_df["fasta"].drop_duplicates())]
+
         fa_df.set_index("fasta", inplace=True)
         fasta_cache["fasta_table"] = fa_df
     fa_df = fasta_cache["fasta_table"]
@@ -126,9 +130,15 @@ def fasta_input(wildcards):
 
 def list_fastas(wildcards):
     df = get_fasta_table(wildcards)
-    return expand(
-        os.path.join(dir.out.processing, "{fasta}.fasta"), fasta=list(set(df.index))
-    )
+    if AMPLICONS:
+        return expand(
+            os.path.join(dir.out.processing, "{fasta}.amplicons.fasta"),
+            fasta=list(set(df.index)),
+        )
+    else:
+        return expand(
+            os.path.join(dir.out.processing, "{fasta}.fasta"), fasta=list(set(df.index))
+        )
 
 
 def get_tax_date(path):
@@ -173,12 +183,13 @@ def get_value(value, wildcards):
 
 
 def get_asm_summary(wildcards):
-    try:
-        table = checkpoints.download_assemblies.get(**wildcards).output[0]
-    except AttributeError:
-        if FASTA_DIR or FASTA_PATH:
-            table = os.path.join(dir.out.processing, "seqkit_stats.tsv")
-    return table
+    if AMPLICONS or FASTA_DIR or FASTA_PATH:
+        return os.path.join(dir.out.processing, "seqkit_stats.tsv")
+    else:
+        try:
+            return checkpoints.download_assemblies.get(**wildcards).output[0]
+        except AttributeError:
+            return os.path.join(dir.out.processing, "seqkit_stats.tsv")
 
 
 tsv_cache = {}

@@ -243,7 +243,7 @@ elif CUSTOM_TAX:
 rule get_contig_taxonomy:
     input:
         tax=tax,
-        cov=os.path.join(dir.out.processing, "cov.tsv"),
+        cov=get_cov_df,
     output:
         os.path.join(dir.out.processing, "tax.tsv"),
     run:
@@ -390,7 +390,7 @@ rule cat_fastqs:
         "Concatenating {wildcards.sample} reads : {params.head} ... "
     shell:
         """
-        find {params.dir} -name "{params.name}" | xargs cat > {output}
+        find {params.dir} -name "{params.name}" | sort | xargs cat > {output}
         """
 
 
@@ -459,7 +459,8 @@ if not SKIP_SHUFFLE:
             """
             seqkit seq {input} | seqkit replace \\
             -p .+ -r "{params}" -o {output} 2> {log[0]}
-            paste -d '\t' <(seqkit seq -n {output}) <(seqkit seq -n {input}) > {log[1]} 
+            paste -d '\t' <(seqkit seq -n {output}) <(seqkit seq -n {input}) \\
+            > {log[1]} 
             """
 
 

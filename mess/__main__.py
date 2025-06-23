@@ -51,7 +51,7 @@ cmd_dl_options = (
 )
 cmd_sim_options = (
     {
-        "name": "Common simulators options",
+        "name": "Common simulation options",
         "options": [
             "--tech",
             "--bases",
@@ -61,6 +61,19 @@ cmd_sim_options = (
             "--mean-len",
             "--bam",
             "--seed",
+        ],
+    },
+    {
+        "name": "Amplicons options",
+        "options": [
+            "--fw",
+            "--rv",
+            "--primers",
+            "--mismatch",
+            "--amp-minlen",
+            "--amp-maxlen",
+            "--cut",
+            "--orient",
         ],
     },
     {
@@ -105,7 +118,7 @@ cmd_sim_options = (
         "name": "Taxonomic profile options",
         "options": [
             "--tax",
-            "--abundance",
+            "--custom-tax",
             "--ranks",
         ],
     },

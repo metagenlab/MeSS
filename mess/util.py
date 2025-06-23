@@ -128,9 +128,9 @@ def run_snakemake(
             for path in get_fasta_dirs(snake_config):
                 paths.append(path)
 
-        args = " ".join([f"-B {path}:{path}" for path in paths])
+        sdm_args = " ".join([f"-B {path}:{path}" for path in paths])
 
-        snake_command += [f"'{args}'"]
+        snake_command += [f"'{sdm_args}'"]
 
     # add snakemake default args
     if snake_default:
@@ -248,6 +248,58 @@ def sim_options(func):
             help="Number of times to shuffle genome start for circular assemblies (2 or more to circularize)",
             type=int,
             default=1,
+            show_default=True,
+        ),
+        click.option(
+            "--fw",
+            type=str,
+            help="Forward primer sequence for amplicon sequencing (5'->3' orientation)",
+            default=None,
+        ),
+        click.option(
+            "--rv",
+            type=str,
+            help="Reverse primer sequence for amplicon sequencing (5'->3' orientation)",
+            default=None,
+        ),
+        click.option(
+            "--primers",
+            type=click.Path(),
+            help="Primers input table for primersearch (use instead of specifying primers with --fw and --rv)",
+            default=None,
+        ),
+        click.option(
+            "--mismatch",
+            type=int,
+            help="Maximum mismatch percent for primersearch",
+            default=10,
+        ),
+        click.option(
+            "--amp-minlen",
+            type=int,
+            help="Minimum amplicon length",
+            default=0,
+        ),
+        click.option(
+            "--amp-maxlen",
+            type=int,
+            help="Maximum amplicon length",
+            default=3000,
+        ),
+        click.option(
+            "--cut",
+            help="Cut primers sequences from amplicons",
+            type=bool,
+            default=False,
+            is_flag=True,
+            show_default=True,
+        ),
+        click.option(
+            "--orient",
+            help="Orient reverse amplicon strands in the forward orientation",
+            type=bool,
+            default=True,
+            is_flag=True,
             show_default=True,
         ),
         click.option(

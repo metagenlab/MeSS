@@ -10,6 +10,8 @@ if CUSTOM_ERR:
     else:
         art_args += f"-1 {custom_profile[0]} "
 
+if AMPLICONS:
+    art_args += f"-amp "
 
 if PAIRED:
     art_args += f"-p -m {FRAG_LEN} -s {FRAG_SD} "
@@ -82,6 +84,7 @@ rule art_illumina:
         art_illumina -i {input.fa} \\
         -rs {params.seed} -l {params.read_len} \\
         -f {params.cov} -na {params.args} \\
-        -o {params.prefix} &> {log}
+        -o {params.prefix} \\
+        &> {log}
         {params.cmd}
         """

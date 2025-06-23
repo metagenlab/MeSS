@@ -94,6 +94,8 @@ if "fasta" not in asm_df.columns:
         strip_fasta_ext(os.path.basename(path)) for path in asm_df["path"]
     ]
 
+if snakemake.params.amplicons:
+    asm_df["fasta"] = asm_df["fasta"].str.replace(".amplicons", "")
 
 same_cols = list(np.intersect1d(entry_df.columns, asm_df.columns))
 df = pd.merge(entry_df, asm_df, how="left", on=same_cols)
@@ -176,13 +178,15 @@ else:
 
 
 df["seed"] = random.sample(range(1, 1000000), len(df))
-
+df = df.rename(
+    columns={"total_sequence_length": "seq_len", "number_of_contigs": "seq_num"}
+)
 cols = [
     "samplename",
     "fasta",
     "path",
-    "total_sequence_length",
-    "number_of_contigs",
+    "seq_len",
+    "seq_num",
     "reads",
     "bases",
     "seq_abundance",
@@ -195,10 +199,11 @@ if "rotate" in entry_df.columns:
 if "tax_id" in df.columns:
     cols.append("tax_id")
 
-df["reads"] = df["reads"].apply(lambda x: int(round(x)))
-df["bases"] = df["bases"].apply(lambda x: int(round(x)))
-df["tax_abundance"] = df["tax_abundance"].apply(lambda x: round(x, 3))
-df["seq_abundance"] = df["seq_abundance"].apply(lambda x: round(x, 3))
-
-df = df.astype({"seed": int, "total_sequence_length": int, "number_of_contigs": int})
-df[cols].to_csv(snakemake.output[0], sep="\t", index=False)  # type: ignore
+# replace values with 0 for empty amplicon fastas
+df.loc[
+    df["seq_len"] == 0,
+    ["seq_num", "reads", "bases", "cov_sim", "tax_abundance", "seq_abundance", "seed"],
+] = 0
+df[cols].replace(0, np.nan).convert_dtypes().to_csv(
+    snakemake.output[0], sep="\t", index=False
+)
