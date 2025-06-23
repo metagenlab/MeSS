@@ -291,13 +291,15 @@ def sim_options(func):
             help="Cut primers sequences from amplicons",
             type=bool,
             default=False,
+            is_flag=True,
             show_default=True,
         ),
         click.option(
             "--orient",
             help="Orient reverse amplicon strands in the forward orientation",
             type=bool,
-            default=False,
+            default=True,
+            is_flag=True,
             show_default=True,
         ),
         click.option(
