@@ -390,7 +390,7 @@ rule cat_fastqs:
         "Concatenating {wildcards.sample} reads : {params.head} ... "
     shell:
         """
-        find {params.dir} -name "{params.name}" | xargs cat > {output}
+        find {params.dir} -name "{params.name}" | sort | xargs cat > {output}
         """
 
 
