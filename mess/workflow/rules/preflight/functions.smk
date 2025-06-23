@@ -110,6 +110,10 @@ def get_fasta_table(wildcards):
         fa_df["fasta"] = [
             strip_fasta_ext(os.path.basename(path)) for path in fa_df["path"]
         ]
+        if FASTA_DIR and "fasta" in tsv_df.columns:
+            tsv_df["fasta"] = [strip_fasta_ext(fa) for fa in tsv_df["fasta"]]
+            fa_df = fa_df[fa_df["fasta"].isin(tsv_df["fasta"].drop_duplicates())]
+
         fa_df.set_index("fasta", inplace=True)
         fasta_cache["fasta_table"] = fa_df
     fa_df = fasta_cache["fasta_table"]
