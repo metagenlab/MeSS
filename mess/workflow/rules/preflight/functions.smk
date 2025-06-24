@@ -130,7 +130,7 @@ def fasta_input(wildcards):
 
 def list_fastas(wildcards):
     df = get_fasta_table(wildcards)
-    if AMPLICONS:
+    if PRIMERSEARCH:
         return expand(
             os.path.join(dir.out.processing, "{fasta}.amplicons.fasta"),
             fasta=list(set(df.index)),
@@ -183,7 +183,7 @@ def get_value(value, wildcards):
 
 
 def get_asm_summary(wildcards):
-    if AMPLICONS or FASTA_DIR or FASTA_PATH:
+    if PRIMERSEARCH or FASTA_DIR or FASTA_PATH:
         return os.path.join(dir.out.processing, "seqkit_stats.tsv")
     else:
         try:
