@@ -27,16 +27,17 @@ SEQ_TECH = config.args.tech
 PRIMERS = config.args.primers
 FORWARD_PRIMER = config.args.fw
 REVERSE_PRIMER = config.args.rv
-
-AMPLICONS = False
+AMPLICONS = config.args.amp
+PRIMERSEARCH = False
 if PRIMERS or (FORWARD_PRIMER and REVERSE_PRIMER):
+    PRIMERSEARCH = True
     AMPLICONS = True
 
 AMP_MINLEN = config.args.amp_minlen
 AMP_MAXLEN = config.args.amp_maxlen
 MISMATCH = config.args.mismatch
 CUT = config.args.cut
-ORIENT = config.args.orient
+KEEP_ORIENT = config.args.keep_orient
 
 BASES = config.args.bases
 PAIRED = config.args.paired
