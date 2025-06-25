@@ -359,7 +359,7 @@ def sim_options(func):
         click.option(
             "--rep-sd",
             help="Standard deviation between replicate coverages (0: no deviation)",
-            type=int,
+            type=float,
             default=0,
             show_default=True,
         ),
