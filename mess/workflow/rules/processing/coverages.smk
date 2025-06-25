@@ -31,7 +31,7 @@ checkpoint calculate_genome_coverages:
         read_len=MEAN_LEN,
         pairing=PAIRED,
         seed=SEED,
-        amplicons=AMPLICONS,
+        amplicons=PRIMERSEARCH,
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",

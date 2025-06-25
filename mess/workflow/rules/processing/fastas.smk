@@ -20,7 +20,7 @@ rule rename_fastas:
         """
 
 
-if AMPLICONS:
+if PRIMERSEARCH:
 
     if PRIMERS:
         primers = os.path.abspath(PRIMERS)
@@ -58,8 +58,8 @@ if AMPLICONS:
     amp_args = ""
     if CUT:
         amp_args += "--cut "
-    if ORIENT:
-        amp_args += "--orient "
+    if KEEP_ORIENT:
+        amp_args += "--keep-orient "
 
     rule get_amplicons:
         input:
@@ -77,12 +77,12 @@ if AMPLICONS:
             os.path.join(dir.out.logs, "primersearch", "{fasta}_summary.log"),
         shell:
             """
-            python {params.script} \\
-            --input {input.search} \\
-            --fasta {input.fasta} \\
-            --primers {input.primers} \\
-            --minlen {params.minlen} \\
-            --maxlen {params.maxlen} \\
+            {params.script} \\
+            -i {input.search} \\
+            -f {input.fasta} \\
+            -p {input.primers} \\
+            -m {params.minlen} \\
+            -M {params.maxlen} \\
             {params.args} \\
             --output {output} \\
             --log 2> {log}
@@ -96,7 +96,7 @@ rule get_fasta_stats:
         os.path.join(dir.out.processing, "seqkit_stats.tsv"),
     params:
         os.path.join(dir.out.processing, "*.fasta")
-        if not AMPLICONS
+        if not PRIMERSEARCH
         else os.path.join(dir.out.processing, "*.amplicons.fasta"),
     log:
         os.path.join(dir.out.logs, "seqkit", "stats.log"),
@@ -129,7 +129,7 @@ checkpoint split_contigs:
     params:
         circular=CIRCULAR,
         rotate=ROTATE,
-        amplicons=AMPLICONS,
+        amplicons=PRIMERSEARCH,
         read_len=MEAN_LEN,
     resources:
         mem_mb=config.resources.sml.mem,

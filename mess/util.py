@@ -295,12 +295,17 @@ def sim_options(func):
             show_default=True,
         ),
         click.option(
-            "--orient",
-            help="Orient reverse amplicon strands in the forward orientation",
+            "--keep-orient",
+            help="Keep original sequence orientation (default: reverse complement if forward primer is on reverse strand)",
             type=bool,
-            default=True,
+            default=False,
             is_flag=True,
             show_default=True,
+        ),
+        click.option(
+            "--amp",
+            help="Fasta files are amplicons (skips primersearch)",
+            is_flag=True,
         ),
         click.option(
             "--tech",
@@ -354,7 +359,7 @@ def sim_options(func):
         click.option(
             "--rep-sd",
             help="Standard deviation between replicate coverages (0: no deviation)",
-            type=int,
+            type=float,
             default=0,
             show_default=True,
         ),

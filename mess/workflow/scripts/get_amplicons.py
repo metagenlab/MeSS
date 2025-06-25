@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import sys
 from Bio.Emboss import PrimerSearch
@@ -43,13 +45,13 @@ def parse_args():
         "-c",
         "--cut",
         action="store_true",
-        help="Cut primers from amplicons sequences",
+        help="Cut primers from amplicon sequences (default: False)",
     )
     parser.add_argument(
-        "-r",
-        "--orient",
+        "-k",
+        "--keep-orient",
         action="store_true",
-        help="Orient reverse sequences to forward",
+        help="Kepp original sequence orientation (default: reverse complement if forward primer is on reverse strand)",
     )
     parser.add_argument(
         "-m",
@@ -80,7 +82,7 @@ def parse_args():
         action="store_true",
         help="Print summary table to stderr",
     )
-    parser.set_defaults(orient=False, cut=False, log=False)
+    parser.set_defaults(keep_orient=False, cut=False, log=False)
     return parser.parse_args()
 
 
@@ -140,6 +142,11 @@ def parse_primersearch(results, seq2strand, minlen, maxlen):
                 continue
             info = hit.hit_info.split("\n\t")
             mismatches = 0
+            fw_primer = None
+            rv_primer = None
+            start = None
+            end = None
+            forward_on_reverse = None
             for match in info[1:]:
                 mismatches += int(match.split("with ")[1].split(" ")[0])
                 if "forward" in match:
@@ -178,15 +185,19 @@ def parse_primersearch(results, seq2strand, minlen, maxlen):
         return pd.DataFrame.from_records(d)
 
 
-def get_amplicon_record(row, seqid2record, cut, orient):
-    amp_id = f"{row.seq_id}_{row.amplimer}_{row.primer}"
-    amp_seq = seqid2record[row.seq_id].seq[row.start_forward - 1 : -row.end_reverse + 1]
+def get_amplicon_record(row, seqid2record, cut, keep_orient):
+    amp_id = f"{row['seq_id']}_{row['amplimer']}_{row['primer']}"
+    amp_seq = seqid2record[row["seq_id"]].seq[
+        row["start_forward"] - 1 : -row["end_reverse"] + 1
+    ]
 
     if cut:
-        amp_seq = amp_seq[len(row.fw_primer) : len(amp_seq) - len(row.rv_primer)]
+        amp_seq = amp_seq[len(row["fw_primer"]) : len(amp_seq) - len(row["rv_primer"])]
 
-    if orient and row.forward_match_on_reverse:
-        amp_seq = amp_seq.reverse_complement()
+    if row["forward_match_on_reverse"]:
+        if not keep_orient:
+            amp_seq = amp_seq.reverse_complement()
+
     return SeqRecord(amp_seq, id=amp_id, description=amp_id)
 
 
@@ -220,20 +231,20 @@ def main():
         )
     )
     df = parse_primersearch(results, seq2strand, args.minlen, args.maxlen)
-    if df.empty:
+    if df is None or df.empty:
         amplicons = SeqRecord(Seq(""), id="no_amps", description="no_amps")
     else:
-        amplicons = df.apply(
-            lambda row: get_amplicon_record(row, seqid2record, args.cut, args.orient),
-            axis=1,
-        ).tolist()
+        amplicons = [
+            get_amplicon_record(row, seqid2record, args.cut, args.keep_orient)
+            for _, row in df.iterrows()
+        ]
     SeqIO.write(
         amplicons,
         args.output,
         "fasta",
     )
     if args.log:
-        if df.empty:
+        if df is None or df.empty:
             print(
                 "No amplicons found ! \n"
                 "Try less stringent mismatches, minlen or maxlen parameters",

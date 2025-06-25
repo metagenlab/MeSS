@@ -64,7 +64,7 @@ cmd_sim_options = (
         ],
     },
     {
-        "name": "Amplicons options",
+        "name": "Amplicon extraction options",
         "options": [
             "--fw",
             "--rv",
@@ -73,17 +73,18 @@ cmd_sim_options = (
             "--amp-minlen",
             "--amp-maxlen",
             "--cut",
-            "--orient",
+            "--keep-orient",
+            "--amp",
         ],
     },
     {
         "name": "art_illumina options",
         "options": [
             "--custom-err",
-            "--errfree",
             "--paired",
             "--frag-len",
             "--frag-sd",
+            "--errfree",
         ],
     },
     {
