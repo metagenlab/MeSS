@@ -340,26 +340,6 @@ rule get_cami_profile:
         """
 
 
-rule compress_contig_fastqs:
-    input:
-        fastq,
-    output:
-        fastq_gz,
-    resources:
-        mem_mb=config.resources.sml.mem,
-        mem=str(config.resources.sml.mem) + "MB",
-        time=config.resources.sml.time,
-    threads: config.resources.sml.cpu
-    conda:
-        os.path.join(dir.conda, "pigz.yml")
-    container:
-        containers.pigz
-    shell:
-        """
-        pigz -p {threads} {input}
-        """
-
-
 sample_fastq_out = []
 if SKIP_SHUFFLE:
     if PAIRED:
