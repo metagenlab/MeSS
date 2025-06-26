@@ -12,8 +12,8 @@ if PASSES > 1:
     pbsim3_out = temp(prefix + ".sam")
     rename = f"mv {prefix}_0001.sam {prefix}.sam"
 else:
-    pbsim3_out = temp(prefix + ".fq")
-    rename = f"mv {prefix}_0001.fastq {prefix}.fq"
+    pbsim3_out = temp(prefix + ".fq.gz")
+    rename = f"gzip -c {prefix}_0001.fastq > {prefix}.fq.gz"
 
 
 rule pbsim3:

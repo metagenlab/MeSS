@@ -37,8 +37,8 @@ if ERRFREE:
 
 
 fastq_out = [
-    temp(fq_prefix + "1.fq"),
-    temp(fq_prefix + "2.fq"),
+    temp(fq_prefix + "1.fq.gz"),
+    temp(fq_prefix + "2.fq.gz"),
 ]
 
 if not PAIRED:
@@ -86,5 +86,6 @@ rule art_illumina:
         -f {params.cov} -na {params.args} \\
         -o {params.prefix} \\
         &> {log}
+        gzip {params.prefix}*.fq
         {params.cmd}
         """
