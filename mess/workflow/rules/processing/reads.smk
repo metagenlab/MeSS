@@ -367,7 +367,11 @@ rule cat_fastqs:
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.norm.time,
     message:
-        "Concatenating {wildcards.sample} reads : {params.head} ... "
+        (
+            "Concatenating {wildcards.sample} R{wildcards.p} reads : {params.head} ... "
+            if PAIRED
+            else "Concatenating {wildcards.sample} reads : {params.head} ... "
+        )
     shell:
         """
         find {params.dir} -name "{params.name}" | sort | xargs cat > {output}
