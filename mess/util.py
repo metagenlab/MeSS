@@ -22,7 +22,7 @@ def get_fasta_dirs(config):
         files = glob.glob(os.path.join(config["args"]["input"], "*.tsv"))
     df = pd.concat([pd.read_csv(file, sep="\t") for file in files])
     if "path" in df.columns:
-        return set(os.path.abspath(os.path.dirname(p)) for p in df["path"])
+        return os.path.commonpath(df["path"].to_list())
     else:
         return False
 
@@ -125,8 +125,15 @@ def run_snakemake(
             os.path.abspath(snake_config["args"]["output"]),
         ]
         if get_fasta_dirs(snake_config):
-            for path in get_fasta_dirs(snake_config):
-                paths.append(path)
+            paths.append(get_fasta_dirs(snake_config))
+        if snake_config["args"]["taxonkit"]:
+            paths.append(
+                os.path.dirname(
+                    os.path.realpath(
+                        os.path.join(snake_config["args"]["taxonkit"], "names.dmp")
+                    )
+                )
+            )
 
         sdm_args = " ".join([f"-B {path}:{path}" for path in paths])
 
@@ -343,6 +350,9 @@ def sim_options(func):
             help="Path to art custom error profile basename",
             type=str,
             default=None,
+        ),
+        click.option(
+            "--art-args", help="additional art_illumina args", type=str, default=""
         ),
         click.option(
             "--errfree",
