@@ -15,7 +15,7 @@ from snaketool_utils.cli_utils import (
 )
 
 
-def get_fasta_dirs(config):
+def fasta_path(config):
     if os.path.isfile(config["args"]["input"]):
         files = [config["args"]["input"]]
     else:
@@ -25,6 +25,15 @@ def get_fasta_dirs(config):
         return os.path.commonpath(df["path"].to_list())
     else:
         return False
+
+
+def custom_taxonkit_dir(config):
+    if config["args"]["taxonkit"] == os.path.join(os.getcwd(), ".taxonkit"):
+        return False
+    else:
+        return os.path.dirname(
+            os.path.realpath(os.path.join(config["args"]["taxonkit"], "names.dmp"))
+        )
 
 
 def snake_base(rel_path):
@@ -124,16 +133,10 @@ def run_snakemake(
             os.path.join(os.path.dirname(os.path.realpath(__file__))),
             os.path.abspath(snake_config["args"]["output"]),
         ]
-        if get_fasta_dirs(snake_config):
-            paths.append(get_fasta_dirs(snake_config))
-        if snake_config["args"]["taxonkit"]:
-            paths.append(
-                os.path.dirname(
-                    os.path.realpath(
-                        os.path.join(snake_config["args"]["taxonkit"], "names.dmp")
-                    )
-                )
-            )
+        if fasta_path(snake_config):
+            paths.append(fasta_path(snake_config))
+        if custom_taxonkit_dir(snake_config):
+            paths.append(custom_taxonkit_dir(snake_config))
 
         sdm_args = " ".join([f"-B {path}:{path}" for path in paths])
 
