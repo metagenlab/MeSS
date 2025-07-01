@@ -183,13 +183,22 @@ def get_value(value, wildcards):
 
 
 def get_asm_summary(wildcards):
+    if (
+        ("seq_len" in tsv_df.columns)
+        and ("seq_num" in tsv_df.columns)
+        and ("path" in tsv_df.columns)
+    ):
+        return os.path.join(dir.out.base, "replicates.tsv")
+    if ("taxon" in tsv_df.columns) or ("accession" in tsv_df.columns):
+        if PRIMERSEARCH:
+            return [
+                checkpoints.download_assemblies.get(**wildcards).output[0],
+                os.path.join(dir.out.processing, "seqkit_stats.tsv"),
+            ]
+        else:
+            return checkpoints.download_assemblies.get(**wildcards).output[0]
     if PRIMERSEARCH or FASTA_DIR or FASTA_PATH:
         return os.path.join(dir.out.processing, "seqkit_stats.tsv")
-    else:
-        try:
-            return checkpoints.download_assemblies.get(**wildcards).output[0]
-        except AttributeError:
-            return os.path.join(dir.out.processing, "seqkit_stats.tsv")
 
 
 tsv_cache = {}
