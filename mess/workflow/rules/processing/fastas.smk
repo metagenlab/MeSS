@@ -129,7 +129,6 @@ checkpoint split_contigs:
     params:
         circular=CIRCULAR,
         rotate=ROTATE,
-        amplicons=PRIMERSEARCH,
         read_len=MEAN_LEN,
     resources:
         mem_mb=config.resources.sml.mem,

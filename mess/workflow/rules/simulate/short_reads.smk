@@ -23,6 +23,8 @@ if BAM or TAX:
 if ERRFREE:
     art_args += "-ef "
 
+art_args += f"{config.args.art_args}"
+
 
 fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}")
 if CIRCULAR:

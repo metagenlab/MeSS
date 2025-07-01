@@ -17,7 +17,7 @@ rule replicates_table:
 
 checkpoint calculate_genome_coverages:
     input:
-        df=os.path.join(dir.out.base, "replicates.tsv"),
+        rep=os.path.join(dir.out.base, "replicates.tsv"),
         asm=get_asm_summary,
     output:
         os.path.join(dir.out.base, "coverages.tsv"),

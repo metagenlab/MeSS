@@ -85,6 +85,7 @@ cmd_sim_options = (
             "--frag-len",
             "--frag-sd",
             "--errfree",
+            "--art-args",
         ],
     },
     {

@@ -31,13 +31,12 @@ cov_df = (
 os.mkdir(snakemake.output.dir)
 id2fa = []
 suffix = ".fasta"
-if snakemake.params.amplicons:
-    suffix = ".amplicons.fasta"
 for fa in snakemake.input.fa:
+    if ".amplicons" in fa:
+        suffix = ".amplicons"
     id2fa.append(split_fasta(fa, snakemake.output.dir, suffix))
 id2fa = list(chain.from_iterable(id2fa))
 contig_df = pd.DataFrame.from_records(id2fa)
-
 df = pd.merge(contig_df, cov_df, how="left", on="fasta")
 
 cols = [
