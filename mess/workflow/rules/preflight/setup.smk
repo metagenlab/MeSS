@@ -51,7 +51,7 @@ if not os.path.exists(os.path.join(TAXONKIT, "names.dmp")):
 
 
 RANKS = config.args.ranks
-if config.args.custom_tax:
+if isinstance(config.args.custom_tax, str):
     RANKS = ",".join(list(custom_tax_df.columns[1:]))
     TAXONKIT = os.path.join(TAXONKIT, "custom")
 

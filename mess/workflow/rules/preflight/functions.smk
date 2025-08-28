@@ -212,7 +212,7 @@ if "input_tsv" not in tsv_cache:
 else:
     tsv_df = tsv_cache["input_tsv"]
 
-if config.args.custom_tax:
+if isinstance(config.args.custom_tax, str):
     if "custom_tax_df" not in tsv_cache:
         custom_tax_df = pd.read_csv(config.args.custom_tax, sep="\t")
         tsv_cache["custom_tax_df"] = custom_tax_df
