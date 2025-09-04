@@ -518,32 +518,16 @@ def download_options(func):
     """
     options = [
         click.option(
+            "--reference",
+            help="Search for reference genomes if available (default: complete)",
+            type=bool,
+            is_flag=True,
+        ),
+        click.option(
             "--limit",
             help="Limit number of genomes per query",
             type=str,
             default=1,
-        ),
-        click.option("--api-key", type=str, help="NCBI api-key", default=None),
-        click.option(
-            "--compressed",
-            type=bool,
-            help="Download compressed files",
-            default=True,
-            show_default=True,
-        ),
-        click.option(
-            "--include",
-            type=str,
-            help="Comma seperated files to download : genome,rna,protein,cds,gff3,gtf,gbff,seq-report,none",
-            default="genome,seq-report",
-            show_default=True,
-        ),
-        click.option(
-            "--source",
-            type=click.Choice(["refseq", "genbank", "all"], case_sensitive=False),
-            help="Download from refseq or genbank or both",
-            default="all",
-            show_default=True,
         ),
         click.option(
             "--taxon/--accession",
@@ -553,63 +537,10 @@ def download_options(func):
             show_default=True,
         ),
         click.option(
-            "--reference/--noref",
-            type=bool,
-            help="Limit to reference and representative genomes or not",
-            default=True,
-            show_default=True,
-        ),
-        click.option(
-            "--assembly-level",
-            help="Comma seperated list of assembly level: complete,chromosome,scaffold,contig",
-            default=None,
-            show_default=True,
-        ),
-        click.option(
-            "--annotated",
-            type=bool,
-            help="Select annotated genomes only",
-            default=False,
-            show_default=True,
-        ),
-        click.option(
-            "--atypical",
-            type=bool,
-            help="Exclude atypical genomes",
-            default=True,
-            show_default=True,
-        ),
-        click.option(
-            "--mag",
-            type=click.Choice(["exclude", "all", "only"], case_sensitive=False),
-            help="Exclude, include or limit to metagenome assembled genomes",
-            default="all",
-            show_default=True,
-        ),
-        click.option(
-            "--rank",
-            help="taxonomic rank to filter by assemblies ",
-            default=None,
-            type=click.Choice(
-                [
-                    "superkingdom",
-                    "phylum",
-                    "class",
-                    "order",
-                    "family",
-                    "genus",
-                    "species",
-                ],
-                case_sensitive=False,
-            ),
-            show_default=True,
-        ),
-        click.option(
-            "--nrank",
-            help="Number of genomes per taxonomic rank",
-            type=int,
-            default=None,
-            show_default=True,
+            "--af-args",
+            help="assembly_finder args, see: https://metagenlab.github.io/assembly_finder/#command-line-options",
+            type=str,
+            default="",
         ),
     ]
 

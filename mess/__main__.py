@@ -33,19 +33,10 @@ cmd_dl_options = (
     {
         "name": "Download options",
         "options": [
-            "--api-key",
-            "--limit",
-            "--compressed",
-            "--include",
-            "--source",
-            "--taxon",
             "--reference",
-            "--assembly-level",
-            "--annotated",
-            "--atypical",
-            "--mag",
-            "--rank",
-            "--nrank",
+            "--limit",
+            "--taxon",
+            "--af-args",
         ],
     },
 )

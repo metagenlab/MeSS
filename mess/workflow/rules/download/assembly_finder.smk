@@ -20,46 +20,26 @@ rule get_unique_entries:
             )
 
 
-af_args = "--no-use-conda "
+af_args = AF_ARGS + " "
+if REFERENCE:
+    af_args += "--reference "
 if TAXON:
     af_args += "--taxon "
     if LIMIT:
         af_args += f"--limit {LIMIT} "
 
-    if RANK and NRANK:
-        af_args += f"--rank {RANK} --nrank {NRANK}"
-
-    if ASM_LVL:
-        af_args += f"--assembly-level {ASM_LVL} "
-    if INCLUDE:
-        f"--include {INCLUDE} "
-    if SOURCE:
-        f"--source {SOURCE} "
-    if REFERENCE:
-        f"--reference {REFERENCE} "
-    if ANNOTATED:
-        f"--annotated {ANNOTATED} "
-    if ATYPICAL:
-        f"--atypical {ATYPICAL} "
-    if MAG:
-        f"--mag {MAG}"
-
 else:
     af_args += "--accession "
 
-if API_KEY:
-    af_args += f"--api-key {API_KEY} "
-
-if COMPRESSED:
-    af_args += f"--compressed {COMPRESSED} "
+af_args = af_args.strip()
 
 
 checkpoint download_assemblies:
     input:
         tsv=os.path.join(dir.out.base, "uniq_entries.tsv"),
     output:
-        asm=os.path.join(dir.out.base, "assembly_finder/assembly_summary.tsv"),
-        tax=os.path.join(dir.out.base, "assembly_finder/taxonomy.tsv"),
+        asm=os.path.join(dir.out.base, "assembly_finder", "assembly_summary.tsv"),
+        tax=os.path.join(dir.out.base, "assembly_finder", "taxonomy.tsv"),
     params:
         args=af_args,
         taxonkit=TAXONKIT,
