@@ -1,6 +1,6 @@
-name: bioconvert
+name: last
 channels:
   - conda-forge
   - bioconda
 dependencies:
-  - bioconvert =1.1.1
+  - last =1642
