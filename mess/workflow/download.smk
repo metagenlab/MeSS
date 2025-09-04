@@ -7,19 +7,10 @@ include: os.path.join("rules", "preflight", "config.smk")
 
 
 # assembly_finder options
-API_KEY = config.args.api_key
-LIMIT = config.args.limit
-COMPRESSED = config.args.compressed
-SOURCE = config.args.source
-INCLUDE = config.args.include
-TAXON = config.args.taxon
 REFERENCE = config.args.reference
-ASM_LVL = config.args.assembly_level
-ANNOTATED = config.args.annotated
-ATYPICAL = config.args.atypical
-MAG = config.args.mag
-RANK = config.args.rank
-NRANK = config.args.nrank
+LIMIT = config.args.limit
+TAXON = config.args.taxon
+AF_ARGS = config.args.af_args
 
 
 # assembly_finder rules
