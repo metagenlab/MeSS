@@ -17,6 +17,9 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
+      - name: Set release date
+        run: echo "RELEASE_DATE=$(date +'%d-%m-%Y')" >> $GITHUB_ENV
       - uses: release-drafter/release-drafter@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DATE: ${{ env.RELEASE_DATE }}
