@@ -318,7 +318,7 @@ def sim_options(func):
         click.option(
             "--tech",
             help="Sequencing technology",
-            type=click.Choice(["illumina", "pacbio", "nanopore"], case_sensitive=False),
+            type=click.Choice(["illumina", "pacbio", "ont"], case_sensitive=False),
             default="illumina",
             show_default=True,
         ),

@@ -70,9 +70,9 @@ def test_simulate_illumina():
     remove_directory(outdir)
 
 
-def test_simulate_nanopore():
-    """mess simulate nanopore reads"""
-    exec_command(" ".join(cmd) + " --tech nanopore --bam")
+def test_simulate_ont():
+    """mess simulate ont reads"""
+    exec_command(" ".join(cmd) + " --tech ont --bam")
     remove_directory(outdir)
 
 
