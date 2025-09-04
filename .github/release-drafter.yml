@@ -1,0 +1,124 @@
+name-template: 'MeSS v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+      - 'feat'
+      - 'new'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+      - 'patch'
+  - title: '📚 Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: '🔧 Maintenance'
+    labels:
+      - 'chore'
+      - 'dependencies'
+      - 'refactor'
+      - 'cleanup'
+  - title: '⚡ Performance'
+    labels:
+      - 'performance'
+      - 'optimization'
+  - title: '🧪 Testing'
+    labels:
+      - 'test'
+      - 'testing'
+  - title: '💥 Breaking Changes'
+    labels:
+      - 'breaking'
+      - 'breaking-change'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&'
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+      - 'breaking-change'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+      - 'enhancement'
+      - 'feat'
+      - 'new'
+  patch:
+    labels:
+      - 'patch'
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+      - 'chore'
+      - 'dependencies'
+      - 'documentation'
+      - 'docs'
+  default: patch
+
+template: |
+  # [MeSS v$RESOLVED_VERSION - $DATE](https://github.com/metagenlab/MeSS/releases/tag/v$RESOLVED_VERSION)
+
+  $CHANGES
+
+  ---
+
+  **Full Changelog**: https://github.com/metagenlab/MeSS/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+exclude-labels:
+  - 'skip-changelog'
+  - 'duplicate'
+  - 'question'
+  - 'invalid'
+  - 'wontfix'
+
+include-pre-releases: false
+
+replacers:
+  - search: '/MeSS/g'
+    replace: 'MeSS'
+  - search: '/mess/g'
+    replace: 'MeSS'
+
+autolabeler:
+  - label: 'documentation'
+    files:
+      - '*.md'
+      - 'docs/**/*'
+      - 'mkdocs.yml'
+  - label: 'bug'
+    branch:
+      - '/fix\/.+/'
+      - '/bugfix\/.+/'
+      - '/hotfix\/.+/'
+  - label: 'feature'
+    branch:
+      - '/feature\/.+/'
+      - '/feat\/.+/'
+  - label: 'chore'
+    files:
+      - '.github/**/*'
+      - '*.yml'
+      - '*.yaml'
+      - 'pyproject.toml'
+      - 'setup.py'
+      - 'requirements*.txt'
+  - label: 'dependencies'
+    files:
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'setup.py'
+      - 'workflow/envs/**/*'
+  - label: 'test'
+    files:
+      - 'tests/**/*'
+      - '*test*.py'
