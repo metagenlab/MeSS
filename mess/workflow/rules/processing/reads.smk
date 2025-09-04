@@ -12,11 +12,6 @@ if SEQ_TECH == "illumina":
         os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
     )
 
-fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq")
-fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}.fq.gz"))
-if PAIRED:
-    fastq = os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}{p}.fq")
-    fastq_gz = temp(os.path.join(fastq_dir, "{sample}", "{fasta}", "{contig}{p}.fq.gz"))
 
 # hifi reads post processing
 if PASSES > 1:
@@ -135,12 +130,12 @@ if BAM or TAX:
             time=config.resources.sml.time,
         threads: config.resources.sml.cpu
         conda:
-            os.path.join(dir.conda, "bioconvert.yml")
+            os.path.join(dir.conda, "last.yml")
         container:
-            containers.bioconvert
+            containers.last
         shell:
             """
-            bioconvert {input} {output} 2> {log}
+            maf-convert sam -d {input} > {output} 2> {log}
             """
 
 
@@ -438,7 +433,7 @@ if not SKIP_SHUFFLE:
         conda:
             os.path.join(dir.conda, "seqkit.yml")
         container:
-            containers.bioconvert
+            containers.seqkit
         shell:
             """
             seqkit seq {input} | seqkit replace \\

@@ -397,17 +397,18 @@ def simulate(
 ):
     """Simulate reads from local fastas"""
     if kwargs["tech"] != "illumina":
-        kwargs["mean_len"] = 9000
         if kwargs["tech"] == "pacbio":
+            kwargs["mean_len"] = 9000
             kwargs["ratio"] = "22:45:33"
             kwargs["model"] = "QSHMM-RSII"
             kwargs["accuracy"] = 0.85
             if kwargs["error"] == "hifi":
-                kwargs["accuracy"] = 0.999
+                kwargs["accuracy"] = 0.90
                 kwargs["passes"] = 10
-        if kwargs["tech"] == "nanopore":
+        if kwargs["tech"] == "ont":
             kwargs["ratio"] = "39:24:36"
-            kwargs["accuracy"] = 0.99
+            kwargs["mean_len"] = 15000
+            kwargs["accuracy"] = 0.95
             kwargs["model"] = "QSHMM-ONT-HQ"
 
     # Config to add or update in configfile
@@ -440,11 +441,11 @@ def test(**kwargs):
             kwargs["model"] = "QSHMM-RSII"
             kwargs["accuracy"] = 0.85
             if kwargs["error"] == "hifi":
-                kwargs["accuracy"] = 0.999
+                kwargs["accuracy"] = 0.90
                 kwargs["passes"] = 10
-        if kwargs["tech"] == "nanopore":
+        if kwargs["tech"] == "ont":
             kwargs["ratio"] = "39:24:36"
-            kwargs["accuracy"] = 0.99
+            kwargs["accuracy"] = 0.95
             kwargs["model"] = "QSHMM-ONT-HQ"
 
     merge_config = {"args": kwargs}

@@ -31,9 +31,7 @@ def custom_taxonkit_dir(config):
     if config["args"]["taxonkit"] == os.path.join(os.getcwd(), ".taxonkit"):
         return False
     else:
-        return os.path.dirname(
-            os.path.realpath(os.path.join(config["args"]["taxonkit"], "names.dmp"))
-        )
+        return os.path.realpath(config["args"]["taxonkit"])
 
 
 def snake_base(rel_path):
@@ -320,7 +318,7 @@ def sim_options(func):
         click.option(
             "--tech",
             help="Sequencing technology",
-            type=click.Choice(["illumina", "pacbio", "nanopore"], case_sensitive=False),
+            type=click.Choice(["illumina", "pacbio", "ont"], case_sensitive=False),
             default="illumina",
             show_default=True,
         ),
@@ -555,9 +553,9 @@ def download_options(func):
             show_default=True,
         ),
         click.option(
-            "--reference",
+            "--reference/--noref",
             type=bool,
-            help="Limit to reference and representative genomes",
+            help="Limit to reference and representative genomes or not",
             default=True,
             show_default=True,
         ),
