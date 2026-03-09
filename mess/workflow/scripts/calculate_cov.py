@@ -79,59 +79,82 @@ if snakemake.params["fa_path"]:
         strip_fasta_ext(os.path.basename(path)) for path in entry_df["path"]
     ]
 
-if isinstance(snakemake.input["asm"], list):
-    summary_df = pd.read_csv(snakemake.input["asm"][0], sep="\t")
-    summary_df["fasta"] = [
-        strip_fasta_ext(os.path.basename(path)) for path in summary_df["path"]
-    ]
-    stats_df = pd.read_csv(snakemake.input["asm"][1], sep="\t")
-    stats_df.rename(
-        columns={
-            "file": "fasta",
-            "sum_len": "seq_len",
-            "num_seqs": "seq_num",
-        },
-        inplace=True,
-    )
-    stats_df["fasta"] = stats_df["fasta"].apply(strip_fasta_ext)
-    stats_df["fasta"] = stats_df["fasta"].str.replace(".amplicons", "")
-    asm_df = pd.merge(stats_df, summary_df, on="fasta")
+# if isinstance(snakemake.input["asm"], list):
+#     summary_df = pd.read_csv(snakemake.input["asm"][0], sep="\t")
+#     summary_df["fasta"] = [
+#         strip_fasta_ext(os.path.basename(path)) for path in summary_df["path"]
+#     ]
+#     stats_df = pd.read_csv(snakemake.input["asm"][1], sep="\t")
+#     stats_df.rename(
+#         columns={
+#             "file": "fasta",
+#             "sum_len": "seq_len",
+#             "num_seqs": "seq_num",
+#         },
+#         inplace=True,
+#     )
+#     stats_df["fasta"] = stats_df["fasta"].apply(strip_fasta_ext)
+#     stats_df["fasta"] = stats_df["fasta"].str.replace(".amplicons", "")
+#     asm_df = pd.merge(stats_df, summary_df, on="fasta")
 
 
-else:
-    asm_df = pd.read_csv(snakemake.input["asm"], sep="\t")
-    if "file" in asm_df.columns:
-        asm_df.rename(
-            columns={
-                "file": "fasta",
-                "sum_len": "seq_len",
-                "num_seqs": "seq_num",
-            },
-            inplace=True,
-        )
-        asm_df["fasta"] = asm_df["fasta"].apply(strip_fasta_ext)
+# else:
+#     asm_df = pd.read_csv(snakemake.input["asm"], sep="\t")
+#     if "file" in asm_df.columns:
+#         asm_df.rename(
+#             columns={
+#                 "file": "fasta",
+#                 "sum_len": "seq_len",
+#                 "num_seqs": "seq_num",
+#             },
+#             inplace=True,
+#         )
+#         asm_df["fasta"] = asm_df["fasta"].apply(strip_fasta_ext)
 
-    if ("fasta" not in asm_df.columns) and ("path" in asm_df.columns):
-        asm_df["fasta"] = [
-            strip_fasta_ext(os.path.basename(path)) for path in asm_df["path"]
-        ]
-    if snakemake.params["amplicons"]:
-        asm_df["fasta"] = asm_df["fasta"].str.replace(".amplicons", "")
-    if (
-        "total_sequence_length" in asm_df.columns
-        and "number_of_contigs" in asm_df.columns
-    ):
-        asm_df = asm_df.rename(
-            columns={"total_sequence_length": "seq_len", "number_of_contigs": "seq_num"}
-        )
+#     if ("fasta" not in asm_df.columns) and ("path" in asm_df.columns):
+#         asm_df["fasta"] = [
+#             strip_fasta_ext(os.path.basename(path)) for path in asm_df["path"]
+#         ]
+#     if snakemake.params["amplicons"]:
+#         asm_df["fasta"] = asm_df["fasta"].str.replace(".amplicons", "")
+#     if (
+#         "total_sequence_length" in asm_df.columns
+#         and "number_of_contigs" in asm_df.columns
+#     ):
+#         asm_df = asm_df.rename(
+#             columns={"total_sequence_length": "seq_len", "number_of_contigs": "seq_num"}
+#         )
+
+fa_df = pd.read_csv(snakemake.input["fa"], sep="\t")
+fa_df.rename(
+    columns={
+        "file": "fasta",
+        "sum_len": "seq_len",
+        "num_seqs": "seq_num",
+    },
+    inplace=True,
+)
+fa_df["fasta"] = fa_df["fasta"].apply(strip_fasta_ext)
 
 
-same_cols = list(np.intersect1d(entry_df.columns, asm_df.columns))
-df = pd.merge(entry_df, asm_df, how="left", on=same_cols)
+same_cols = list(np.intersect1d(entry_df.columns, fa_df.columns))
+df = pd.merge(fa_df, entry_df, how="left", on=same_cols)
 
 
 # Get total bases
 bases = parse_size(snakemake.params["bases"])
+
+
+if snakemake.params.rotates:
+    df["fna"] = df["fasta"].str.replace("_circular", "")
+    ndf = df.dropna()
+    for col in df.columns:
+        if col not in ["fasta", "fna"]:
+            d = dict(zip(ndf["fna"], ndf[col]))
+            # fill missing values for that column
+            df[col] = df[col].fillna(df["fna"].map(d))
+    df["circular"] = df["fasta"].str.contains("circular")
+    df["rotates"] = np.where(df["circular"], snakemake.params.rotates, 1)
 
 
 if "tax_id" in df.columns:
@@ -221,8 +244,12 @@ cols = [
     "tax_abundance",
     "seed",
 ]
-if "rotate" in entry_df.columns:
-    cols.append("rotate")
+
+
+if "rotates" in df.columns:
+    cols.append("rotates")
+    cols.append("circular")
+
 if "tax_id" in df.columns:
     cols.append("tax_id")
 
