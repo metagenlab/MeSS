@@ -24,7 +24,6 @@ def copy_log_file():
 
 wildcard_constraints:
     sample="[^/]+",
-    contig="[^/]+",
     fasta="[^/]+",
 
 
@@ -120,14 +119,6 @@ def get_fasta_table(wildcards):
     return fa_df
 
 
-def fasta_input(wildcards):
-    df = get_fasta_table(wildcards)
-    try:
-        return df.loc[wildcards.fasta]["path"].drop_duplicates()
-    except AttributeError:
-        return df.loc[wildcards.fasta]["path"]
-
-
 def list_fastas(wildcards):
     df = get_fasta_table(wildcards)
     if PRIMERSEARCH:
@@ -155,11 +146,11 @@ table_cache = {}
 
 
 def get_cov_df(wildcards):
-    return checkpoints.split_contigs.get(**wildcards).output[0]
+    return checkpoints.calculate_coverages.get(**wildcards).output[0]
 
 
 def get_cov_table(wildcards, key, idx_col):
-    cov_table = checkpoints.split_contigs.get(**wildcards).output[0]
+    cov_table = checkpoints.calculate_coverages.get(**wildcards).output[0]
     if cov_table not in table_cache:
         cov_df = pd.read_csv(cov_table, sep="\t", index_col=idx_col).sort_index()
         table_cache[key] = cov_df
@@ -168,37 +159,33 @@ def get_cov_table(wildcards, key, idx_col):
 
 
 def get_value(value, wildcards):
-    vals = (
-        f"{wildcards.sample}",
-        f"{wildcards.fasta}",
-        f"{wildcards.contig}",
-    )
-    idx_col = ["samplename", "fasta", "contig"]
-
-    if CIRCULAR:
-        idx_col += ["n"]
-        vals += (int(wildcards.n),)
-    val_df = get_cov_table(wildcards, "values", idx_col)
-    return val_df.loc[vals, value]
+    val_df = get_cov_table(wildcards, "values", ["samplename", "fasta"])
+    return val_df.loc[
+        (
+            f"{wildcards.sample}",
+            f"{wildcards.fasta}",
+        ),
+        value,
+    ]
 
 
-def get_asm_summary(wildcards):
-    if (
-        ("seq_len" in tsv_df.columns)
-        and ("seq_num" in tsv_df.columns)
-        and ("path" in tsv_df.columns)
-    ):
-        return os.path.join(dir.out.base, "replicates.tsv")
-    if ("taxon" in tsv_df.columns) or ("accession" in tsv_df.columns):
-        if PRIMERSEARCH:
-            return [
-                checkpoints.download_assemblies.get(**wildcards).output[0],
-                os.path.join(dir.out.processing, "seqkit_stats.tsv"),
-            ]
-        else:
-            return checkpoints.download_assemblies.get(**wildcards).output[0]
-    if PRIMERSEARCH or FASTA_DIR or FASTA_PATH:
-        return os.path.join(dir.out.processing, "seqkit_stats.tsv")
+# def get_asm_summary(wildcards):
+#     if (
+#         ("seq_len" in tsv_df.columns)
+#         and ("seq_num" in tsv_df.columns)
+#         and ("path" in tsv_df.columns)
+#     ):
+#         return os.path.join(dir.out.base, "replicates.tsv")
+#     if ("taxon" in tsv_df.columns) or ("accession" in tsv_df.columns):
+#         if PRIMERSEARCH:
+#             return [
+#                 checkpoints.download_assemblies.get(**wildcards).output[0],
+#                 os.path.join(dir.out.processing, "fasta_stats.tsv"),
+#             ]
+#         else:
+#             return checkpoints.download_assemblies.get(**wildcards).output[0]
+#     if PRIMERSEARCH or FASTA_DIR or FASTA_PATH:
+#         return os.path.join(dir.out.processing, "fasta_stats.tsv")
 
 
 tsv_cache = {}
@@ -224,14 +211,14 @@ def aggregate(wildcards, outdir, ext):
     df = get_cov_table(wildcards, "aggregate", ["samplename"])
     files = []
     for row in df.loc[[wildcards.sample]].itertuples():
-        prefix = f"{row.contig}"
-        if CIRCULAR:
-            prefix += f"_{row.n}"
         if PAIRED and ext != "bam":
-            prefix += f"{wildcards.p}"
-        files.append(
-            os.path.join(outdir, wildcards.sample, row.fasta, f"{prefix}.{ext}")
-        )
+            files.append(
+                os.path.join(
+                    outdir, wildcards.sample, f"{row.fasta}{wildcards.p}.{ext}"
+                )
+            )
+        else:
+            files.append(os.path.join(outdir, wildcards.sample, f"{row.fasta}.{ext}"))
     return files
 
 
