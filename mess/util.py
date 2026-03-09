@@ -202,7 +202,11 @@ def common_options(func):
             help="Custom config file [default: (outputDir)/config.yaml]",
         ),
         click.option(
-            "--threads", help="Number of threads to use", default=1, show_default=True
+            "-t",
+            "--threads",
+            help="Number of threads to use",
+            default=1,
+            show_default=True,
         ),
         click.option(
             "--profile",
@@ -252,10 +256,16 @@ def sim_options(func):
             required=False,
         ),
         click.option(
-            "--rotate",
-            help="Number of times to shuffle genome start for circular assemblies (2 or more to circularize)",
+            "--circular",
+            help="Regex pattern or comma seperated list of sequence ids to circularize",
+            type=str,
+            default="",
+        ),
+        click.option(
+            "--rotates",
+            help="Number of times to change genome start for circular assemblies",
             type=int,
-            default=1,
+            default=3,
             show_default=True,
         ),
         click.option(
