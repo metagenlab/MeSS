@@ -55,16 +55,15 @@ MEAN_LEN = config.args.mean_len
 
 
 # calculate coverages
+ROTATES = config.args.rotates
+
+
 include: os.path.join("rules", "processing", "coverages.smk")
 
 
 # fasta processing options
-ROTATE = config.args.rotate
 
-if ROTATE > 1 or "rotate" in tsv_df.columns:
-    CIRCULAR = True
-else:
-    CIRCULAR = False
+CIRCULAR = config.args.circular
 
 
 include: os.path.join("rules", "processing", "fastas.smk")
@@ -109,7 +108,7 @@ include: os.path.join("rules", "processing", "reads.smk")
 
 
 # simulate outputs
-TargetSimreads = [list_reads, os.path.join(dir.out.base, "cleanup.done")]
+TargetSimreads = [list_reads]
 
 
 # define the rule all
