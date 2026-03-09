@@ -304,7 +304,7 @@ mess hmp-template --site buccal_mucosa --sample SRS013506 -o SRS013506
 @click.option(
     "-i",
     "--input",
-    help="Path to input table(s)",
+    help="Path to accessions or taxa table(s)",
     type=click.Path(
         exists=True, file_okay=True, dir_okay=True, readable=True, resolve_path=True
     ),
@@ -338,7 +338,7 @@ def run(
 @click.option(
     "-i",
     "--input",
-    help="Path to input table(s)",
+    help="Path to accessions or taxa table(s)",
     type=click.Path(
         exists=True, file_okay=True, dir_okay=True, readable=True, resolve_path=True
     ),
@@ -370,18 +370,18 @@ def download(
 @click.option(
     "-i",
     "--input",
-    help="Path to input table(s)",
+    help="Path to abundance tables",
     type=click.Path(
         exists=True, file_okay=True, dir_okay=True, readable=True, resolve_path=True
     ),
-    required=True,
 )
-@sim_options
 @click.option(
+    "-f",
     "--fasta",
     help="Path to local fasta directory if no path is set in input table",
     type=str,
 )
+@sim_options
 @common_options
 def simulate(
     **kwargs,
