@@ -1,16 +1,11 @@
 fastq_dir = dir.out.long
-contig = "{contig}"
-if CIRCULAR:
-    contig = "{contig}_{n}"
-sam_in = os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".sam")
-sam_in_ef = os.path.join(dir.out.ef, "{sample}", "{fasta}", contig + ".sam")
+sam_in = os.path.join(dir.out.bam, "{sample}", "{fasta}.sam")
+sam_in_ef = os.path.join(dir.out.ef, "{sample}", "{fasta}.sam")
 
 if SEQ_TECH == "illumina":
     fastq_dir = dir.out.short
-    sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}", contig + ".sam")
-    sam_in_ef = (
-        os.path.join(fastq_dir, "{sample}", "{fasta}", contig + "_errFree.sam"),
-    )
+    sam_in = os.path.join(fastq_dir, "{sample}", "{fasta}.sam")
+    sam_in_ef = (os.path.join(fastq_dir, "{sample}", "{fasta}_errFree.sam"),)
 
 
 # hifi reads post processing
@@ -18,21 +13,18 @@ if PASSES > 1:
 
     rule ccs_sam_to_bam:
         input:
-            os.path.join(dir.out.long, "{sample}", "{fasta}", contig + ".sam"),
+            os.path.join(dir.out.long, "{sample}", "{fasta}.sam"),
         output:
             temp(
                 os.path.join(
                     dir.out.base,
                     "ccs",
                     "{sample}",
-                    "{fasta}",
-                    contig + ".ccs.bam",
+                    "{fasta}.ccs.bam",
                 )
             ),
         log:
-            os.path.join(
-                dir.out.logs, "sam2bam", "{sample}", "{fasta}", contig + ".ccs.log"
-            ),
+            os.path.join(dir.out.logs, "sam2bam", "{sample}", "{fasta}.ccs.log"),
         resources:
             mem_mb=config.resources.sml.mem,
             mem=str(config.resources.sml.mem) + "MB",
@@ -50,28 +42,24 @@ if PASSES > 1:
 
     rule ccs_bam_to_fastq:
         input:
-            os.path.join(
-                dir.out.base, "ccs", "{sample}", "{fasta}", contig + ".ccs.bam"
-            ),
+            os.path.join(dir.out.base, "ccs", "{sample}", "{fasta}.ccs.bam"),
         output:
             fq=temp(
                 os.path.join(
                     dir.out.long,
                     "{sample}",
-                    "{fasta}",
-                    contig + ".fq.gz",
+                    "{fasta}.fq.gz",
                 )
             ),
             json=temp(
                 os.path.join(
                     dir.out.long,
                     "{sample}",
-                    "{fasta}",
-                    contig + ".zmw_metrics.json.gz",
+                    "{fasta}.zmw_metrics.json.gz",
                 )
             ),
         log:
-            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}", contig + ".log"),
+            os.path.join(dir.out.logs, "ccs", "{sample}", "{fasta}.log"),
         params:
             passes=PASSES,
             accuracy=ACCURACY,
@@ -97,10 +85,10 @@ if BAM or TAX:
 
     rule add_reference_name:
         input:
-            maf=os.path.join(dir.out.long, "{sample}", "{fasta}", contig + ".maf"),
-            fa=os.path.join(dir.out.long, "{sample}", "{fasta}", contig + ".ref"),
+            maf=os.path.join(dir.out.long, "{sample}", "{fasta}.maf"),
+            fa=os.path.join(dir.out.long, "{sample}", "{fasta}.ref"),
         output:
-            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".maf")),
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}.maf")),
         params:
             seqname=lambda wildcards, input: get_header(input.fa),
         resources:
@@ -114,15 +102,15 @@ if BAM or TAX:
 
     rule convert_maf_to_sam:
         input:
-            os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".maf"),
+            os.path.join(dir.out.bam, "{sample}", "{fasta}.maf"),
         output:
-            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".sam")),
+            temp(os.path.join(dir.out.bam, "{sample}", "{fasta}.sam")),
         log:
             os.path.join(
                 dir.out.logs,
                 "maf2sam",
                 "{sample}",
-                "{fasta}" + "_" + contig + ".log",
+                "{fasta}.log",
             ),
         resources:
             mem_mb=config.resources.sml.mem,
@@ -143,9 +131,9 @@ rule convert_sam_to_bam:
     input:
         sam_in,
     output:
-        temp(os.path.join(dir.out.bam, "{sample}", "{fasta}", contig + ".bam")),
+        temp(os.path.join(dir.out.bam, "{sample}", "{fasta}.bam")),
     log:
-        os.path.join(dir.out.logs, "sam2bam", "{sample}", "{fasta}", contig + ".log"),
+        os.path.join(dir.out.logs, "sam2bam", "{sample}", "{fasta}.log"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
@@ -235,22 +223,25 @@ elif CUSTOM_TAX:
     tax = os.path.join(TAXONKIT, "taxid.map")
 
 
-rule get_contig_taxonomy:
+rule get_seq_taxonomy:
     input:
         tax=tax,
         cov=get_cov_df,
+        seq_ids=os.path.join(dir.out.processing, "fa2ids.tsv"),
     output:
         os.path.join(dir.out.processing, "tax.tsv"),
     run:
-        if input.tax.endswith("tsv"):
-            taxdf = pd.read_csv(input.tax, sep="\t")
-        else:
-            taxdf = pd.read_csv(input.tax, sep="\t", header=None)
-            taxdf.columns = ["accession", "tax_id"]
-            taxdf["fasta"] = taxdf["accession"].apply(strip_fasta_ext)
         covdf = pd.read_csv(input.cov, sep="\t")
-        cols = list(np.intersect1d(taxdf.columns, covdf.columns))
-        covdf.merge(taxdf, on=cols, how="left").to_csv(
+        if not input.tax.endswith("coverages.tsv"):
+            taxdf = pd.read_csv(input.tax, sep="\t", header=None)
+            taxdf.columns = ["fasta", "tax_id"]
+            taxdf["fasta"] = taxdf["fasta"].apply(strip_fasta_ext)
+            covdf = covdf.merge(taxdf, on="fasta", how="left")
+        seqidf = pd.read_csv(input.seq_ids, sep="\t", header=None)
+        seqidf.columns = ["fasta", "seq_id", "length"]
+        seqidf.seq_id = seqidf.seq_id.str.split(" ", expand=True)[0]
+        seqidf.fasta = seqidf.fasta.apply(strip_fasta_ext)
+        covdf.merge(seqidf, on="fasta", how="left").to_csv(
             output[0], sep="\t", index=False
         )
 
@@ -264,45 +255,46 @@ rule get_tax_profile:
         counts=os.path.join(dir.out.tax, "{sample}_counts.tsv"),
         seq=temp(os.path.join(dir.out.tax, "{sample}_seq.tsv")),
         tax=temp(os.path.join(dir.out.tax, "{sample}_tax.tsv")),
+    params:
+        circular=CIRCULAR,
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
         time=config.resources.sml.time,
     threads: config.resources.sml.cpu
-    params:
-        circular=CIRCULAR,
     run:
         tax_df = pd.read_csv(input.tax, sep="\t")
         tax_df = tax_df[tax_df.samplename == wildcards.sample]
-        if params.circular:
-            tax_df["contig"] = tax_df["contig"] + "_" + tax_df["n"].astype(str)
         cov_df = pd.read_csv(input.cov, sep="\t")
-        cov_df.rename(columns={"#rname": "contig"}, inplace=True)
-        merge_df = tax_df.merge(cov_df)
+        cov_df.rename(columns={"#rname": "seq_id"}, inplace=True)
+        if params.circular:
+            cov_df.seq_id = cov_df.seq_id.str.split("_circular", expand=True)[0]
+        merge_df = cov_df.merge(tax_df)
         merge_df.tax_id = merge_df.tax_id.astype(int)
-        merge_df.groupby("tax_id", as_index=False).agg(
-            {"numreads": "sum", "meandepth": "mean", "coverage": "mean"}
-        ).rename(
-            columns={
-                "numreads": "reads",
-                "meandepth": "depth",
-                "coverage": "breadth",
-            }
-        ).to_csv(
-            output.counts, sep="\t", index=False
+        merge_df = (
+            merge_df.groupby(["seq_id", "tax_id"], as_index=False)
+            .agg({"numreads": "sum", "meandepth": "mean", "coverage": "mean"})
+            .rename(
+                columns={
+                    "numreads": "reads",
+                    "meandepth": "depth",
+                    "coverage": "breadth",
+                }
+            )
         )
-        for col in ["numreads", "meandepth"]:
-            if col == "numreads":
+        merge_df.to_csv(output.counts, sep="\t", index=False)
+        for col in ["reads", "depth"]:
+            if col == "reads":
                 out = output.seq
-                df = merge_df.groupby("tax_id")[col].sum().reset_index()
-            elif col == "meandepth":
+                df = merge_df.groupby("tax_id", as_index=False)[col].sum()
+            elif col == "depth":
                 out = output.tax
-                df = merge_df.groupby("tax_id")[col].mean().reset_index()
+                df = merge_df.groupby("tax_id", as_index=False)[col].mean()
             df["abundance"] = df[col] / df[col].sum()
             df[["tax_id", "abundance"]].to_csv(out, sep="\t", header=False, index=False)
 
 
-rule get_cami_profile:
+rule get_CAMI_profile:
     input:
         tsv=os.path.join(dir.out.tax, "{sample}_{abundance}.tsv"),
         dmp=os.path.join(TAXONKIT, "names.dmp"),

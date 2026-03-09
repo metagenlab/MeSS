@@ -26,9 +26,9 @@ if ERRFREE:
 art_args += f"{config.args.art_args}"
 
 
-fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}")
+fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}")
 if CIRCULAR:
-    fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}", "{contig}_{n}")
+    fq_prefix = os.path.join(dir.out.short, "{sample}", "{fasta}")
 
 sam_out = [temp(fq_prefix + ".txt")]
 ext_cmd = f"touch {sam_out[0]} "
@@ -46,11 +46,7 @@ fastq_out = [
 if not PAIRED:
     fastq_out = temp(fq_prefix + ".fq")
 
-fasta = os.path.join(dir.out.processing, "split", "{fasta}_{contig}.fna")
-if CIRCULAR:
-    fasta = os.path.join(
-        dir.out.processing, "rotate", "{sample}", "{fasta}_{contig}_{n}.fna"
-    )
+fasta = os.path.join(dir.out.processing, "fasta", "{fasta}.fasta")
 
 
 rule art_illumina:
@@ -68,11 +64,9 @@ rule art_illumina:
         prefix=fq_prefix,
         cmd=ext_cmd,
     log:
-        os.path.join(dir.out.logs, "art", "{sample}", "{fasta}", "{contig}.log")
+        os.path.join(dir.out.logs, "art", "{sample}", "{fasta}.log")
         if not CIRCULAR
-        else os.path.join(
-            dir.out.logs, "art", "{sample}", "{fasta}", "{contig}_{n}.log"
-        ),
+        else os.path.join(dir.out.logs, "art", "{sample}", "{fasta}.log"),
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
