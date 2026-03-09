@@ -15,10 +15,10 @@ rule replicates_table:
         os.path.join(dir.scripts, "replicates.py")
 
 
-checkpoint calculate_genome_coverages:
+checkpoint calculate_coverages:
     input:
         rep=os.path.join(dir.out.base, "replicates.tsv"),
-        asm=get_asm_summary,
+        fa=os.path.join(dir.out.processing, "fasta_stats.tsv"),
     output:
         os.path.join(dir.out.base, "coverages.tsv"),
     params:
@@ -32,6 +32,7 @@ checkpoint calculate_genome_coverages:
         pairing=PAIRED,
         seed=SEED,
         amplicons=PRIMERSEARCH,
+        rotates=ROTATES,
     resources:
         mem_mb=config.resources.sml.mem,
         mem=str(config.resources.sml.mem) + "MB",
