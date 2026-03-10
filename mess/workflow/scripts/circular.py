@@ -19,7 +19,9 @@ rotates = snakemake.params.rotates
 random.seed(snakemake.params.seed)
 for fasta in matches.fasta.drop_duplicates().to_list():
     basename = strip_fasta_ext(os.path.basename(fasta))
-    for record in SeqIO.parse(fasta, "fasta"):
+    for record in SeqIO.parse(
+        os.path.join(snakemake.params.fadir, f"{basename}.fasta"), "fasta"
+    ):
         if matches["seq_id"].str.contains(record.id).any():
             ori_seq = record.seq
             seq_id = record.id
