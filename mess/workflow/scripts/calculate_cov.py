@@ -14,7 +14,7 @@ Functions
 
 def get_lognormal_dist(df, mu, sigma):
     """
-    function for simulating lognormal sequence distribution
+    function for simulating lognormal taxonomic distribution
     """
     dfs = []
     for sample in set(df["samplename"]):
@@ -22,7 +22,7 @@ def get_lognormal_dist(df, mu, sigma):
         subdf.loc[:, "lognormal"] = np.random.lognormal(
             mean=mu, sigma=sigma, size=len(subdf)
         )
-        subdf.loc[:, "seq_abundance"] = subdf["lognormal"] / subdf["lognormal"].sum()
+        subdf.loc[:, "tax_abundance"] = subdf["lognormal"] / subdf["lognormal"].sum()
         dfs.append(subdf)
     return pd.concat(dfs)
 
