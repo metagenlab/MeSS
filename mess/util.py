@@ -387,22 +387,17 @@ def sim_options(func):
         click.option(
             "--dist",
             help="Sample taxonomic abundances from a distribution",
-            type=click.Choice(["none", "lognormal", "even"]),
-            default="none",
+            type=click.Choice(["lognormal", "even"]),
+            default="lognormal",
             show_default=True,
         ),
         click.option(
             "--mu",
             help="Mu of lognormal dist",
             type=float,
-            default=1,
-        ),
-        click.option(
-            "--sigma",
-            help="Sigma of lognormal dist",
-            type=float,
             default=0,
         ),
+        click.option("--sigma", help="Sigma of lognormal dist", type=float, default=1),
         click.option(
             "--bases",
             help="Per sample base counts (ignored when coverage is set)",
