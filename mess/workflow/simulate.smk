@@ -14,7 +14,7 @@ REP_SD = config.args.rep_sd
 
 
 # fasta paths options
-FASTA_DIR = config.args.fasta
+FASTA_DIR = os.path.abspath(config.args.fasta)
 if "path" in tsv_df.columns:
     FASTA_PATH = True
 else:
