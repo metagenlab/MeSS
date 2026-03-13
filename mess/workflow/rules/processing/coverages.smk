@@ -23,7 +23,6 @@ checkpoint calculate_coverages:
         os.path.join(dir.out.base, "coverages.tsv"),
     params:
         fa_dir=FASTA_DIR,
-        fa_path=FASTA_PATH,
         dist=DIST,
         mu=MU,
         sigma=SIGMA,
